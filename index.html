@@ -3,135 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metro Mastering - Professional Audio Mastering</title>
-    <!-- Favicon with MM gradient logo -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' fill='%230d0d0d'/><text x='100' y='140' font-size='120' font-weight='900' font-family='system-ui, -apple-system, sans-serif' text-anchor='middle' fill='url(%23grad)'><tspan>MM</tspan></text><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23ff0052;stop-opacity:1' /><stop offset='100%' style='stop-color:%23ffb700;stop-opacity:1' /></linearGradient></defs></svg>" />
-    <script type="module">
-        import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/index.min.js';
-        window.emailjs = emailjs;
-    </script>
+    <title>Metro Mixing & Mastering | Professional Audio Engineering</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --black: #0a0a0a;
+            --white: #fafafa;
+            --accent: #ff3366;
+            --accent-dark: #cc0033;
+            --gray: #888888;
+            --gray-light: #cccccc;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --dark: #0d0d0d;
-            --darker: #050505;
-            --accent: #ff0052;
-            --accent-secondary: #ffb700;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --border: #2a2a2a;
-            --success: #00d084;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
-            background: linear-gradient(135deg, var(--darker) 0%, #1a1a1a 50%, var(--dark) 100%);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            line-height: 1.6;
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--black);
+            color: var(--white);
             overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-wave {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.03;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    var(--white) 2px,
+                    var(--white) 4px
+                );
+            animation: wave 20s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(40px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
         }
 
         /* Header */
         header {
-            position: relative;
-            padding: 2rem 0;
-            border-bottom: 1px solid var(--border);
-            background: rgba(5, 8, 16, 0.6);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            padding: 3rem 0;
+            border-bottom: 2px solid var(--accent);
+            animation: slideDown 0.8s ease-out;
         }
 
-        nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 8vw, 7rem);
+            letter-spacing: 0.05em;
+            line-height: 0.9;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--white) 0%, var(--gray-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 1.1rem;
+            color: var(--gray);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 1rem;
         }
 
-        .logo {
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            color: var(--accent);
-            position: relative;
-            z-index: 10;
-            text-shadow: 0 0 20px rgba(255, 0, 82, 0.2);
+        .tagline::before {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 2px;
+            background: var(--accent);
         }
 
-        nav .cta {
-            padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            border: none;
-            border-radius: 6px;
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            letter-spacing: 0.3px;
-        }
-
-        nav .cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(255, 0, 82, 0.4);
-        }
-
-        /* Hero */
+        /* Hero Section */
         .hero {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 6rem 2rem;
-            text-align: center;
+            padding: 4rem 0;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            color: var(--gray-light);
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1.2rem 3rem;
+            background: var(--accent);
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: all 0.3s ease;
+            border: 2px solid var(--accent);
             position: relative;
             overflow: hidden;
         }
 
-        .hero::before {
+        .cta-button::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(255, 0, 82, 0.25) 0%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(40px);
-            pointer-events: none;
-            z-index: 0;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            transition: left 0.3s ease;
+            z-index: -1;
         }
 
-        .hero::after {
+        .cta-button:hover::before {
+            left: 0;
+        }
+
+        .cta-button:hover {
+            color: var(--black);
+            border-color: var(--white);
+        }
+
+        /* Portfolio Section */
+        .portfolio {
+            padding: 6rem 0;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .section-title::after {
             content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -10%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(255, 183, 0, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(40px);
-            pointer-events: none;
-            z-index: 0;
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
         }
 
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            animation: fadeInUp 1s ease-out;
+        .section-subtitle {
+            font-size: 1rem;
+            color: var(--gray);
+            margin-bottom: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .spotify-embed {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+            transition: transform 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem;
+            border-radius: 16px;
+        }
+
+        .spotify-embed:nth-child(1) { animation-delay: 0.1s; }
+        .spotify-embed:nth-child(2) { animation-delay: 0.15s; }
+        .spotify-embed:nth-child(3) { animation-delay: 0.2s; }
+        .spotify-embed:nth-child(4) { animation-delay: 0.25s; }
+        .spotify-embed:nth-child(5) { animation-delay: 0.3s; }
+        .spotify-embed:nth-child(6) { animation-delay: 0.35s; }
+        .spotify-embed:nth-child(7) { animation-delay: 0.4s; }
+        .spotify-embed:nth-child(8) { animation-delay: 0.45s; }
+        .spotify-embed:nth-child(9) { animation-delay: 0.5s; }
+        .spotify-embed:nth-child(10) { animation-delay: 0.55s; }
+        .spotify-embed:nth-child(11) { animation-delay: 0.6s; }
+        .spotify-embed:nth-child(12) { animation-delay: 0.65s; }
+        .spotify-embed:nth-child(13) { animation-delay: 0.7s; }
+        .spotify-embed:nth-child(14) { animation-delay: 0.75s; }
+        .spotify-embed:nth-child(15) { animation-delay: 0.8s; }
+        .spotify-embed:nth-child(16) { animation-delay: 0.85s; }
+        .spotify-embed:nth-child(17) { animation-delay: 0.9s; }
+        .spotify-embed:nth-child(18) { animation-delay: 0.95s; }
+        .spotify-embed:nth-child(19) { animation-delay: 1s; }
+        .spotify-embed:nth-child(20) { animation-delay: 1.05s; }
+        .spotify-embed:nth-child(21) { animation-delay: 1.1s; }
+        .spotify-embed:nth-child(22) { animation-delay: 1.15s; }
+        .spotify-embed:nth-child(23) { animation-delay: 1.2s; }
+        .spotify-embed:nth-child(24) { animation-delay: 1.25s; }
+        .spotify-embed:nth-child(25) { animation-delay: 1.3s; }
+        .spotify-embed:nth-child(26) { animation-delay: 1.35s; }
+        .spotify-embed:nth-child(27) { animation-delay: 1.4s; }
+        .spotify-embed:nth-child(28) { animation-delay: 1.45s; }
+        .spotify-embed:nth-child(29) { animation-delay: 1.5s; }
+        .spotify-embed:nth-child(30) { animation-delay: 1.55s; }
+        .spotify-embed:nth-child(31) { animation-delay: 1.6s; }
 
         @keyframes fadeInUp {
             from {
@@ -144,1038 +265,278 @@
             }
         }
 
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 1rem;
-            letter-spacing: -1px;
-            color: var(--text-primary);
+        .spotify-embed:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.04);
         }
 
-        .hero-tagline {
-            font-size: 1.5rem;
-            color: var(--accent);
-            margin-bottom: 2rem;
-            font-weight: 700;
-            letter-spacing: 2px;
+        .spotify-embed iframe {
+            border-radius: 12px;
+            display: block;
+            width: 100%;
+            height: 380px;
+            border: none;
         }
 
-        .hero-tagline span {
-            display: inline-block;
-            color: var(--accent);
-            font-weight: 700;
-            margin: 0 0.3rem;
-            text-shadow: 0 0 30px rgba(255, 0, 82, 0.3);
+        /* Services Section */
+        .services {
+            padding: 6rem 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(255, 51, 102, 0.03) 100%);
         }
 
-        .hero-description {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto 3rem;
-            line-height: 1.8;
-        }
-
-        /* Features Grid */
-        .features {
+        .services-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-            margin: 3rem 0;
-            padding: 3rem;
-            background: rgba(255, 0, 82, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            backdrop-filter: blur(5px);
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
         }
 
-        .feature {
-            padding: 1.5rem;
-            border-left: 3px solid var(--accent);
-            transition: all 0.3s ease;
-        }
-
-        .feature:hover {
-            transform: translateX(8px);
-            background: rgba(255, 0, 82, 0.08);
-        }
-
-        .feature h3 {
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 0.8rem;
-            color: var(--accent);
-            font-weight: 700;
-        }
-
-        .feature p {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        /* Pricing Section */
-        .pricing-section {
-            max-width: 1200px;
-            margin: 4rem auto;
-            padding: 0 2rem;
-        }
-
-        .pricing-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .pricing-header h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            font-weight: 900;
-        }
-
-        .pricing-card {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 3rem;
-            background: linear-gradient(135deg, rgba(255, 0, 82, 0.08) 0%, rgba(255, 183, 0, 0.03) 100%);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            text-align: center;
+        .service-card {
+            padding: 2.5rem;
+            border: 2px solid var(--gray);
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
-            z-index: 2;
         }
 
-        .pricing-card::before {
+        .service-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 0, 82, 0.15), transparent);
-            transition: left 0.5s ease;
-            pointer-events: none;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            opacity: 0;
+            transition: opacity 0.3s ease;
             z-index: -1;
         }
 
-        .pricing-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 20px 60px rgba(255, 0, 82, 0.25);
-            transform: translateY(-8px);
+        .service-card:hover {
+            border-color: transparent;
+            transform: translateY(-5px);
         }
 
-        .pricing-card:hover::before {
-            left: 100%;
+        .service-card:hover::before {
+            opacity: 1;
         }
 
-        .price-amount {
-            font-size: 3rem;
-            font-weight: 900;
-            color: var(--accent);
-            margin: 1rem 0;
-            position: relative;
-            z-index: 2;
-            padding: 0;
-            text-shadow: 0 0 20px rgba(255, 0, 82, 0.2);
-        }
-
-        .price-period {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            margin-bottom: 2rem;
-            background: none;
-        }
-
-        .specs-list {
-            list-style: none;
-            margin: 2rem 0;
-            text-align: left;
-        }
-
-        .specs-list li {
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .specs-list li:last-child {
-            border-bottom: none;
-        }
-
-        .specs-list li::before {
-            content: '✓';
-            color: var(--accent);
-            font-weight: 900;
-            margin-right: 1rem;
-            font-size: 1.2rem;
-        }
-
-        .book-btn {
-            width: 100%;
-            padding: 1.2rem;
-            margin-top: 2rem;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            border: none;
-            border-radius: 8px;
-            color: #ffffff;
-            font-weight: 900;
-            font-size: 1rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .book-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 50px rgba(255, 0, 82, 0.4);
-        }
-
-        .book-btn:active {
-            transform: translateY(-2px);
-        }
-
-        /* Portfolio Section */
-        .portfolio-section {
-            max-width: 1400px;
-            margin: 5rem auto;
-            padding: 0 2rem;
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin-bottom: 3rem;
-            text-align: center;
-        }
-
-        .portfolio-intro {
-            text-align: center;
-            max-width: 700px;
-            margin: 0 auto 4rem;
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            line-height: 1.8;
-        }
-
-        .spotify-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-            margin-bottom: 4rem;
-        }
-
-        .spotify-embed-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-            animation: slideIn 0.6s ease-out forwards;
-            opacity: 0;
-            position: relative;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .spotify-embed-container:nth-child(1) { animation-delay: 0.1s; }
-        .spotify-embed-container:nth-child(2) { animation-delay: 0.2s; }
-        .spotify-embed-container:nth-child(3) { animation-delay: 0.3s; }
-        .spotify-embed-container:nth-child(4) { animation-delay: 0.4s; }
-        .spotify-embed-container:nth-child(5) { animation-delay: 0.5s; }
-        .spotify-embed-container:nth-child(6) { animation-delay: 0.6s; }
-        .spotify-embed-container:nth-child(7) { animation-delay: 0.7s; }
-        .spotify-embed-container:nth-child(8) { animation-delay: 0.8s; }
-        .spotify-embed-container:nth-child(9) { animation-delay: 0.9s; }
-        .spotify-embed-container:nth-child(10) { animation-delay: 1s; }
-        .spotify-embed-container:nth-child(11) { animation-delay: 1.1s; }
-
-        .spotify-embed-container:hover {
-            border-color: var(--accent);
-            box-shadow: 0 12px 40px rgba(255, 0, 82, 0.25);
-            transform: translateY(-8px);
-        }
-
-        .spotify-embed-container.now-playing {
-            border-color: var(--accent);
-            box-shadow: 0 12px 40px rgba(255, 0, 82, 0.35);
-            background: rgba(255, 0, 82, 0.05);
-        }
-
-        .spotify-embed-container.now-playing::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
-            border-radius: 12px 12px 0 0;
-        }
-
-        .spotify-embed-container iframe {
-            display: block;
-        }
-
-        /* CTA Footer */
-        .cta-footer {
-            max-width: 1200px;
-            margin: 5rem auto;
-            padding: 4rem 2rem;
-            text-align: center;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            background: rgba(255, 0, 82, 0.08);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta-footer h2 {
+        .service-card h3 {
+            font-family: 'Bebas Neue', sans-serif;
             font-size: 2rem;
+            letter-spacing: 0.05em;
             margin-bottom: 1rem;
-            font-weight: 900;
+            color: var(--white);
         }
 
-        .cta-footer p {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-        }
-
-        .cta-footer .book-btn {
-            max-width: 300px;
-            margin: 0 auto;
+        .service-card p {
+            line-height: 1.6;
+            color: var(--gray-light);
         }
 
         /* Footer */
         footer {
-            border-top: 1px solid var(--border);
-            padding: 3rem 2rem;
+            padding: 4rem 0 2rem;
+            border-top: 2px solid var(--accent);
+            margin-top: 6rem;
             text-align: center;
-            color: var(--text-secondary);
+        }
+
+        footer p {
+            color: var(--gray);
             font-size: 0.9rem;
-            margin-top: 5rem;
+            letter-spacing: 0.1em;
+        }
+
+        footer .cta-button {
+            margin: 2rem 0;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
+            .container {
+                padding: 0 1rem;
             }
 
-            .hero-tagline {
-                font-size: 1.2rem;
+            .tagline {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
-            .pricing-card {
-                padding: 2rem;
-            }
-
-            .section-title {
-                font-size: 1.8rem;
-            }
-
-            .spotify-grid {
+            .portfolio-grid {
                 grid-template-columns: 1fr;
             }
 
-            .features {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Scroll animations */
-        .fade-in {
-            opacity: 0;
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            margin: 5% auto;
-            padding: 0;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 30px 80px rgba(255, 0, 82, 0.3);
-            animation: slideDown 0.4s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            padding: 2rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            font-size: 1.8rem;
-            font-weight: 900;
-            margin: 0;
-            color: var(--accent);
-            text-shadow: 0 0 20px rgba(255, 0, 82, 0.2);
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 2rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: color 0.3s ease;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .close-btn:hover {
-            color: var(--accent);
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 0.875rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: rgba(255, 0, 82, 0.05);
-            box-shadow: 0 0 0 3px rgba(255, 0, 82, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        @media (max-width: 600px) {
-            .form-row {
+            .services-grid {
                 grid-template-columns: 1fr;
             }
 
-            .modal-content {
-                width: 95%;
-                margin: 20% auto;
-            }
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            border: none;
-            border-radius: 6px;
-            color: #ffffff;
-            font-weight: 900;
-            font-size: 1rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(255, 0, 82, 0.3);
-        }
-
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .form-info {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-top: 0.5rem;
-        }
-
-        .success-message {
-            display: none;
-            background: rgba(0, 208, 132, 0.1);
-            border: 1px solid var(--success);
-            color: var(--success);
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .error-message {
-            display: none;
-            background: rgba(255, 0, 82, 0.1);
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        /* Booking Page Styles */
-        .booking-page {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            z-index: 999;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            animation: slideInFromRight 0.4s ease-out;
-        }
-
-        @keyframes slideInFromRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .booking-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            flex-shrink: 0;
-            z-index: 1000;
-        }
-
-        .booking-header h1 {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--accent);
-            margin: 0;
-            text-shadow: 0 0 20px rgba(255, 0, 82, 0.2);
-        }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-        }
-
-        .back-btn:hover {
-            color: var(--accent);
-            background: rgba(255, 0, 82, 0.1);
-        }
-
-        .booking-container {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 2rem;
-        }
-
-        .booking-info {
-            display: none;
-        }
-
-        .booking-form-container {
-            width: 100%;
-            max-width: 900px;
-            background: transparent;
-            border: none;
-            border-radius: 0;
-            overflow: visible;
-            height: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .booking-form-container iframe {
-            flex: 1;
-            border: none;
-            width: 100%;
-            min-height: 800px;
-            border-radius: 8px;
-        }
-
-        @media (max-width: 1024px) {
-            .booking-container {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
-            .booking-form-container {
-                max-height: none;
-            }
-
-            .booking-info {
-                order: 2;
-                display: none;
-            }
-
-            .booking-form-container {
-                order: 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .booking-header {
-                padding: 1rem;
-            }
-
-            .booking-header h1 {
-                font-size: 1.2rem;
-            }
-
-            .booking-container {
-                padding: 1rem;
-            }
-
-            .booking-form-container iframe {
-                min-height: 600px;
-            }
-
-            .booking-info h2 {
-                font-size: 1.5rem;
+            .spotify-embed iframe {
+                height: 380px;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="logo">METRO</div>
-            <button class="cta">Book Now</button>
-        </nav>
-    </header>
+    <div class="bg-wave"></div>
+    
+    <div class="container">
+        <header>
+            <h1>METRO<br>MIXING &<br>MASTERING</h1>
+            <div class="tagline">
+                <span>Professional Audio Engineering</span>
+            </div>
+        </header>
 
-    <main>
         <section class="hero">
             <div class="hero-content">
-                <h1>Metro Mastering</h1>
-                <p class="hero-tagline"><span>Precision.</span> <span>Punch.</span> <span>Clarity.</span></p>
-                <p class="hero-description">
-                    Professional stereo mastering for serious artists. We deliver radio-ready masters that translate perfectly across all platforms.
+                <p>
+                    Elevate your sound with precision mixing and mastering services. 
+                    From indie releases to full-scale productions, I bring clarity, 
+                    punch, and professional polish to every track.
                 </p>
-
-                <div class="features">
-                    <div class="feature">
-                        <h3>🎵 Hi-Res Formats</h3>
-                        <p>Upload 24-bit / 32-bit WAV files for pristine quality</p>
-                    </div>
-                    <div class="feature">
-                        <h3>⚡ Fast Turnaround</h3>
-                        <p>Guaranteed scheduled delivery on your timeline</p>
-                    </div>
-                    <div class="feature">
-                        <h3>✎ Revisions Included</h3>
-                        <p>3 free revisions to get your master perfect</p>
-                    </div>
-                    <div class="feature">
-                        <h3>📥 Ready to Ship</h3>
-                        <p>Final master returned in WAV format</p>
-                    </div>
-                </div>
+                <a href="https://engineears.com/whoisthemetro" class="cta-button">Get Started</a>
             </div>
         </section>
 
-        <section class="pricing-section">
-            <div class="pricing-header">
-                <h2>Simple Pricing</h2>
-            </div>
-            <div class="pricing-card">
-                <div class="price-amount">$75</div>
-                <div class="price-period">per song</div>
-                
-                <ul class="specs-list">
-                    <li>24-bit / 32-bit WAV upload</li>
-                    <li>Professional stereo mastering</li>
-                    <li>Guaranteed scheduled delivery</li>
-                    <li>3 free revisions included</li>
-                    <li>WAV file delivery</li>
-                </ul>
-
-                <button class="book-btn">Book Your Master</button>
-            </div>
-        </section>
-
-        <section class="portfolio-section">
-            <h2 class="section-title">Masters</h2>
-            <p class="portfolio-intro">
-                Hear the precision and clarity we bring to every project. Our masters sound incredible across streaming platforms, radio, and professional monitors.
-            </p>
-
-            <div class="spotify-grid">
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/album/1oUPauDyhV2zoX5DQ0AimS?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/album/2bwq4RXItbm9SKAwCWMqj4?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/album/19k3Zv8uK4WvLEdUgBPCqg?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/4OqrXdV3YmRAjSyRAUw7IS?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/album/2KPkkPDpArz9G2i6102wjV?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/6jrRvrqAFFgXdXnFkfzJ0D?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/0iOez7zPHcJs3kvhsWSCdS?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/album/2ImN6RSke4EZUMOrMjCL6T?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/album/13ujZzQKoAE1m5ghBHogw0?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/album/5rUQ3tQHfBz3bLQz5n4yu4?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/3a1EKFGccKVWpBmxTcuO8N?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/5EgHF6oEa1wyRcUYNueIOP?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/6W8iHlH2wTJJHiA5elND2R?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/3bvrwYJtKxqP6zGv2SjTnP?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/33UKlSszMN2l6FTvsL5AWv?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed-container">
-                    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/3mWvJ3SQFBo7FaLIPRDzzv?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-            </div>
-        </section>
-
-        <section class="cta-footer">
-            <h2>Ready to Master Your Track?</h2>
-            <p>Get professional audio mastering for $75. Simple, fast, and guaranteed delivery.</p>
-            <button class="book-btn">Book Your Master Today</button>
-        </section>
-    </main>
-
-    <!-- Booking Page (Hidden by default) -->
-    <div id="bookingPage" class="booking-page" style="display: none;">
-        <div class="booking-header">
-            <button class="back-btn">← Back</button>
-            <h1>Book Your Master</h1>
-            <div></div>
-        </div>
-        <div class="booking-container">
-            <div class="booking-info">
-                <h2>Complete Your Booking</h2>
-                <p>Fill out the form below and we'll get your master started right away.</p>
-                <div class="info-card">
-                    <h3>Service Details</h3>
-                    <ul>
-                        <li>Professional stereo mastering</li>
-                        <li>3 free revisions</li>
-                        <li>Guaranteed scheduled delivery</li>
-                        <li>WAV file delivery</li>
-                    </ul>
-                </div>
-                <div class="pricing-info">
-                    <p><strong>$75 per song</strong></p>
-                </div>
-            </div>
-            <div class="booking-form-container">
-                <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc70gEwUngBOf4obynQWG8fYooaU4Qp2EiqQ8GgtcUDA60s0w/viewform?embedded=true" width="100%" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        <p>&copy; 2026 Metro Mastering. All rights reserved.</p>
-    </footer>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const bookingPage = document.getElementById('bookingPage');
-            const bookButtons = document.querySelectorAll('.book-btn');
-            const backBtn = document.querySelector('.back-btn');
-            const mainContent = document.querySelector('main');
-            const navCta = document.querySelector('nav .cta');
-
-            console.log('DOM loaded, buttons found:', bookButtons.length);
-
-            function openBookingPage() {
-                console.log('Opening booking page');
-                bookingPage.style.display = 'block';
-                mainContent.style.display = 'none';
-                document.body.style.overflow = 'hidden';
-                window.scrollTo(0, 0);
-            }
-
-            function closeBookingPage() {
-                console.log('Closing booking page');
-                bookingPage.style.display = 'none';
-                mainContent.style.display = 'block';
-                document.body.style.overflow = 'auto';
-            }
-
-            // Open booking page when any book button is clicked
-            bookButtons.forEach((button, index) => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Book button clicked:', index);
-                    openBookingPage();
-                });
-            });
-
-            // Open booking page for header CTA button
-            if (navCta) {
-                navCta.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Nav CTA clicked');
-                    openBookingPage();
-                });
-            }
-
-            // Back button functionality
-            if (backBtn) {
-                backBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    closeBookingPage();
-                });
-            }
-
-            // Intersection Observer for fade-in animations
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('fade-in');
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.feature, .spotify-embed-container').forEach(el => {
-                observer.observe(el);
-            });
-
-            // Single audio playback across Spotify embeds
-            let currentPlayingFrame = null;
-            let playbackCheckInterval = null;
-
-            function stopOtherPlayers(currentFrame) {
-                const allFrames = document.querySelectorAll('.spotify-embed-container iframe');
-                allFrames.forEach(frame => {
-                    if (frame !== currentFrame && frame !== currentPlayingFrame) {
-                        // Send postMessage to stop the frame
-                        frame.contentWindow.postMessage({action: 'pause'}, '*');
-                    }
-                });
-                currentPlayingFrame = currentFrame;
-            }
-
-            // Monitor Spotify iframe play button clicks
-            const spotifyContainers = document.querySelectorAll('.spotify-embed-container');
+        <section class="portfolio">
+            <h2 class="section-title">Portfolio</h2>
+            <p class="section-subtitle">Recent Projects & Releases</p>
             
-            spotifyContainers.forEach((container, index) => {
-                const iframe = container.querySelector('iframe');
+            <div class="portfolio-grid">
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/1oUPauDyhV2zoX5DQ0AimS?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/2bwq4RXItbm9SKAwCWMqj4?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/19k3Zv8uK4WvLEdUgBPCqg?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/4OqrXdV3YmRAjSyRAUw7IS?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/2KPkkPDpArz9G2i6102wjV?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/6jrRvrqAFFgXdXnFkfzJ0D?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/0iOez7zPHcJs3kvhsWSCdS?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/2ImN6RSke4EZUMOrMjCL6T?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/13ujZzQKoAE1m5ghBHogw0?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/5rUQ3tQHfBz3bLQz5n4yu4?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/3a1EKFGccKVWpBmxTcuO8N?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/5EgHF6oEa1wyRcUYNueIOP?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/6W8iHlH2wTJJHiA5elND2R?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/3bvrwYJtKxqP6zGv2SjTnP?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/33UKlSszMN2l6FTvsL5AWv?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/3mWvJ3SQFBo7FaLIPRDzzv?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/7BfgsTLCP60202M1g2031F?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/7JyRapE8D0m1RqE2kc6948?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/2PpTNa5qSjUIa7D0jXeeSx?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/5S9mdx3QjG4GukxEH6pB9I?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/7CNJjJtg3tJP2EbeC5lhiZ?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/3niYu8wOVqTDGkAY760coY?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/5fXV5c6MRKM9caB2Oj94Vx?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/5m9DyvhiWXwUwj0oDZLrUJ?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/08LF3pj1xX7JXuUmwVlPqg?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/45fu5JdOhsGQi34dvzMifY?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/63jW7RX8zyh8y8XfzWRwCD?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/5yhDlVe0io5FVgF6MeuQHj?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/3J8NSCs7MF8fTY6FzxiGDJ?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/32zoosDllsJNqP2z43eM4S?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <div class="spotify-embed">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/37FEHxsrq96yYRs2bC9sXx?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+            </div>
+        </section>
+
+        <section class="services">
+            <div class="container">
+                <h2 class="section-title">Services</h2>
                 
-                // Create observer for iframe changes
-                const iframeObserver = new MutationObserver(() => {
-                    // Check if play button was clicked by looking at iframe interactions
-                    if (currentPlayingFrame !== iframe) {
-                        stopOtherPlayers(iframe);
-                    }
-                });
+                <div class="services-grid">
+                    <div class="service-card">
+                        <h3>Mixing</h3>
+                        <p>
+                            Professional multi-track mixing with attention to balance, 
+                            frequency spectrum, dynamics, and spatial positioning. 
+                            Bringing your vision to life with clarity and impact.
+                        </p>
+                    </div>
+                    <div class="service-card">
+                        <h3>Mastering</h3>
+                        <p>
+                            Final polish for streaming and distribution. Competitive 
+                            loudness, tonal balance, and quality control to ensure 
+                            your tracks sound great everywhere.
+                        </p>
+                    </div>
+                    <div class="service-card">
+                        <h3>Full Production</h3>
+                        <p>
+                            End-to-end audio production services. From tracking 
+                            consultation to final delivery, comprehensive support 
+                            for your project at every stage.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                // Observe the iframe for changes
-                iframeObserver.observe(container, {
-                    subtree: true,
-                    childList: true,
-                    attributes: true,
-                    attributeFilter: ['aria-pressed', 'class', 'data-testid']
-                });
-
-                // Add click interceptor
-                container.addEventListener('click', function(e) {
-                    // Check if user clicked on play button area
-                    const isPlayButton = e.target.closest('[aria-label*="Play"], button[role="button"], [class*="play"]');
-                    if (isPlayButton || e.target.closest('svg')) {
-                        stopOtherPlayers(iframe);
-                    }
-                }, true);
-            });
-
-            // Fallback: Listen for common Spotify player events
-            window.addEventListener('message', (event) => {
-                if (event.data && event.data.type === 'SpotifyPlay') {
-                    const sourceFrame = event.source;
-                    const allFrames = document.querySelectorAll('.spotify-embed-container iframe');
-                    
-                    allFrames.forEach(frame => {
-                        if (frame.contentWindow !== sourceFrame) {
-                            frame.contentWindow.postMessage({action: 'pause'}, '*');
-                        }
-                    });
-                    currentPlayingFrame = sourceFrame;
-                }
-            });
-
-            // Track playback state by polling iframe class changes
-            const pollPlaybackState = () => {
-                const allFrames = document.querySelectorAll('.spotify-embed-container iframe');
-                let activePlayers = [];
-
-                allFrames.forEach(frame => {
-                    const container = frame.parentElement;
-                    // Check various indicators that player is active
-                    const isPlaying = container.classList.contains('playing') || 
-                                    container.getAttribute('data-playing') === 'true' ||
-                                    frame.classList.contains('playing');
-                    
-                    if (isPlaying && currentPlayingFrame !== frame) {
-                        activePlayers.push(frame);
-                    }
-                });
-
-                // If multiple players detected as active, pause all except the last interacted one
-                if (activePlayers.length > 1 && currentPlayingFrame) {
-                    activePlayers.forEach(frame => {
-                        if (frame !== currentPlayingFrame) {
-                            try {
-                                frame.contentWindow.postMessage({action: 'pause'}, '*');
-                            } catch (e) {
-                                // Cross-origin, silently fail
-                            }
-                        }
-                    });
-                }
-            };
-
-            // Start polling every 500ms
-            playbackCheckInterval = setInterval(pollPlaybackState, 500);
-
-            // Cleanup on page unload
-            window.addEventListener('beforeunload', () => {
-                if (playbackCheckInterval) {
-                    clearInterval(playbackCheckInterval);
-                }
-            });
-
-            // Better approach: Track clicks on play buttons with event delegation
-            document.addEventListener('click', function(e) {
-                // Check if click is within a Spotify embed
-                const spotifyContainer = e.target.closest('.spotify-embed-container');
-                if (spotifyContainer) {
-                    const iframe = spotifyContainer.querySelector('iframe');
-                    if (iframe && e.target.closest('button') || e.target.tagName === 'svg' || e.target.closest('svg')) {
-                        // This is likely a play button click
-                        stopOtherPlayers(iframe);
-                    }
-                }
-            }, true);
-        });
-    </script>
+        <footer id="contact">
+            <p style="margin-bottom: 2rem;">Ready to work together? Let's talk about your project.</p>
+            <a href="https://engineears.com/whoisthemetro" class="cta-button">Contact Me</a>
+            <p style="margin-top: 3rem; opacity: 0.5;">© 2024 Metro Mixing & Mastering. All Rights Reserved</p>
+        </footer>
+    </div>
 </body>
 </html>
