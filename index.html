@@ -166,7 +166,7 @@ main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: c
 nav {
   position: relative; z-index: 2;
   display: flex; align-items: center; justify-content: center; gap: 1.4rem;
-  padding: .4rem 0 1.4rem;
+  padding: .4rem 0 0;
 }
 nav button {
   font: inherit; font-size: 1rem; line-height: 1; cursor: pointer;
@@ -174,7 +174,9 @@ nav button {
   border: 1px solid #333; border-radius: 999px; width: 2.6rem; height: 2.6rem; transition: all .2s;
 }
 nav button:hover { border-color: var(--accent); color: var(--accent); }
-#counter { font-size: .66rem; letter-spacing: .3em; color: var(--gray); min-width: 5.5rem; text-align: center; }
+#play { border-color: rgba(255,51,102,.55); color: var(--accent); font-size: 1.05rem; }
+#play.live { background: rgba(255,51,102,.12); border-color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
+#counter { font-size: .66rem; letter-spacing: .3em; color: var(--gray); text-align: center; padding: .5rem 0 .9rem; }
 #counter b { color: var(--white); font-weight: 600; }
 footer { position: relative; z-index: 2; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: 0 1rem 1rem; text-transform: uppercase; }
 footer a { color: #8a8792; text-decoration: none; }
@@ -209,9 +211,10 @@ footer a:hover { color: var(--accent); }
 
 <nav>
   <button id="prev" aria-label="previous plaque">←</button>
-  <span id="counter"><b>01</b> / 00</span>
+  <button id="play" aria-label="play this plaque">▶</button>
   <button id="next" aria-label="next plaque">→</button>
 </nav>
+<div id="counter"><b>01</b> / 00</div>
 
 <footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
 
@@ -433,21 +436,40 @@ WORKS.forEach((w, i) => {
 const slots = [...rail.children];
 document.querySelector("#counter").innerHTML = `<b>01</b> / ${String(WORKS.length).padStart(2,"0")}`;
 
+/* ---- spotify's iframe api: one controller we can actually drive ---- */
+let IFA = null, controller = null, paused = true;
+window.onSpotifyIframeApiReady = (api) => { IFA = api; };
+
 /* ---- flip to play (one player at a time, so audio never overlaps) ---- */
 let open = null;
 function unflip() {
   if (!open) return;
-  open.classList.remove("flipped");
-  const p = open.querySelector(".player"); setTimeout(() => { p.innerHTML = ""; }, 700); // let the flip finish, then kill the audio
-  open = null;
+  const s = open; open = null;
+  s.classList.remove("flipped");
+  if (controller) { try { controller.destroy(); } catch (e) {} controller = null; }
+  paused = true; updatePlayBtn();
+  setTimeout(() => { s.querySelector(".player").innerHTML = ""; }, 700); // let the flip finish, then clear the leftovers
 }
-function flip(slot) {
+function flip(slot, autoplay) {
   if (open === slot) return unflip();
   unflip();
   const w = WORKS[slot.dataset.i];
-  slot.querySelector(".player").innerHTML =
-    `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" title="${w.title.replace(/"/g,"")}"></iframe>`;
+  const player = slot.querySelector(".player");
+  player.innerHTML = "";
+  if (IFA) {
+    const host = document.createElement("div");
+    player.appendChild(host);
+    IFA.createController(host, { uri: `spotify:${w.kind}:${w.id}`, width: "100%", height: "100%" }, (c) => {
+      controller = c;
+      c.addListener("playback_update", (e) => { paused = !!e.data.isPaused; updatePlayBtn(); });
+      if (autoplay) c.addListener("ready", () => c.play());
+    });
+  } else {
+    // api script blocked? fall back to the plain embed — tap its own play
+    player.innerHTML =
+      `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" title="${w.title.replace(/"/g,"")}"></iframe>`;
+  }
   slot.classList.add("flipped");
   open = slot;
   center(+slot.dataset.i, true);
@@ -457,6 +479,19 @@ rail.addEventListener("click", (e) => {
   if (e.target.closest(".close")) return unflip();
   if (e.target.closest("iframe, .player")) return;
   flip(slot);
+});
+
+/* ---- the transport: play whatever plaque is front and center ---- */
+const playBtn = document.getElementById("play");
+function updatePlayBtn() {
+  const focusedPlaying = open && +open.dataset.i === nearest() && controller && !paused;
+  playBtn.textContent = focusedPlaying ? "❚❚" : "▶";
+  playBtn.classList.toggle("live", !!focusedPlaying);
+}
+playBtn.addEventListener("click", () => {
+  const slot = slots[nearest()];
+  if (open === slot && controller) return controller.togglePlay(); // already showing its back — just play/pause
+  flip(slot, true);                                                // flip it over and start it spinning
 });
 
 /* ---- the wall moves as a whole: native swipe (snap) + desktop drag + wheel + keys ---- */
@@ -505,6 +540,7 @@ document.getElementById("next").addEventListener("click", () => { unflip(); cent
 window.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft")  { unflip(); center(nearest() - 1, true); }
   if (e.key === "ArrowRight") { unflip(); center(nearest() + 1, true); }
+  if (e.key === " ") { e.preventDefault(); playBtn.click(); }
   if (e.key === "Escape") unflip();
 });
 let tick = null;
@@ -513,8 +549,10 @@ rail.addEventListener("scroll", () => {
   tick = requestAnimationFrame(() => {
     tick = null;
     document.querySelector("#counter b").textContent = String(nearest() + 1).padStart(2, "0");
+    updatePlayBtn(); // scrolled away from the playing plaque? the transport offers ▶ for the new one
   });
 });
 </script>
+<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
 </html>
