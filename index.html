@@ -1,493 +1,520 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metro Mixing & Mastering | Professional Audio Engineering</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --black: #0a0a0a;
-            --white: #fafafa;
-            --accent: #ff3366;
-            --accent-dark: #cc0033;
-            --gray: #888888;
-            --gray-light: #cccccc;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Metro Mixing & Mastering | The Wall</title>
+<meta name="description" content="Albums and singles mixed & mastered by THE METRO — swipe the wall, flip a plaque, press play.">
+<meta property="og:title" content="Metro Mixing & Mastering">
+<meta property="og:description" content="The wall of records — every plaque plays.">
+<meta property="og:image" content="https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0248c09fd32d15017a3a183290">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0c;
+  --white: #fafafa;
+  --accent: #ff3366;
+  --gray: #888;
+  --plat-hi: #e8ecf2; --plat-lo: #9aa2ae;
+  --gold-hi: #f0d98a; --gold-lo: #a97e2f;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--black);
+  color: var(--white);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+}
+/* the wall: dark plaster + a soft gallery spotlight + faint scanlines (the old page's texture) */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% -20%, rgba(255,255,255,.085) 0%, transparent 60%),
+    radial-gradient(80% 60% at 50% 110%, rgba(255,51,102,.05) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(250,250,250,.012) 2px, rgba(250,250,250,.012) 4px);
+}
+header {
+  position: relative; z-index: 2;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  padding: 1.6rem 2rem 1.2rem;
+  border-bottom: 2px solid var(--accent);
+}
+h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.6rem, 4.5vw, 2.6rem); letter-spacing: .12em; line-height: 1; font-weight: 400; }
+h1 em { font-style: normal; color: var(--accent); }
+.sub { font-size: .6rem; letter-spacing: .3em; color: var(--gray); text-transform: uppercase; }
+.ig { font-size: .66rem; letter-spacing: .14em; color: var(--white); text-decoration: none;
+  border: 1px solid #333; border-radius: 999px; padding: .5rem 1rem; white-space: nowrap; transition: all .2s; }
+.ig:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* ------ the rail of plaques ------ */
+main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+#rail {
+  display: flex; align-items: center; gap: clamp(1.2rem, 4vw, 3rem);
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  padding: 3vh calc(50vw - min(39vw, 210px, 25vh));  /* half a plaque, so first & last can center */
+  scrollbar-width: none; -ms-overflow-style: none;
+  cursor: grab;
+}
+#rail::-webkit-scrollbar { display: none; }
+#rail.dragging { scroll-snap-type: none; cursor: grabbing; }
+.slot { scroll-snap-align: center; flex: 0 0 auto; perspective: 1400px; }
 
-        body {
-            font-family: 'IBM Plex Mono', monospace;
-            background: var(--black);
-            color: var(--white);
-            overflow-x: hidden;
-        }
+/* ------ one plaque ------ */
+.plaque {
+  position: relative;
+  width: min(78vw, 420px, 50vh);  /* 50vh*13/10 = 65vh tall — clears header+nav on short screens */
+  aspect-ratio: 10 / 13;
+  transform-style: preserve-3d;
+  transition: transform .7s cubic-bezier(.4,.1,.2,1);
+}
+.slot:nth-child(odd)  .plaque { rotate: .5deg; }
+.slot:nth-child(even) .plaque { rotate: -.5deg; }
+.slot.flipped .plaque { transform: rotateY(180deg); rotate: 0deg; }
+.face {
+  position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  border-radius: 6px;
+  /* the wooden frame */
+  border: 12px solid transparent;
+  background:
+    linear-gradient(155deg, #191a1f 0%, #101014 55%, #1c1d23 100%) padding-box,
+    linear-gradient(155deg, #4a4a52 0%, #232329 30%, #101013 60%, #3a3a42 100%) border-box;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 18px 40px rgba(0,0,0,.65),
+    0 4px 10px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; align-items: center;
+  overflow: hidden;
+}
+/* glass over the front */
+.face.front::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.03) 28%, transparent 42%, transparent 75%, rgba(255,255,255,.05) 100%);
+}
+.face.back { transform: rotateY(180deg); justify-content: center; padding: 1.1rem; gap: .7rem; }
 
-        /* Animated background */
-        .bg-wave {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0.03;
-            background: 
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 2px,
-                    var(--white) 2px,
-                    var(--white) 4px
-                );
-            animation: wave 20s linear infinite;
-        }
+/* the record */
+.disc {
+  position: relative;
+  width: 68%; aspect-ratio: 1; border-radius: 50%;
+  margin-top: 9%;
+  box-shadow: 0 10px 26px rgba(0,0,0,.6), 0 0 0 1px rgba(0,0,0,.55);
+}
+.disc::before { /* metal + grooves */
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.16) 0 1px, transparent 1px 4px),
+    conic-gradient(from 210deg, var(--hi) 0%, var(--lo) 12%, var(--hi) 26%, var(--lo) 40%, #fdfdfd 50%, var(--lo) 62%, var(--hi) 76%, var(--lo) 90%, var(--hi) 100%);
+}
+.disc::after { /* soft dome light */
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.35) 0%, transparent 45%);
+  mix-blend-mode: soft-light;
+}
+.plaque .platinum { --hi: var(--plat-hi); --lo: var(--plat-lo); }
+.plaque .gold     { --hi: var(--gold-hi); --lo: var(--gold-lo); }
+.label {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 42%; aspect-ratio: 1; border-radius: 50%;
+  background-size: cover; background-position: center;
+  box-shadow: 0 0 0 3px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.5);
+  z-index: 1;
+}
+.label::after { /* spindle hole */
+  content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 7%; aspect-ratio: 1; border-radius: 50%;
+  background: #0a0a0c; box-shadow: 0 0 0 2px rgba(255,255,255,.25);
+}
 
-        @keyframes wave {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(40px); }
-        }
+/* the engraved plate */
+.plate {
+  margin-top: auto; margin-bottom: 7%;
+  width: 78%;
+  padding: .6rem .8rem .55rem;
+  text-align: center; border-radius: 3px;
+  background: linear-gradient(170deg, var(--hi) 0%, var(--lo) 70%, var(--hi) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.5);
+  color: #1c1a14;
+}
+.plate .title {
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(.85rem, 2.6vw, 1.08rem); letter-spacing: .1em; line-height: 1.1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+}
+.plate .cert {
+  margin-top: .28rem; font-size: .5rem; letter-spacing: .22em; text-transform: uppercase; opacity: .78;
+  text-shadow: 0 1px 0 rgba(255,255,255,.3);
+}
+.plate .by { margin-top: .18rem; font-size: .48rem; letter-spacing: .18em; text-transform: uppercase; opacity: .62; }
 
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
+/* back face: the player */
+.back .hint { font-size: .56rem; letter-spacing: .2em; color: var(--gray); text-transform: uppercase; }
+.back .player { width: 100%; flex: 0 1 352px; min-height: 140px; border-radius: 12px; overflow: hidden; } /* 352 = spotify's full album embed; shrinks on short plaques, never stretches into dead space */
+.back iframe { display: block; width: 100%; height: 100%; border: 0; }
+.back .close {
+  font: inherit; font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;
+  color: var(--white); background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: .5rem 1.1rem; transition: all .2s;
+}
+.back .close:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* Header */
-        header {
-            padding: 3rem 0;
-            border-bottom: 2px solid var(--accent);
-            animation: slideDown 0.8s ease-out;
-        }
+/* ------ nav ------ */
+nav {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: center; gap: 1.4rem;
+  padding: .4rem 0 1.4rem;
+}
+nav button {
+  font: inherit; font-size: 1rem; line-height: 1; cursor: pointer;
+  color: var(--white); background: rgba(255,255,255,.04);
+  border: 1px solid #333; border-radius: 999px; width: 2.6rem; height: 2.6rem; transition: all .2s;
+}
+nav button:hover { border-color: var(--accent); color: var(--accent); }
+#counter { font-size: .66rem; letter-spacing: .3em; color: var(--gray); min-width: 5.5rem; text-align: center; }
+#counter b { color: var(--white); font-weight: 600; }
+footer { position: relative; z-index: 2; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: 0 1rem 1rem; text-transform: uppercase; }
+footer a { color: #8a8792; text-decoration: none; }
+footer a:hover { color: var(--accent); }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: clamp(3rem, 8vw, 7rem);
-            letter-spacing: 0.05em;
-            line-height: 0.9;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--white) 0%, var(--gray-light) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .tagline {
-            font-size: 1.1rem;
-            color: var(--gray);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .tagline::before {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 2px;
-            background: var(--accent);
-        }
-
-        /* Hero Section */
-        .hero {
-            padding: 4rem 0;
-            animation: fadeIn 1s ease-out 0.3s both;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .hero-content {
-            max-width: 800px;
-        }
-
-        .hero-content p {
-            font-size: 1.3rem;
-            line-height: 1.8;
-            margin-bottom: 2rem;
-            color: var(--gray-light);
-        }
-
-        .cta-button {
-            display: inline-block;
-            padding: 1.2rem 3rem;
-            background: var(--accent);
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            transition: all 0.3s ease;
-            border: 2px solid var(--accent);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: var(--white);
-            transition: left 0.3s ease;
-            z-index: -1;
-        }
-
-        .cta-button:hover::before {
-            left: 0;
-        }
-
-        .cta-button:hover {
-            color: var(--black);
-            border-color: var(--white);
-        }
-
-        /* Portfolio Section */
-        .portfolio {
-            padding: 6rem 0;
-            animation: fadeIn 1s ease-out 0.6s both;
-        }
-
-        .section-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: clamp(2.5rem, 5vw, 4rem);
-            letter-spacing: 0.05em;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .section-title::after {
-            content: '';
-            flex: 1;
-            height: 2px;
-            background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
-        }
-
-        .section-subtitle {
-            font-size: 1rem;
-            color: var(--gray);
-            margin-bottom: 4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        .portfolio-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .spotify-embed {
-            opacity: 0;
-            animation: fadeInUp 0.6s ease-out forwards;
-            transition: transform 0.3s ease;
-            background: rgba(255, 255, 255, 0.02);
-            padding: 1rem;
-            border-radius: 16px;
-        }
-
-        .spotify-embed:nth-child(1) { animation-delay: 0.1s; }
-        .spotify-embed:nth-child(2) { animation-delay: 0.15s; }
-        .spotify-embed:nth-child(3) { animation-delay: 0.2s; }
-        .spotify-embed:nth-child(4) { animation-delay: 0.25s; }
-        .spotify-embed:nth-child(5) { animation-delay: 0.3s; }
-        .spotify-embed:nth-child(6) { animation-delay: 0.35s; }
-        .spotify-embed:nth-child(7) { animation-delay: 0.4s; }
-        .spotify-embed:nth-child(8) { animation-delay: 0.45s; }
-        .spotify-embed:nth-child(9) { animation-delay: 0.5s; }
-        .spotify-embed:nth-child(10) { animation-delay: 0.55s; }
-        .spotify-embed:nth-child(11) { animation-delay: 0.6s; }
-        .spotify-embed:nth-child(12) { animation-delay: 0.65s; }
-        .spotify-embed:nth-child(13) { animation-delay: 0.7s; }
-        .spotify-embed:nth-child(14) { animation-delay: 0.75s; }
-        .spotify-embed:nth-child(15) { animation-delay: 0.8s; }
-        .spotify-embed:nth-child(16) { animation-delay: 0.85s; }
-        .spotify-embed:nth-child(17) { animation-delay: 0.9s; }
-        .spotify-embed:nth-child(18) { animation-delay: 0.95s; }
-        .spotify-embed:nth-child(19) { animation-delay: 1s; }
-        .spotify-embed:nth-child(20) { animation-delay: 1.05s; }
-        .spotify-embed:nth-child(21) { animation-delay: 1.1s; }
-        .spotify-embed:nth-child(22) { animation-delay: 1.15s; }
-        .spotify-embed:nth-child(23) { animation-delay: 1.2s; }
-        .spotify-embed:nth-child(24) { animation-delay: 1.25s; }
-        .spotify-embed:nth-child(25) { animation-delay: 1.3s; }
-        .spotify-embed:nth-child(26) { animation-delay: 1.35s; }
-        .spotify-embed:nth-child(27) { animation-delay: 1.4s; }
-        .spotify-embed:nth-child(28) { animation-delay: 1.45s; }
-        .spotify-embed:nth-child(29) { animation-delay: 1.5s; }
-        .spotify-embed:nth-child(30) { animation-delay: 1.55s; }
-        .spotify-embed:nth-child(31) { animation-delay: 1.6s; }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .spotify-embed:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.04);
-        }
-
-        .spotify-embed iframe {
-            border-radius: 12px;
-            display: block;
-            width: 100%;
-            height: 380px;
-            border: none;
-        }
-
-        /* Services Section */
-        .services {
-            padding: 6rem 0;
-            background: linear-gradient(180deg, transparent 0%, rgba(255, 51, 102, 0.03) 100%);
-        }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 3rem;
-            margin-top: 3rem;
-        }
-
-        .service-card {
-            padding: 2.5rem;
-            border: 2px solid var(--gray);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .service-card::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: -1;
-        }
-
-        .service-card:hover {
-            border-color: transparent;
-            transform: translateY(-5px);
-        }
-
-        .service-card:hover::before {
-            opacity: 1;
-        }
-
-        .service-card h3 {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 2rem;
-            letter-spacing: 0.05em;
-            margin-bottom: 1rem;
-            color: var(--white);
-        }
-
-        .service-card p {
-            line-height: 1.6;
-            color: var(--gray-light);
-        }
-
-        /* Footer */
-        footer {
-            padding: 4rem 0 2rem;
-            border-top: 2px solid var(--accent);
-            margin-top: 6rem;
-            text-align: center;
-        }
-
-        footer p {
-            color: var(--gray);
-            font-size: 0.9rem;
-            letter-spacing: 0.1em;
-        }
-
-        footer .cta-button {
-            margin: 2rem 0;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 1rem;
-            }
-
-            .tagline {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .portfolio-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .services-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .spotify-embed iframe {
-                height: 380px;
-            }
-        }
-    </style>
+@media (prefers-reduced-motion: reduce) {
+  .plaque { transition: none; }
+  #rail { scroll-behavior: auto !important; }
+}
+@media (max-height: 600px) { .disc { margin-top: 5%; } header { padding: 1rem 1.2rem .8rem; } }
+@media (max-width: 480px) {
+  .plaque { width: min(88vw, 420px, 50vh); }              /* phones: the plaque fills more of the wall */
+  #rail { padding: 3vh calc(50vw - min(44vw, 210px, 25vh)); } /* keep centering in sync with the wider plaque */
+  .face.back { padding: .9rem .55rem; }                    /* spotify's embed needs ~260px to lay out right */
+  .back .player { flex: 0 0 152px; min-height: 152px; }    /* narrow embeds render spotify's 152px compact layout — don't leave dead iframe below it */
+}
+</style>
 </head>
 <body>
-    <div class="bg-wave"></div>
-    
-    <div class="container">
-        <header>
-            <h1>METRO<br>MIXING &<br>MASTERING</h1>
 
-        </header>
+<header>
+  <div>
+    <h1>METRO <em>MIXING &amp; MASTERING</em></h1>
+    <div class="sub">the wall — every plaque plays</div>
+  </div>
+  <a class="ig" href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
+</header>
 
-        <section class="portfolio">
-            <h2 class="section-title">Portfolio</h2>
+<main>
+  <div id="rail" aria-label="records wall"></div>
+</main>
 
-            <div class="portfolio-grid">
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/1oUPauDyhV2zoX5DQ0AimS?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/2bwq4RXItbm9SKAwCWMqj4?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/19k3Zv8uK4WvLEdUgBPCqg?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/4OqrXdV3YmRAjSyRAUw7IS?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/2KPkkPDpArz9G2i6102wjV?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/6jrRvrqAFFgXdXnFkfzJ0D?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/0iOez7zPHcJs3kvhsWSCdS?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/2ImN6RSke4EZUMOrMjCL6T?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/13ujZzQKoAE1m5ghBHogw0?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/5rUQ3tQHfBz3bLQz5n4yu4?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/3a1EKFGccKVWpBmxTcuO8N?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/5EgHF6oEa1wyRcUYNueIOP?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/6W8iHlH2wTJJHiA5elND2R?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/3bvrwYJtKxqP6zGv2SjTnP?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/33UKlSszMN2l6FTvsL5AWv?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/3mWvJ3SQFBo7FaLIPRDzzv?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/7BfgsTLCP60202M1g2031F?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/7JyRapE8D0m1RqE2kc6948?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/2PpTNa5qSjUIa7D0jXeeSx?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/5S9mdx3QjG4GukxEH6pB9I?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/7CNJjJtg3tJP2EbeC5lhiZ?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/3niYu8wOVqTDGkAY760coY?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/5fXV5c6MRKM9caB2Oj94Vx?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/5m9DyvhiWXwUwj0oDZLrUJ?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/08LF3pj1xX7JXuUmwVlPqg?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/45fu5JdOhsGQi34dvzMifY?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/63jW7RX8zyh8y8XfzWRwCD?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/5yhDlVe0io5FVgF6MeuQHj?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/3J8NSCs7MF8fTY6FzxiGDJ?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/32zoosDllsJNqP2z43eM4S?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-                <div class="spotify-embed">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/37FEHxsrq96yYRs2bC9sXx?utm_source=generator" width="100%" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-            </div>
-        </section>
+<nav>
+  <button id="prev" aria-label="previous plaque">←</button>
+  <span id="counter"><b>01</b> / 00</span>
+  <button id="next" aria-label="next plaque">→</button>
+</nav>
 
-        <footer id="contact">
-            <a href="https://www.instagram.com/whoisthemetro/" class="cta-button">Contact Me</a>
-        </footer>
-    </div>
+<footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
+
+<script>
+const WORKS = [
+{
+"kind": "album",
+"id": "1oUPauDyhV2zoX5DQ0AimS",
+"title": "Born To Be",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0248c09fd32d15017a3a183290"
+},
+{
+"kind": "album",
+"id": "2bwq4RXItbm9SKAwCWMqj4",
+"title": "BLK.FERRYMEN",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02677f0639cf77e16be17a0a1b"
+},
+{
+"kind": "album",
+"id": "19k3Zv8uK4WvLEdUgBPCqg",
+"title": "Signs",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e021538074c3ea2fb25ad9f5bc0"
+},
+{
+"kind": "track",
+"id": "4OqrXdV3YmRAjSyRAUw7IS",
+"title": "Little Bit",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ddb334d8d2d216118f6aab72"
+},
+{
+"kind": "album",
+"id": "2KPkkPDpArz9G2i6102wjV",
+"title": "Acid Incantation",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e021ebfceaa78a91e8041266058"
+},
+{
+"kind": "track",
+"id": "6jrRvrqAFFgXdXnFkfzJ0D",
+"title": "You're Not The Same",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020b34dd7ea794fe5e0e123181"
+},
+{
+"kind": "track",
+"id": "0iOez7zPHcJs3kvhsWSCdS",
+"title": "Grey",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029f1c3abd82bdd630c29cc3c9"
+},
+{
+"kind": "album",
+"id": "2ImN6RSke4EZUMOrMjCL6T",
+"title": "Artistic Suicide",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02f2e8d6fafe52c40bc7178b75"
+},
+{
+"kind": "album",
+"id": "13ujZzQKoAE1m5ghBHogw0",
+"title": "Alligator Studios",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028640e20ae84182c271148f03"
+},
+{
+"kind": "album",
+"id": "5rUQ3tQHfBz3bLQz5n4yu4",
+"title": "Beat Therapy",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029f1d9b0ffb008ca6552e9bcc"
+},
+{
+"kind": "track",
+"id": "3a1EKFGccKVWpBmxTcuO8N",
+"title": "Wet Brain",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02eb7e9d2648debfe4dbe2787c"
+},
+{
+"kind": "track",
+"id": "5EgHF6oEa1wyRcUYNueIOP",
+"title": "Cut to the Chase",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020027545ed926383edc532925"
+},
+{
+"kind": "track",
+"id": "6W8iHlH2wTJJHiA5elND2R",
+"title": "What Do You Want From Me?",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0231b6d317b6977e359a4004d9"
+},
+{
+"kind": "track",
+"id": "3bvrwYJtKxqP6zGv2SjTnP",
+"title": "Nvm",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a2d70fff65667b0e3acfe253"
+},
+{
+"kind": "track",
+"id": "33UKlSszMN2l6FTvsL5AWv",
+"title": "Nothing Basic",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0238ab79ff0f025040f973c6bd"
+},
+{
+"kind": "track",
+"id": "3mWvJ3SQFBo7FaLIPRDzzv",
+"title": "Cloud Nine",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0234d5da1320d7906ca562cb2b"
+},
+{
+"kind": "track",
+"id": "7BfgsTLCP60202M1g2031F",
+"title": "Vivid Sunset",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02845d57cad1d995ff9a8701da"
+},
+{
+"kind": "track",
+"id": "7JyRapE8D0m1RqE2kc6948",
+"title": "Horsetooth",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0296cef987cd249cc9708eae86"
+},
+{
+"kind": "track",
+"id": "2PpTNa5qSjUIa7D0jXeeSx",
+"title": "here & there",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0250f80fb18305e08da364a682"
+},
+{
+"kind": "track",
+"id": "5S9mdx3QjG4GukxEH6pB9I",
+"title": "Are Dreams Even Real?",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022f8b28871fac2a2a6edf974e"
+},
+{
+"kind": "album",
+"id": "7CNJjJtg3tJP2EbeC5lhiZ",
+"title": "DingoDongo",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e027199cca9c381342f2b27396a"
+},
+{
+"kind": "album",
+"id": "3niYu8wOVqTDGkAY760coY",
+"title": "Girls Girls Girls",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0208bf886637fc78c1df8766cb"
+},
+{
+"kind": "album",
+"id": "5fXV5c6MRKM9caB2Oj94Vx",
+"title": "Baby Baby Boy!",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02989ba9aa6428447c6bccbdbb"
+},
+{
+"kind": "album",
+"id": "5m9DyvhiWXwUwj0oDZLrUJ",
+"title": "In Your Arms Tonight (I don't want to be)",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0237a0a5443444a49f1a16bf3c"
+},
+{
+"kind": "album",
+"id": "08LF3pj1xX7JXuUmwVlPqg",
+"title": "Kiss Me Kiss Me Say Goodbye",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0285cdff1b875daafcee45ea69"
+},
+{
+"kind": "album",
+"id": "45fu5JdOhsGQi34dvzMifY",
+"title": "Mercy",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02b2bfc6a1a71f2a2a3dea6f69"
+},
+{
+"kind": "album",
+"id": "63jW7RX8zyh8y8XfzWRwCD",
+"title": "D_evil",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022c0c9e68779290d99db31998"
+},
+{
+"kind": "album",
+"id": "5yhDlVe0io5FVgF6MeuQHj",
+"title": "Memories (Will Get More Golden Over Time)",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ce8e1eccd67730a496b87168"
+},
+{
+"kind": "album",
+"id": "3J8NSCs7MF8fTY6FzxiGDJ",
+"title": "Stained Dress",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0203e82caaa11384402d2af930"
+},
+{
+"kind": "album",
+"id": "32zoosDllsJNqP2z43eM4S",
+"title": "Dont Want To See You Again!",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0240f8a083c7981b325216dc49"
+},
+{
+"kind": "album",
+"id": "37FEHxsrq96yYRs2bC9sXx",
+"title": "My OnlyFans (RIP)",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020f815a7e7173ff1d9a0d9dc1"
+}
+];
+
+/* ---- build the wall ---- */
+const rail = document.getElementById("rail");
+WORKS.forEach((w, i) => {
+  const finish = w.kind === "album" ? "platinum" : "gold";
+  const cert = w.kind === "album" ? "certified platinum · lp" : "certified gold · single";
+  const slot = document.createElement("div");
+  slot.className = "slot"; slot.dataset.i = i;
+  slot.innerHTML = `
+    <div class="plaque">
+      <div class="face front">
+        <div class="disc ${finish}"><div class="label" style="background-image:url('${w.art}')"></div></div>
+        <div class="plate ${finish}">
+          <div class="title">${w.title.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
+          <div class="cert">${cert}</div>
+          <div class="by">mixed &amp; mastered by the metro</div>
+        </div>
+      </div>
+      <div class="face back">
+        <div class="hint">now spinning</div>
+        <div class="player"></div>
+        <button class="close">put it back</button>
+      </div>
+    </div>`;
+  rail.appendChild(slot);
+});
+const slots = [...rail.children];
+document.querySelector("#counter").innerHTML = `<b>01</b> / ${String(WORKS.length).padStart(2,"0")}`;
+
+/* ---- flip to play (one player at a time, so audio never overlaps) ---- */
+let open = null;
+function unflip() {
+  if (!open) return;
+  open.classList.remove("flipped");
+  const p = open.querySelector(".player"); setTimeout(() => { p.innerHTML = ""; }, 700); // let the flip finish, then kill the audio
+  open = null;
+}
+function flip(slot) {
+  if (open === slot) return unflip();
+  unflip();
+  const w = WORKS[slot.dataset.i];
+  slot.querySelector(".player").innerHTML =
+    `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" title="${w.title.replace(/"/g,"")}"></iframe>`;
+  slot.classList.add("flipped");
+  open = slot;
+  center(+slot.dataset.i, true);
+}
+rail.addEventListener("click", (e) => {
+  const slot = e.target.closest(".slot"); if (!slot || dragged) return;
+  if (e.target.closest(".close")) return unflip();
+  if (e.target.closest("iframe, .player")) return;
+  flip(slot);
+});
+
+/* ---- the wall moves as a whole: native swipe (snap) + desktop drag + wheel + keys ---- */
+let dragged = false;
+let drag = null;
+rail.addEventListener("pointerdown", (e) => {
+  if (e.pointerType !== "mouse" || e.target.closest("iframe")) return; // touch gets native momentum scrolling
+  drag = { x: e.clientX, left: rail.scrollLeft }; dragged = false;
+  rail.classList.add("dragging"); rail.setPointerCapture(e.pointerId);
+});
+rail.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x;
+  if (Math.abs(dx) > 8) dragged = true;
+  rail.scrollLeft = drag.left - dx;
+});
+function endDrag() {
+  if (!drag) return;
+  drag = null; rail.classList.remove("dragging");
+  center(nearest(), true);                         // settle onto a plaque
+  setTimeout(() => { dragged = false; }, 50);      // swallow the click that follows a drag
+}
+rail.addEventListener("pointerup", endDrag);
+rail.addEventListener("pointercancel", endDrag);
+rail.addEventListener("wheel", (e) => {
+  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // trackpad horizontal swipes scroll natively
+  e.preventDefault(); rail.scrollLeft += e.deltaY;
+}, { passive: false });
+
+function nearest() {
+  const mid = rail.scrollLeft + rail.clientWidth / 2;
+  let best = 0, dist = Infinity;
+  slots.forEach((s, i) => {
+    const c = s.offsetLeft + s.offsetWidth / 2;
+    if (Math.abs(c - mid) < dist) { dist = Math.abs(c - mid); best = i; }
+  });
+  return best;
+}
+function center(i, smooth) {
+  i = Math.max(0, Math.min(WORKS.length - 1, i));
+  const s = slots[i];
+  rail.scrollTo({ left: s.offsetLeft + s.offsetWidth / 2 - rail.clientWidth / 2, behavior: smooth ? "smooth" : "auto" });
+}
+document.getElementById("prev").addEventListener("click", () => { unflip(); center(nearest() - 1, true); });
+document.getElementById("next").addEventListener("click", () => { unflip(); center(nearest() + 1, true); });
+window.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft")  { unflip(); center(nearest() - 1, true); }
+  if (e.key === "ArrowRight") { unflip(); center(nearest() + 1, true); }
+  if (e.key === "Escape") unflip();
+});
+let tick = null;
+rail.addEventListener("scroll", () => {
+  if (tick) return;
+  tick = requestAnimationFrame(() => {
+    tick = null;
+    document.querySelector("#counter b").textContent = String(nearest() + 1).padStart(2, "0");
+  });
+});
+</script>
 </body>
 </html>
