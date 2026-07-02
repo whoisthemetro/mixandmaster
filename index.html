@@ -242,13 +242,6 @@ const WORKS = [
 "credit": "written, produced, mixed & mastered by the metro"
 },
 {
-"kind": "track",
-"id": "4OqrXdV3YmRAjSyRAUw7IS",
-"title": "Little Bit",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ddb334d8d2d216118f6aab72",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
 "kind": "album",
 "id": "2KPkkPDpArz9G2i6102wjV",
 "title": "Acid Incantation",
@@ -559,22 +552,37 @@ function center(i, smooth) {
   const s = slots[i];
   rail.scrollTo({ left: s.offsetLeft + s.offsetWidth / 2 - rail.clientWidth / 2, behavior: smooth ? "smooth" : "auto" });
 }
-document.getElementById("prev").addEventListener("click", () => { unflip(); center(nearest() - 1, true); });
-document.getElementById("next").addEventListener("click", () => { unflip(); center(nearest() + 1, true); });
+/* ---- skipping: while a record spins, moving the wall hands the needle to the next plaque ---- */
+function inPlayMode() { return !!(open && controller && !paused); }
+function skip(dir) {
+  const target = Math.max(0, Math.min(WORKS.length - 1, nearest() + dir));
+  if (inPlayMode()) {
+    if (slots[target] !== open) flip(slots[target], true); // stop the old one, flip + play the new one
+  } else {
+    unflip(); center(target, true);                        // just browsing
+  }
+}
+document.getElementById("prev").addEventListener("click", () => skip(-1));
+document.getElementById("next").addEventListener("click", () => skip(1));
 window.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft")  { unflip(); center(nearest() - 1, true); }
-  if (e.key === "ArrowRight") { unflip(); center(nearest() + 1, true); }
+  if (e.key === "ArrowLeft")  skip(-1);
+  if (e.key === "ArrowRight") skip(1);
   if (e.key === " ") { e.preventDefault(); playBtn.click(); }
   if (e.key === "Escape") unflip();
 });
-let tick = null;
+let tick = null, settleT = null;
 rail.addEventListener("scroll", () => {
-  if (tick) return;
-  tick = requestAnimationFrame(() => {
+  if (!tick) tick = requestAnimationFrame(() => {
     tick = null;
     document.querySelector("#counter b").textContent = String(nearest() + 1).padStart(2, "0");
     updatePlayBtn(); // scrolled away from the playing plaque? the transport offers ▶ for the new one
   });
+  // swipes count as skips too: when the wall settles on a new plaque mid-song, it takes over
+  clearTimeout(settleT);
+  settleT = setTimeout(() => {
+    if (drag) return; // still holding the wall — wait for the hand to let go
+    if (inPlayMode() && +open.dataset.i !== nearest()) flip(slots[nearest()], true);
+  }, 180);
 });
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
