@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Metro Mixing & Mastering | The Turntable</title>
+<meta name="description" content="Dig through the crate, pull a record, drop the needle — every release mixed & mastered by THE METRO.">
+<meta property="og:title" content="Metro Mixing & Mastering — The Turntable">
+<meta property="og:description" content="Pull a record from the crate and drop the needle.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0c;
+  --white: #fafafa;
+  --accent: #ff3366;
+  --gray: #888;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--black);
+  color: var(--white);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+}
+header {
+  position: relative; z-index: 3;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  padding: 1.1rem 2rem .8rem;
+  border-bottom: 2px solid var(--accent);
+  background: rgba(10,10,12,.85);
+}
+h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.4rem, 4vw, 2.2rem); letter-spacing: .12em; line-height: 1; font-weight: 400; }
+h1 em { font-style: normal; color: var(--accent); }
+.modes { margin-top: .35rem; font-size: .56rem; letter-spacing: .24em; color: var(--gray); text-transform: uppercase; }
+.modes a { color: var(--gray); text-decoration: none; border-bottom: 1px dotted #444; }
+.modes a:hover { color: var(--accent); }
+.modes b { color: var(--white); font-weight: 600; }
+.ig { font-size: .66rem; letter-spacing: .14em; color: var(--white); text-decoration: none;
+  border: 1px solid #333; border-radius: 999px; padding: .5rem 1rem; white-space: nowrap; transition: all .2s; }
+.ig:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
+
+main { position: relative; z-index: 1; flex: 1; min-height: 0; }
+#scene { width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
+
+/* now-playing panel floats over the 3d */
+#panel {
+  position: absolute; right: 16px; top: 14px; z-index: 2; width: 300px;
+  display: flex; flex-direction: column; gap: .55rem;
+  background: rgba(12,12,15,.78); backdrop-filter: blur(6px);
+  border: 1px solid #26262e; border-radius: 12px; padding: .9rem;
+}
+#np-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem; letter-spacing: .1em; line-height: 1.05; min-height: 1.2rem; }
+#np-credit { font-size: .52rem; letter-spacing: .16em; color: var(--gray); text-transform: uppercase; }
+#embed { width: 100%; height: 152px; border-radius: 10px; overflow: hidden; }
+#embed:empty { display: none; }
+#embed iframe { display: block; width: 100%; height: 100%; border: 0; }
+#putback {
+  align-self: flex-start; font: inherit; font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;
+  color: var(--white); background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: .45rem 1rem; transition: all .2s;
+  display: none;
+}
+#putback:hover { border-color: var(--accent); color: var(--accent); }
+#hint { font-size: .5rem; letter-spacing: .14em; color: #6a6a74; text-transform: uppercase; line-height: 1.9; }
+
+footer { position: relative; z-index: 3; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: .5rem 1rem .7rem; text-transform: uppercase; background: rgba(10,10,12,.85); }
+footer a { color: #8a8792; text-decoration: none; }
+footer a:hover { color: var(--accent); }
+
+#fail { position: absolute; inset: 0; z-index: 4; display: none; align-items: center; justify-content: center; text-align: center;
+  font-size: .7rem; letter-spacing: .12em; line-height: 2; color: var(--gray); padding: 2rem; }
+#fail a { color: var(--accent); }
+
+@media (max-width: 720px) {
+  #panel { left: 10px; right: 10px; bottom: 10px; top: auto; width: auto; padding: .7rem; gap: .45rem; }
+  #np-title { font-size: 1.05rem; }
+  #embed { height: 80px; }
+  header { padding: .9rem 1.1rem .65rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>METRO <em>MIXING &amp; MASTERING</em></h1>
+    <div class="modes">style: <a href="./">the wall</a> · <b>the turntable</b></div>
+  </div>
+  <a class="ig" href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
+</header>
+
+<main>
+  <canvas id="scene"></canvas>
+  <aside id="panel">
+    <div id="np-title">—</div>
+    <div id="np-credit">dig the crate · tap a sleeve to pull a record</div>
+    <div id="embed"></div>
+    <button id="putback">put it back</button>
+    <div id="hint">start·stop plays and pauses · 33/45 and the pitch fader ride the platter · drag to look around</div>
+  </aside>
+  <div id="fail">this style needs webgl —<br><a href="./">head back to the wall</a></div>
+</main>
+
+<footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
+
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script>
+const WORKS = [
+{
+"kind": "album",
+"id": "1oUPauDyhV2zoX5DQ0AimS",
+"title": "Born To Be",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0248c09fd32d15017a3a183290",
+"artLocal": "art/1oUPauDyhV2zoX5DQ0AimS.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "2bwq4RXItbm9SKAwCWMqj4",
+"title": "BLK.FERRYMEN",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02677f0639cf77e16be17a0a1b",
+"artLocal": "art/2bwq4RXItbm9SKAwCWMqj4.jpg",
+"credit": "mastered by the metro"
+},
+{
+"kind": "album",
+"id": "19k3Zv8uK4WvLEdUgBPCqg",
+"title": "Signs",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e021538074c3ea2fb25ad9f5bc0",
+"artLocal": "art/19k3Zv8uK4WvLEdUgBPCqg.jpg",
+"credit": "written, produced, mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "2KPkkPDpArz9G2i6102wjV",
+"title": "Acid Incantation",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e021ebfceaa78a91e8041266058",
+"artLocal": "art/2KPkkPDpArz9G2i6102wjV.jpg",
+"credit": "mastered by the metro"
+},
+{
+"kind": "track",
+"id": "6jrRvrqAFFgXdXnFkfzJ0D",
+"title": "You're Not The Same",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020b34dd7ea794fe5e0e123181",
+"artLocal": "art/6jrRvrqAFFgXdXnFkfzJ0D.jpg",
+"credit": "engineered, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "0iOez7zPHcJs3kvhsWSCdS",
+"title": "Grey",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029f1c3abd82bdd630c29cc3c9",
+"artLocal": "art/0iOez7zPHcJs3kvhsWSCdS.jpg",
+"credit": "engineered, mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "2ImN6RSke4EZUMOrMjCL6T",
+"title": "Artistic Suicide",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02f2e8d6fafe52c40bc7178b75",
+"artLocal": "art/2ImN6RSke4EZUMOrMjCL6T.jpg",
+"credit": "written, produced, mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "5rUQ3tQHfBz3bLQz5n4yu4",
+"title": "Beat Therapy",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029f1d9b0ffb008ca6552e9bcc",
+"artLocal": "art/5rUQ3tQHfBz3bLQz5n4yu4.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "3a1EKFGccKVWpBmxTcuO8N",
+"title": "Wet Brain",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02eb7e9d2648debfe4dbe2787c",
+"artLocal": "art/3a1EKFGccKVWpBmxTcuO8N.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "5EgHF6oEa1wyRcUYNueIOP",
+"title": "Cut to the Chase",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020027545ed926383edc532925",
+"artLocal": "art/5EgHF6oEa1wyRcUYNueIOP.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "6W8iHlH2wTJJHiA5elND2R",
+"title": "What Do You Want From Me?",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0231b6d317b6977e359a4004d9",
+"artLocal": "art/6W8iHlH2wTJJHiA5elND2R.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "3bvrwYJtKxqP6zGv2SjTnP",
+"title": "Nvm",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a2d70fff65667b0e3acfe253",
+"artLocal": "art/3bvrwYJtKxqP6zGv2SjTnP.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "33UKlSszMN2l6FTvsL5AWv",
+"title": "Nothing Basic",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0238ab79ff0f025040f973c6bd",
+"artLocal": "art/33UKlSszMN2l6FTvsL5AWv.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "3mWvJ3SQFBo7FaLIPRDzzv",
+"title": "Cloud Nine",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0234d5da1320d7906ca562cb2b",
+"artLocal": "art/3mWvJ3SQFBo7FaLIPRDzzv.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "7BfgsTLCP60202M1g2031F",
+"title": "Vivid Sunset",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02845d57cad1d995ff9a8701da",
+"artLocal": "art/7BfgsTLCP60202M1g2031F.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "7JyRapE8D0m1RqE2kc6948",
+"title": "Horsetooth",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0296cef987cd249cc9708eae86",
+"artLocal": "art/7JyRapE8D0m1RqE2kc6948.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "2PpTNa5qSjUIa7D0jXeeSx",
+"title": "here & there",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0250f80fb18305e08da364a682",
+"artLocal": "art/2PpTNa5qSjUIa7D0jXeeSx.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "5S9mdx3QjG4GukxEH6pB9I",
+"title": "Are Dreams Even Real?",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022f8b28871fac2a2a6edf974e",
+"artLocal": "art/5S9mdx3QjG4GukxEH6pB9I.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "7CNJjJtg3tJP2EbeC5lhiZ",
+"title": "DingoDongo",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e027199cca9c381342f2b27396a",
+"artLocal": "art/7CNJjJtg3tJP2EbeC5lhiZ.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "3niYu8wOVqTDGkAY760coY",
+"title": "Girls Girls Girls",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0208bf886637fc78c1df8766cb",
+"artLocal": "art/3niYu8wOVqTDGkAY760coY.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "5fXV5c6MRKM9caB2Oj94Vx",
+"title": "Baby Baby Boy!",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02989ba9aa6428447c6bccbdbb",
+"artLocal": "art/5fXV5c6MRKM9caB2Oj94Vx.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "5m9DyvhiWXwUwj0oDZLrUJ",
+"title": "In Your Arms Tonight (I don't want to be)",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0237a0a5443444a49f1a16bf3c",
+"artLocal": "art/5m9DyvhiWXwUwj0oDZLrUJ.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "08LF3pj1xX7JXuUmwVlPqg",
+"title": "Kiss Me Kiss Me Say Goodbye",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0285cdff1b875daafcee45ea69",
+"artLocal": "art/08LF3pj1xX7JXuUmwVlPqg.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "45fu5JdOhsGQi34dvzMifY",
+"title": "Mercy",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02b2bfc6a1a71f2a2a3dea6f69",
+"artLocal": "art/45fu5JdOhsGQi34dvzMifY.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "63jW7RX8zyh8y8XfzWRwCD",
+"title": "D_evil",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022c0c9e68779290d99db31998",
+"artLocal": "art/63jW7RX8zyh8y8XfzWRwCD.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "5yhDlVe0io5FVgF6MeuQHj",
+"title": "Memories (Will Get More Golden Over Time)",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ce8e1eccd67730a496b87168",
+"artLocal": "art/5yhDlVe0io5FVgF6MeuQHj.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "3J8NSCs7MF8fTY6FzxiGDJ",
+"title": "Stained Dress",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0203e82caaa11384402d2af930",
+"artLocal": "art/3J8NSCs7MF8fTY6FzxiGDJ.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "32zoosDllsJNqP2z43eM4S",
+"title": "Dont Want To See You Again!",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0240f8a083c7981b325216dc49",
+"artLocal": "art/32zoosDllsJNqP2z43eM4S.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "37FEHxsrq96yYRs2bC9sXx",
+"title": "My OnlyFans (RIP)",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020f815a7e7173ff1d9a0d9dc1",
+"artLocal": "art/37FEHxsrq96yYRs2bC9sXx.jpg",
+"credit": "mixed & mastered by the metro"
+}
+];
+const B = BABYLON;
+const ACCENT = new B.Color3(1, 0.2, 0.4);
+
+/* ---- spotify: one controller in the panel, loadUri per record ---- */
+let IFA = null, controller = null, paused = true, progress = 0;
+window.onSpotifyIframeApiReady = (api) => { IFA = api; };
+function ensureController(w, then) {
+  const uri = `spotify:${w.kind}:${w.id}`;
+  if (controller) { controller.loadUri(uri); if (then) setTimeout(then, 600); return; }
+  if (!IFA) { // api blocked — plain embed; the deck still spins to its own start/stop
+    document.getElementById("embed").innerHTML =
+      `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+    return;
+  }
+  const host = document.createElement("div");
+  document.getElementById("embed").appendChild(host);
+  IFA.createController(host, { uri, width: "100%", height: 152 }, (c) => {
+    controller = c;
+    c.addListener("ready", () => { if (then) then(); });
+    c.addListener("playback_update", (e) => {
+      paused = !!e.data.isPaused;
+      if (e.data.duration) progress = e.data.position / e.data.duration;
+    });
+  });
+}
+
+/* ---- the scene ---- */
+let engine, scene;
+try {
+  engine = new B.Engine(document.getElementById("scene"), true, { adaptToDeviceRatio: true });
+  scene = new B.Scene(engine);
+} catch (e) {
+  document.getElementById("fail").style.display = "flex";
+  throw e;
+}
+scene.clearColor = B.Color4.FromHexString("#0a0a0cff");
+scene.fogMode = B.Scene.FOGMODE_EXP2;
+scene.fogDensity = 0.055;
+scene.fogColor = B.Color3.FromHexString("#0a0a0c");
+
+const cam = new B.ArcRotateCamera("cam", -Math.PI / 2, 1.0, 5.4, new B.Vector3(-0.1, 0.1, -0.7), scene);
+cam.attachControl(document.getElementById("scene"), true);
+cam.lowerAlphaLimit = -Math.PI / 2 - 0.6; cam.upperAlphaLimit = -Math.PI / 2 + 0.6;
+cam.lowerBetaLimit = 0.72; cam.upperBetaLimit = 1.32;
+cam.lowerRadiusLimit = 2.6; cam.upperRadiusLimit = 9.5;
+cam.wheelPrecision = 60; cam.pinchPrecision = 120;
+cam.panningSensibility = 0; // no panning — the deck is the world
+
+const hemi = new B.HemisphericLight("hemi", new B.Vector3(0.2, 1, -0.3), scene);
+hemi.intensity = 0.52; hemi.groundColor = B.Color3.FromHexString("#1a1216");
+const key = new B.DirectionalLight("key", new B.Vector3(-0.35, -1, 0.4), scene);
+key.position = new B.Vector3(1.6, 5, -2.2); key.intensity = 1.45;
+const pink = new B.PointLight("pink", new B.Vector3(-2.2, 1.2, -2.0), scene);
+pink.diffuse = ACCENT; pink.intensity = 0.75; pink.range = 7;
+const glow = new B.GlowLayer("glow", scene); glow.intensity = 0.6;
+const shadows = new B.ShadowGenerator(1024, key);
+shadows.useBlurExponentialShadowMap = true; shadows.blurKernel = 16; shadows.darkness = 0.35;
+
+/* materials */
+function mat(name, hex, spec = 0.06) {
+  const m = new B.StandardMaterial(name, scene);
+  m.diffuseColor = B.Color3.FromHexString(hex);
+  m.specularColor = new B.Color3(spec, spec, spec);
+  return m;
+}
+const plasticM = mat("plastic", "#17181c", 0.12);
+const darkM   = mat("dark", "#101114", 0.05);
+const tableM  = mat("table", "#0e0f12", 0.03);
+const woodM   = mat("wood", "#3a2c1c", 0.02);
+const woodDkM = mat("wooddk", "#241a10", 0.02);
+const chromeM = mat("chrome", "#9aa0ab", 0.5); chromeM.specularPower = 96;
+
+/* the table it all sits on */
+const table = B.MeshBuilder.CreateBox("table", { width: 9, height: 0.12, depth: 5.2 }, scene);
+table.position.set(0, -0.06, -0.2); table.material = tableM; table.receiveShadows = true;
+
+/* ---- the deck ---- */
+const plinth = B.MeshBuilder.CreateBox("plinth", { width: 3.1, height: 0.22, depth: 1.9 }, scene);
+plinth.position.set(0, 0.11, 0); plinth.material = plasticM; plinth.receiveShadows = true;
+
+const PLATTER = new B.Vector3(-0.62, 0.22, 0.05);
+const platterBase = B.MeshBuilder.CreateCylinder("platterBase", { diameter: 1.44, height: 0.05, tessellation: 64 }, scene);
+platterBase.position.copyFrom(PLATTER); platterBase.position.y += 0.025;
+platterBase.material = darkM; platterBase.receiveShadows = true;
+
+const spin = new B.TransformNode("spin", scene); // everything on this node rotates
+spin.position.copyFrom(PLATTER);
+
+/* vinyl: groove texture drawn once, label art swapped per record */
+const grooveTex = new B.DynamicTexture("grooves", { width: 512, height: 512 }, scene, true);
+{
+  const g = grooveTex.getContext();
+  g.fillStyle = "#0d0d10"; g.fillRect(0, 0, 512, 512);
+  for (let r = 78; r < 250; r += 2.6) {
+    g.beginPath(); g.arc(256, 256, r, 0, Math.PI * 2);
+    g.strokeStyle = (Math.round(r) % 34 < 3) ? "rgba(0,0,0,.9)" : `rgba(255,255,255,${0.028 + (r % 5) * 0.006})`;
+    g.lineWidth = 1; g.stroke();
+  }
+  grooveTex.update(false);
+}
+const vinylM = new B.StandardMaterial("vinylM", scene);
+vinylM.diffuseTexture = grooveTex;
+vinylM.specularColor = new B.Color3(0.28, 0.28, 0.3); vinylM.specularPower = 24;
+const vinyl = B.MeshBuilder.CreateCylinder("vinyl", { diameter: 1.32, height: 0.012, tessellation: 64 }, scene);
+vinyl.parent = spin; vinyl.position.y = 0.056; vinyl.material = vinylM;
+vinyl.setEnabled(false);
+shadows.addShadowCaster(vinyl);
+
+const labelM = new B.StandardMaterial("labelM", scene);
+labelM.specularColor = new B.Color3(0.05, 0.05, 0.05);
+const label = B.MeshBuilder.CreateCylinder("label", { diameter: 0.44, height: 0.016, tessellation: 48 }, scene);
+label.parent = spin; label.position.y = 0.058; label.material = labelM;
+label.setEnabled(false);
+
+const spindle = B.MeshBuilder.CreateCylinder("spindle", { diameter: 0.024, height: 0.05, tessellation: 16 }, scene);
+spindle.position.copyFrom(PLATTER); spindle.position.y += 0.07; spindle.material = chromeM;
+
+/* tonearm — angles solved numerically, no sign bugs */
+const PIVOT = new B.Vector3(0.80, 0.32, 0.62);
+const ARM_L = 1.15;
+const armBase = B.MeshBuilder.CreateCylinder("armBase", { diameter: 0.2, height: 0.1, tessellation: 32 }, scene);
+armBase.position.set(PIVOT.x, 0.27, PIVOT.z); armBase.material = darkM;
+const armYaw = new B.TransformNode("armYaw", scene);
+armYaw.position.copyFrom(PIVOT);
+const tube = B.MeshBuilder.CreateCylinder("tube", { diameter: 0.028, height: ARM_L, tessellation: 16 }, scene);
+tube.parent = armYaw; tube.rotation.z = Math.PI / 2; tube.position.x = -ARM_L / 2;
+tube.material = chromeM;
+const counter = B.MeshBuilder.CreateCylinder("counter", { diameter: 0.09, height: 0.07, tessellation: 24 }, scene);
+counter.parent = armYaw; counter.rotation.z = Math.PI / 2; counter.position.x = 0.11; counter.material = darkM;
+const head = B.MeshBuilder.CreateBox("head", { width: 0.1, height: 0.045, depth: 0.055 }, scene);
+head.parent = armYaw; head.position.set(-ARM_L + 0.03, -0.012, 0); head.material = plasticM;
+const stylus = B.MeshBuilder.CreateBox("stylus", { size: 0.016 }, scene);
+stylus.parent = armYaw; stylus.position.set(-ARM_L + 0.01, -0.045, 0);
+const stylusM = new B.StandardMaterial("stylusM", scene);
+stylusM.emissiveColor = ACCENT; stylusM.diffuseColor = B.Color3.Black();
+stylus.material = stylusM;
+shadows.addShadowCaster(tube); shadows.addShadowCaster(head);
+
+function needleAt(yaw) { // where the stylus lands for a given arm yaw
+  return { x: PIVOT.x - ARM_L * Math.cos(yaw), z: PIVOT.z + ARM_L * Math.sin(yaw) };
+}
+function solveYaw(radius) { // yaw that puts the needle `radius` from the platter centre (front solution)
+  let best = 0, bestD = 1e9;
+  for (let a = -1.2; a <= 1.2; a += 0.002) {
+    const n = needleAt(a);
+    const d = Math.abs(Math.hypot(n.x - PLATTER.x, n.z - PLATTER.z) - radius);
+    if (d < bestD && n.z < PLATTER.z + 0.05) { bestD = d; best = a; } // prefer the arm reaching over the front
+  }
+  return best;
+}
+const YAW_IN = solveYaw(0.62), YAW_OUT = solveYaw(0.24);
+const YAW_REST = solveYaw(0.86); // parked just off the edge
+let armCur = YAW_REST, armTarget = YAW_REST;
+armYaw.rotation.y = YAW_REST;
+
+/* deck controls: start/stop, 33/45, pitch fader */
+function labelPlane(text, w, h, size) {
+  const t = new B.DynamicTexture("t" + text, { width: 256, height: 128 }, scene, true);
+  const g = t.getContext();
+  g.fillStyle = "#101114"; g.fillRect(0, 0, 256, 128);
+  g.fillStyle = "#e8ecf2"; g.font = `bold ${size || 56}px monospace`; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(text, 128, 68);
+  t.update(false);
+  const m = new B.StandardMaterial("lm" + text, scene);
+  m.diffuseTexture = t; m.emissiveColor = new B.Color3(0.22, 0.23, 0.26); m.specularColor = B.Color3.Black();
+  const p = B.MeshBuilder.CreatePlane("lp" + text, { width: w, height: h }, scene);
+  p.rotation.x = -Math.PI / 2; p.rotation.y = Math.PI; p.material = m;
+  return p;
+}
+function deckButton(name, x, z, w, d) {
+  const b = B.MeshBuilder.CreateBox(name, { width: w, height: 0.05, depth: d }, scene);
+  b.position.set(x, 0.245, z); b.material = plasticM.clone(name + "m");
+  b.metadata = { ctl: name };
+  return b;
+}
+const bStart = deckButton("startstop", -1.24, -0.70, 0.26, 0.16);
+const lStart = labelPlane("START·STOP", 0.24, 0.12, 40); lStart.position.set(-1.24, 0.2715, -0.70); lStart.metadata = { ctl: "startstop" };
+const b33 = deckButton("rpm33", -0.92, -0.70, 0.13, 0.13);
+const l33 = labelPlane("33", 0.11, 0.11, 64); l33.position.set(-0.92, 0.2715, -0.70); l33.metadata = { ctl: "rpm33" };
+const b45 = deckButton("rpm45", -0.74, -0.70, 0.13, 0.13);
+const l45 = labelPlane("45", 0.11, 0.11, 64); l45.position.set(-0.74, 0.2715, -0.70); l45.metadata = { ctl: "rpm45" };
+const led = B.MeshBuilder.CreateCylinder("led", { diameter: 0.035, height: 0.012, tessellation: 16 }, scene);
+led.position.set(-1.24, 0.226, -0.55);
+const ledM = new B.StandardMaterial("ledM", scene);
+ledM.diffuseColor = B.Color3.FromHexString("#26262c"); ledM.emissiveColor = B.Color3.Black();
+led.material = ledM;
+
+/* pitch: a real fader you grab and slide */
+const slot = B.MeshBuilder.CreateBox("slot", { width: 0.035, height: 0.006, depth: 0.72 }, scene);
+slot.position.set(1.18, 0.223, -0.05); slot.material = darkM;
+const knob = B.MeshBuilder.CreateBox("knob", { width: 0.12, height: 0.05, depth: 0.07 }, scene);
+knob.position.set(1.18, 0.246, -0.05); knob.material = chromeM.clone("knobM");
+knob.metadata = { ctl: "pitch" };
+const lPitch = labelPlane("PITCH", 0.16, 0.08, 48); lPitch.position.set(1.18, 0.2715, 0.42);
+const PITCH_Z0 = -0.05, PITCH_HALF = 0.33;
+
+/* rpm state marked on the buttons */
+let baseRPM = 100 / 3, pitch = 0;
+function setRPM(v) {
+  baseRPM = v;
+  b33.material.emissiveColor = v < 40 ? ACCENT.scale(0.55) : B.Color3.Black();
+  b45.material.emissiveColor = v >= 40 ? ACCENT.scale(0.55) : B.Color3.Black();
+}
+setRPM(baseRPM);
+
+/* ---- the crate ---- */
+const crateRoot = new B.TransformNode("crate", scene);
+crateRoot.position.set(0.55, 0, -1.95);
+crateRoot.rotation.y = 0.25;
+function crateWall(name, w, h, d, x, y, z, m) {
+  const b = B.MeshBuilder.CreateBox(name, { width: w, height: h, depth: d }, scene);
+  b.parent = crateRoot; b.position.set(x, y, z); b.material = m; b.receiveShadows = true;
+  return b;
+}
+crateWall("cbottom", 1.66, 0.05, 0.84, 0, 0.025, 0, woodDkM);
+crateWall("cleft",  0.05, 0.55, 0.84, -0.83, 0.275, 0, woodM);
+crateWall("cright", 0.05, 0.55, 0.84,  0.83, 0.275, 0, woodM);
+crateWall("cfront", 1.66, 0.36, 0.05, 0, 0.18, -0.42, woodM);
+crateWall("cback",  1.66, 0.46, 0.05, 0, 0.23,  0.42, woodM);
+
+const sleeves = [];
+WORKS.forEach((w, i) => {
+  const s = B.MeshBuilder.CreateBox("sleeve" + i, { width: 0.6, height: 0.6, depth: 0.02 }, scene);
+  s.parent = crateRoot;
+  const x = -0.71 + i * (1.42 / Math.max(1, WORKS.length - 1));
+  s.position.set(x, 0.36, ((i * 7) % 5 - 2) * 0.008);
+  s.rotation.x = -0.14 - ((i * 3) % 4) * 0.02;   // records lean back in a crate
+  s.rotation.y = ((i * 5) % 5 - 2) * 0.02;
+  const m = new B.StandardMaterial("sm" + i, scene);
+  m.diffuseTexture = new B.Texture(w.artLocal, scene);
+  m.specularColor = new B.Color3(0.04, 0.04, 0.04);
+  s.material = m;
+  s.metadata = { ctl: "sleeve", i };
+  s._homeY = 0.36; s._lift = 0; s._liftTarget = 0;
+  sleeves.push(s);
+});
+
+/* travelling record for the pull-out ritual */
+const travel = new B.TransformNode("travel", scene);
+const tVinyl = vinyl.clone("tVinyl"); tVinyl.parent = travel; tVinyl.position.set(0, 0, 0);
+const tLabel = label.clone("tLabel"); tLabel.parent = travel; tLabel.position.set(0, 0.004, 0);
+const tLabelM = labelM.clone("tLabelM"); tLabel.material = tLabelM;
+travel.setEnabled(false);
+
+/* ---- state ---- */
+let current = -1;          // record on the platter
+let angle = 0, rpm = 0;
+let ritual = null;         // {phase, t, i}
+const npTitle = document.getElementById("np-title");
+const npCredit = document.getElementById("np-credit");
+const putbackBtn = document.getElementById("putback");
+
+function chooseRecord(i) {
+  if (ritual || i === current) return;
+  if (current >= 0) putBack(true);
+  const w = WORKS[i];
+  tLabelM.diffuseTexture?.dispose();
+  tLabelM.diffuseTexture = new B.Texture(w.artLocal, scene);
+  ritual = { phase: "pull", t: 0, i };
+  sleeves[i]._liftTarget = 0.46;
+}
+function landRecord(i) {
+  const w = WORKS[i];
+  current = i;
+  labelM.diffuseTexture?.dispose();
+  labelM.diffuseTexture = new B.Texture(w.artLocal, scene);
+  vinyl.setEnabled(true); label.setEnabled(true);
+  sleeves.forEach((s, j) => { s.visibility = j === i ? 0.28 : 1; s._liftTarget = 0; });
+  npTitle.textContent = w.title;
+  npCredit.textContent = w.credit;
+  putbackBtn.style.display = "inline-block";
+  progress = 0; armTarget = YAW_IN;
+  ensureController(w, () => { controller && controller.play(); });
+}
+function putBack(quick) {
+  if (current < 0) return;
+  sleeves[current].visibility = 1;
+  current = -1;
+  vinyl.setEnabled(false); label.setEnabled(false);
+  armTarget = YAW_REST; progress = 0;
+  if (controller) try { controller.pause(); } catch (e) {}
+  paused = true;
+  if (!quick) {
+    npTitle.textContent = "—";
+    npCredit.textContent = "dig the crate · tap a sleeve to pull a record";
+    putbackBtn.style.display = "none";
+  }
+}
+putbackBtn.addEventListener("click", () => putBack(false));
+
+/* ---- picking: taps for buttons + sleeves, drag for the pitch fader ---- */
+let faderDrag = false;
+scene.onPointerObservable.add((pi) => {
+  const pick = pi.pickInfo;
+  if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.ctl === "pitch") {
+    faderDrag = true; cam.detachControl();
+  }
+  if (pi.type === B.PointerEventTypes.POINTERUP && faderDrag) {
+    faderDrag = false; cam.attachControl(document.getElementById("scene"), true);
+  }
+  if (pi.type === B.PointerEventTypes.POINTERMOVE) {
+    if (faderDrag) {
+      const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
+      if (Math.abs(ray.direction.y) > 1e-4) {
+        const t = (0.246 - ray.origin.y) / ray.direction.y;
+        let z = ray.origin.z + ray.direction.z * t;
+        z = Math.max(PITCH_Z0 - PITCH_HALF, Math.min(PITCH_Z0 + PITCH_HALF, z));
+        knob.position.z = z;
+        pitch = ((PITCH_Z0 - z) / PITCH_HALF) * 8; // push away = slower, pull close = faster
+      }
+      return;
+    }
+    // hover: sleeves rise to meet your hand
+    const h = scene.pick(scene.pointerX, scene.pointerY, (m) => m.metadata?.ctl === "sleeve");
+    sleeves.forEach((s) => { if (!ritual || ritual.i !== s.metadata.i) s._liftTarget = 0; });
+    if (h?.hit && !ritual) h.pickedMesh._liftTarget = Math.max(h.pickedMesh._liftTarget, 0.1);
+  }
+  if (pi.type === B.PointerEventTypes.POINTERTAP && pick?.hit && pick.pickedMesh?.metadata) {
+    const md = pick.pickedMesh.metadata;
+    if (md.ctl === "sleeve") chooseRecord(md.i);
+    if (md.ctl === "startstop") { if (current >= 0 && controller) controller.togglePlay(); }
+    if (md.ctl === "rpm33") setRPM(100 / 3);
+    if (md.ctl === "rpm45") setRPM(45);
+  }
+});
+window.addEventListener("keydown", (e) => {
+  if (e.key === " ") { e.preventDefault(); if (current >= 0 && controller) controller.togglePlay(); }
+  if (e.key === "Escape") putBack(false);
+});
+
+/* ---- the loop: motor physics, arm tracking, the ritual ---- */
+const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+scene.onBeforeRenderObservable.add(() => {
+  const dt = Math.min(0.05, engine.getDeltaTime() / 1000);
+
+  // platter: motor spin-up, lazy spin-down, pitch rides it
+  const spinning = current >= 0 && !paused;
+  const target = spinning ? baseRPM * (1 + pitch / 100) : 0;
+  rpm += (target - rpm) * Math.min(1, dt * 2.4);
+  if (!spinning && Math.abs(rpm) < 0.05) rpm = 0;
+  angle += rpm * 0.10472 * dt; // rpm → rad/s
+  spin.rotation.y = angle;
+
+  // led honest to actual playback
+  ledM.emissiveColor = spinning ? ACCENT : B.Color3.Black();
+
+  // arm rides the groove
+  if (current >= 0 && armTarget !== YAW_REST) {
+    armTarget = YAW_IN + (YAW_OUT - YAW_IN) * Math.min(1, Math.max(0, progress));
+  }
+  armCur += (armTarget - armCur) * Math.min(1, dt * 3);
+  armYaw.rotation.y = armCur;
+
+  // sleeves breathe up/down
+  for (const s of sleeves) {
+    s._lift += (s._liftTarget - s._lift) * Math.min(1, dt * 8);
+    s.position.y = s._homeY + s._lift;
+  }
+
+  // the ritual: pull → eject → fly → land
+  if (ritual) {
+    ritual.t += dt;
+    const s = sleeves[ritual.i];
+    if (ritual.phase === "pull" && ritual.t > 0.5) {
+      ritual.phase = "eject"; ritual.t = 0;
+      travel.setEnabled(true);
+      travel.position = s.getAbsolutePosition().clone();
+      travel.position.y += 0.1;
+      travel.rotation.set(Math.PI / 2 - 0.14, crateRoot.rotation.y, 0); // upright, like it slid from the sleeve
+      travel.scaling.setAll(0.85);
+    } else if (ritual.phase === "eject") {
+      travel.position.y += dt * 1.1;
+      if (ritual.t > 0.35) { ritual.phase = "fly"; ritual.t = 0; ritual.from = travel.position.clone(); s._liftTarget = 0; }
+    } else if (ritual.phase === "fly") {
+      const k = ease(Math.min(1, ritual.t / 0.75));
+      const dest = new B.Vector3(PLATTER.x, PLATTER.y + 0.06, PLATTER.z);
+      travel.position = B.Vector3.Lerp(ritual.from, dest, k);
+      travel.position.y += Math.sin(k * Math.PI) * 0.55;                 // an arc, not a slide
+      travel.rotation.x = (Math.PI / 2 - 0.14) * (1 - k);                // lays itself flat
+      travel.rotation.y = crateRoot.rotation.y * (1 - k) + k * 2.2;      // lazy spin on the way over
+      const sc = 0.85 + 0.15 * k; travel.scaling.setAll(sc);
+      if (ritual.t >= 0.78) {
+        travel.setEnabled(false);
+        landRecord(ritual.i);
+        ritual = null;
+      }
+    }
+  }
+
+  // pitch readout on the panel hint
+});
+engine.runRenderLoop(() => scene.render());
+function frameCamera() { // portrait keeps the vertical fov — back the camera off so the whole rig fits
+  const a = engine.getRenderWidth() / engine.getRenderHeight();
+  if (a < 0.8) { cam.radius = 7.6; cam.target.set(-0.1, -0.2, -0.9); }
+  else { cam.radius = 5.4; cam.target.set(-0.1, 0.1, -0.7); }
+}
+frameCamera();
+window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
+
+/* debug hooks, same spirit as the bedroom */
+window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM,
+  get state() { return { current, rpm, pitch, paused, progress, armCur, YAW_IN, YAW_OUT, YAW_REST }; } };
+</script>
+<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+</body>
+</html>
