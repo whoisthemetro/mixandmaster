@@ -90,6 +90,12 @@ main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: c
   display: flex; flex-direction: column; align-items: center;
   overflow: hidden;
 }
+/* ios safari ignores backface-visibility on a face's CHILDREN (the disc floats over the
+   player mid-flip) — so swap face visibility at the halfway point, while the plaque is edge-on */
+.face.front { visibility: visible; transition: visibility 0s .35s; }
+.face.back  { visibility: hidden;  transition: visibility 0s .35s; }
+.slot.flipped .face.front { visibility: hidden; }
+.slot.flipped .face.back  { visibility: visible; }
 /* glass over the front */
 .face.front::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
