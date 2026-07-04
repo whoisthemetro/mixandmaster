@@ -877,7 +877,11 @@ const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-
   "rug": { "x": 0, "y": -0.885, "z": 0.5 },
   "frame0": { "x": -1.15, "y": 1.42 },
   "frame1": { "x": 0, "y": 1.42 },
-  "frame2": { "x": 1.15, "y": 1.42 }
+  "frame2": { "x": 1.15, "y": 1.42 },
+  "ctlStart": { "x": -1.296, "y": 0, "z": -0.787 },
+  "ctl33": { "x": -1.027, "y": 0, "z": -0.79 },
+  "ctl45": { "x": -0.826, "y": 0, "z": -0.796 },
+  "ctlPitch": { "x": 1.137, "y": 0, "z": -0.094 }
 };
 let layout = {};
 try { layout = JSON.parse(localStorage.getItem("metro-tt-layout")) || {}; } catch (e) {}
