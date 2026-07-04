@@ -851,7 +851,24 @@ const tLabelM = labelM.clone("tLabelM"); tLabel.material = tLabelM;
 travel.setEnabled(false);
 
 /* ---- everything is furniture: grab any piece, put it where it belongs, it remembers ---- */
-const DEFAULT_LAYOUT = null; // the metro's own arrangement gets baked in here — visitors start from it
+const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-03 — visitors start from it
+  "deck": { "x": -0.004, "y": 0, "z": -0.322 },
+  "console": { "x": 0, "y": 0, "z": 0.55 },
+  "riser": { "x": 0, "y": 0.07, "z": 1.58 },
+  "crateL": { "x": -0.98, "y": 0.14, "z": 1.6 },
+  "crateR": { "x": 0.98, "y": 0.14, "z": 1.6 },
+  "speakerL": { "x": -4.15, "y": -0.9, "z": 3.139 },
+  "speakerR": { "x": 3.911, "y": -0.9, "z": 3.103 },
+  "cat": { "x": -4.143, "y": 0.82, "z": 3.124 },
+  "shelf": { "x": -5.9, "y": -0.9, "z": 3.2 },
+  "plant": { "x": 5.962, "y": -0.9, "z": 2.42 },
+  "lamp": { "x": 7.4, "y": -0.9, "z": 2.843 },
+  "chair": { "x": -5.345, "y": -0.9, "z": -0.325 },
+  "rug": { "x": 0, "y": -0.885, "z": 0.5 },
+  "frame0": { "x": -1.15, "y": 1.42 },
+  "frame1": { "x": 0, "y": 1.42 },
+  "frame2": { "x": 1.15, "y": 1.42 }
+};
 let layout = {};
 try { layout = JSON.parse(localStorage.getItem("metro-tt-layout")) || {}; } catch (e) {}
 try { const old = JSON.parse(localStorage.getItem("metro-tt-deck")); if (old && !layout.deck) layout.deck = { x: old.x, z: old.z }; } catch (e) {}
