@@ -417,7 +417,7 @@ const ACCENT = new B.Color3(1, 0.2, 0.4);
    never loadUri a live embed: on phones the load gets swallowed and the creation
    record sticks (the "born to be" bug). destroy + recreate with the right uri,
    created inside the tap; play() rides the embed's ready event */
-let IFA = null, controller = null;
+let IFA = null, controller = null, wantPlay = false;
 let paused = true, progress = 0, posMs = 0, posAt = 0;
 window.onSpotifyIframeApiReady = (api) => { IFA = api; };
 function ensureController(w) {
@@ -430,19 +430,25 @@ function ensureController(w) {
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
     return;
   }
+  wantPlay = true; // stays set until playback_update confirms audio — every chance to start it gets taken
   const host = document.createElement("div");
   embed.appendChild(host);
   IFA.createController(host, { uri: `spotify:${w.kind}:${w.id}`, width: "100%", height: "100%" }, (c) => {
     controller = c;
-    c.addListener("ready", () => c.play());
+    c.addListener("ready", () => { if (wantPlay) c.play(); });
     c.addListener("playback_update", (e) => {
       paused = !!e.data.isPaused;
+      if (!paused) wantPlay = false; // it's actually playing — stand down, respect a manual pause from here
       document.getElementById("bplay").textContent = paused ? "▶" : "❚❚";
       if (e.data.duration) progress = e.data.position / e.data.duration;
       posMs = e.data.position; posAt = performance.now(); // the light show phase-locks to this
     });
   });
 }
+// phones can refuse the async ready-play (no gesture) — so the next real touch retries it
+window.addEventListener("pointerdown", () => {
+  if (wantPlay && controller) try { controller.play(); } catch (e) {}
+}, true);
 
 /* ---- the scene ---- */
 let engine, scene;
@@ -1043,6 +1049,7 @@ function landRecord(i) {
   npCredit.textContent = w.credit;
   document.getElementById("embed").style.height = (w.kind === "album" ? 352 : 152) + "px"; // albums show the whole tracklist
   panel.classList.add("on"); panel.classList.remove("min");
+  if (wantPlay && controller) try { controller.play(); } catch (e) {} // the record just hit the platter — needle drops now
   progress = 0; armTarget = YAW_IN;
 }
 function putBack(quick) {
@@ -1051,6 +1058,7 @@ function putBack(quick) {
   current = -1;
   vinyl.setEnabled(false); label.setEnabled(false);
   armTarget = YAW_REST; progress = 0;
+  wantPlay = false; // shelved on purpose — don't resurrect it on the next touch
   if (controller) try { controller.pause(); } catch (e) {}
   paused = true;
   bplay.textContent = "▶";
@@ -1103,18 +1111,14 @@ function toRoom() {
 
 /* ---- picking: taps for buttons + sleeves + crates, a drag for the pitch fader, swipes to dig ---- */
 let faderDrag = false, focusIdx = -1;
-const swipe = { on: false, x: 0 };
 scene.onPointerObservable.add((pi) => {
   const pick = pi.pickInfo;
   if (pi.type === B.PointerEventTypes.POINTERDOWN) {
     if (pick?.hit && pick.pickedMesh?.metadata?.ctl === "pitch") {
       faderDrag = true; cam.detachControl();
-    } else if (mode === "crate") {
-      swipe.on = true; swipe.x = pi.event.clientX; // a finger on the crate view digs by swiping
     }
   }
   if (pi.type === B.PointerEventTypes.POINTERUP) {
-    swipe.on = false;
     if (faderDrag) {
       faderDrag = false;
       if (mode === "room") cam.attachControl(document.getElementById("scene"), true);
@@ -1130,11 +1134,6 @@ scene.onPointerObservable.add((pi) => {
         knob.position.z = z;
         pitch = (-z / PITCH_HALF) * 8; // push away = slower, pull close = faster
       }
-      return;
-    }
-    if (swipe.on && mode === "crate" && !ritual) {
-      const dx = pi.event.clientX - swipe.x;
-      if (Math.abs(dx) > 46) { step(dx < 0 ? 1 : -1); swipe.x = pi.event.clientX; } // keep dragging, keep digging
       return;
     }
     // hover (mouse): the record under the cursor becomes the dig point
@@ -1155,11 +1154,29 @@ scene.onPointerObservable.add((pi) => {
         else { crate.focus = md.k; focusIdx = md.i; }      // tap deeper in the crate = flip to it
       }
     }
-    if (md.ctl === "startstop" && current >= 0 && controller) controller.togglePlay();
+    if (md.ctl === "startstop" && current >= 0 && controller) { if (wantPlay) controller.play(); else controller.togglePlay(); }
     if (md.ctl === "rpm33") setRPM(100 / 3);
     if (md.ctl === "rpm45") setRPM(45);
   }
 });
+
+/* dig by swiping: native canvas listeners, not babylon's observable — on some phones
+   the engine's synthesized moves never arrive, so the finger reads the records directly.
+   drag across the tops of the sleeves (or anywhere in crate view) to flip through them */
+const digSwipe = { id: -1, x: 0 };
+const sceneCvs = document.getElementById("scene");
+sceneCvs.addEventListener("pointerdown", (e) => {
+  if (mode !== "crate" || ritual || faderDrag) return;
+  digSwipe.id = e.pointerId; digSwipe.x = e.clientX;
+}, true);
+sceneCvs.addEventListener("pointermove", (e) => {
+  if (e.pointerId !== digSwipe.id || mode !== "crate" || ritual || faderDrag) return;
+  const dx = e.clientX - digSwipe.x;
+  if (Math.abs(dx) > 34) { step(dx < 0 ? 1 : -1); digSwipe.x = e.clientX; } // keep dragging, keep digging
+}, true);
+const digDone = (e) => { if (e.pointerId === digSwipe.id) digSwipe.id = -1; };
+sceneCvs.addEventListener("pointerup", digDone, true);
+sceneCvs.addEventListener("pointercancel", digDone, true);
 
 /* ---- browse bar + panel actions ---- */
 const N = WORKS.length;
@@ -1179,7 +1196,7 @@ document.getElementById("bprev").addEventListener("click", () => step(-1));
 document.getElementById("bnext").addEventListener("click", () => step(1));
 bplay.addEventListener("click", () => {
   if (ritual) return;
-  if (current >= 0) { if (controller) controller.togglePlay(); }
+  if (current >= 0) { if (controller) { if (wantPlay) controller.play(); else controller.togglePlay(); } }
   else chooseRecord(focusIdx < 0 ? 0 : focusIdx);
 });
 document.getElementById("skipb").addEventListener("click", () => { if (!ritual && current >= 0) chooseRecord(((current - 1) % N + N) % N); });
@@ -1192,7 +1209,7 @@ document.getElementById("np-head").addEventListener("click", () => {
   else toRoom();
 });
 window.addEventListener("keydown", (e) => {
-  if (e.key === " ") { e.preventDefault(); if (current >= 0 && controller) controller.togglePlay(); }
+  if (e.key === " ") { e.preventDefault(); if (current >= 0 && controller) { if (wantPlay) controller.play(); else controller.togglePlay(); } }
   if (e.key === "ArrowLeft") step(-1);
   if (e.key === "ArrowRight") step(1);
   if (e.key === "Escape") { if (mode === "crate") toRoom(); else putBack(false); }
