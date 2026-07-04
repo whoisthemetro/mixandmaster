@@ -66,6 +66,11 @@ main { position: relative; z-index: 1; flex: 1; min-height: 0; }
   display: none;
 }
 #putback:hover { border-color: var(--accent); color: var(--accent); }
+#resetroom {
+  align-self: flex-start; font: inherit; font-size: .5rem; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  color: #6a6a74; background: none; border: none; padding: 0; text-decoration: underline dotted;
+}
+#resetroom:hover { color: var(--accent); }
 #hint { font-size: .5rem; letter-spacing: .14em; color: #6a6a74; text-transform: uppercase; line-height: 1.9; }
 
 footer { position: relative; z-index: 3; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: .5rem 1rem .7rem; text-transform: uppercase; background: rgba(10,10,12,.85); }
@@ -100,7 +105,8 @@ footer a:hover { color: var(--accent); }
     <div id="np-credit">dig the crates · flip through, pull the record facing you</div>
     <div id="embed"></div>
     <button id="putback">put it back</button>
-    <div id="hint">hover the crates to flip through · tap the record facing you to pull it · grab the deck to slide it (it remembers) · drag elsewhere to look around</div>
+    <div id="hint">hover the crates to flip through · tap the record facing you to pull it · grab any piece of the room to rearrange it (it remembers) · drag empty space to look around</div>
+    <button id="resetroom">reset the room</button>
   </aside>
   <div id="fail">this style needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
@@ -450,56 +456,67 @@ sideL.position.set(-8, 1.8, 0.9); sideL.material = wallM;
 const sideR = sideL.clone("sideR"); sideR.position.x = 8;
 
 /* the media console the deck lives on */
+const consoleRoot = new B.TransformNode("console", scene);
+consoleRoot.position.set(0, 0, 0.55);
 const table = B.MeshBuilder.CreateBox("table", { width: 6.6, height: 0.12, depth: 3.8 }, scene);
-table.position.set(0, -0.06, 0.55); table.material = mat("walnut", "#2c2015", 0.05); table.receiveShadows = true;
+table.parent = consoleRoot;
+table.position.set(0, -0.06, 0); table.material = mat("walnut", "#2c2015", 0.05); table.receiveShadows = true;
 const tableBody = B.MeshBuilder.CreateBox("tableBody", { width: 6.2, height: 0.78, depth: 3.5 }, scene);
-tableBody.position.set(0, -0.51, 0.55); tableBody.material = tableM; tableBody.receiveShadows = true;
+tableBody.parent = consoleRoot;
+tableBody.position.set(0, -0.51, 0); tableBody.material = tableM; tableBody.receiveShadows = true;
 
 /* big floor speakers flanking the console */
 const spkM = mat("spkM", "#191a1f", 0.08);
 const spkDk = mat("spkDk", "#0c0c0f", 0.04);
 const spkCone = mat("spkCone", "#2a2b31", 0.14);
 function speaker(x) {
+  const root = new B.TransformNode("speaker" + x, scene);
+  root.position.set(x, -0.9, 0.75);
   const body = B.MeshBuilder.CreateBox("spk" + x, { width: 0.62, height: 1.72, depth: 0.5 }, scene);
-  body.position.set(x, -0.04, 0.75); body.material = spkM; body.receiveShadows = true;
+  body.parent = root; body.position.set(0, 0.86, 0); body.material = spkM; body.receiveShadows = true;
   shadows.addShadowCaster(body);
   const disc = (d, y, m, dz) => {
     const c = B.MeshBuilder.CreateCylinder("spkd", { diameter: d, height: 0.03, tessellation: 32 }, scene);
-    c.rotation.x = Math.PI / 2; c.position.set(x, y, 0.75 - 0.25 - (dz || 0)); c.material = m;
+    c.parent = root; c.rotation.x = Math.PI / 2; c.position.set(0, y, -0.25 - (dz || 0)); c.material = m;
     return c;
   };
-  disc(0.38, 0.05, spkDk, 0.005); disc(0.3, 0.05, spkCone, 0.02);
-  disc(0.17, 0.5, spkDk, 0.005); disc(0.11, 0.5, spkCone, 0.02);
-  return body;
+  disc(0.38, 0.95, spkDk, 0.005); disc(0.3, 0.95, spkCone, 0.02);
+  disc(0.17, 1.4, spkDk, 0.005); disc(0.11, 1.4, spkCone, 0.02);
+  return root;
 }
-speaker(-3.9); speaker(3.9);
+const spkL = speaker(-3.9), spkR = speaker(3.9);
 
-/* the cat asleep on the left speaker, doing its one job */
+/* the cat asleep on the left speaker, doing its one job (until you relocate it) */
 const catM = mat("catM", "#26242a", 0.03);
+const catRoot = new B.TransformNode("cat", scene);
+catRoot.position.set(-3.9, 0.82, 0.75);
 const catBody = B.MeshBuilder.CreateSphere("catBody", { diameter: 1, segments: 16 }, scene);
-catBody.scaling.set(0.38, 0.145, 0.3); catBody.position.set(-3.9, 0.9, 0.75); catBody.material = catM;
+catBody.parent = catRoot;
+catBody.scaling.set(0.38, 0.145, 0.3); catBody.position.set(0, 0.08, 0); catBody.material = catM;
 shadows.addShadowCaster(catBody);
 const catHead = B.MeshBuilder.CreateSphere("catHead", { diameter: 0.19, segments: 12 }, scene);
-catHead.scaling.set(1, 0.82, 0.92); catHead.position.set(-3.77, 0.88, 0.64); catHead.material = catM;
+catHead.parent = catRoot;
+catHead.scaling.set(1, 0.82, 0.92); catHead.position.set(0.13, 0.06, -0.11); catHead.material = catM;
 for (const ex of [-0.05, 0.05]) {
   const ear = B.MeshBuilder.CreateCylinder("ear", { diameterTop: 0, diameterBottom: 0.05, height: 0.06, tessellation: 8 }, scene);
-  ear.position.set(-3.77 + ex, 0.97, 0.6); ear.rotation.x = -0.25; ear.material = catM;
+  ear.parent = catRoot; ear.position.set(0.13 + ex, 0.15, -0.15); ear.rotation.x = -0.25; ear.material = catM;
 }
 {
   const pts = [];
   for (let a = Math.PI + 0.35; a <= Math.PI + 1.9; a += 0.12)
-    pts.push(new B.Vector3(-3.9 + Math.cos(a) * 0.2, 0.85, 0.75 + Math.sin(a) * 0.2));
+    pts.push(new B.Vector3(Math.cos(a) * 0.2, 0.03, Math.sin(a) * 0.2));
   const tail = B.MeshBuilder.CreateTube("tail", { path: pts, radius: 0.022, tessellation: 8 }, scene);
-  tail.material = catM;
+  tail.parent = catRoot; tail.material = catM;
 }
 
 /* shelf unit stuffed with records, off to the left */
 const spineHues = ["#7a2f3c", "#2f4b7a", "#7a6a2f", "#3c7a5a", "#5a3c7a", "#7a4b2f", "#2f6b7a", "#6b7a2f"];
+const shelfRoot = new B.TransformNode("shelf", scene);
+shelfRoot.position.set(-5.9, -0.9, 3.2);
 {
-  const sx = -5.9, sz = 3.2;
   const beam = (w, h, d, px, py, pz) => {
     const b = B.MeshBuilder.CreateBox("shelfB", { width: w, height: h, depth: d }, scene);
-    b.position.set(sx + px, -0.9 + py, sz + pz); b.material = woodDkM; b.receiveShadows = true;
+    b.parent = shelfRoot; b.position.set(px, py, pz); b.material = woodDkM; b.receiveShadows = true;
     return b;
   };
   beam(0.06, 2.3, 0.42, -0.73, 1.15, 0); beam(0.06, 2.3, 0.42, 0.73, 1.15, 0);
@@ -512,7 +529,7 @@ const spineHues = ["#7a2f3c", "#2f4b7a", "#7a6a2f", "#3c7a5a", "#5a3c7a", "#7a4b
       const w = 0.035 + ((n * 7) % 4) * 0.008;
       const h = 0.56 + ((n * 13) % 5) * 0.025;
       const spine = B.MeshBuilder.CreateBox("spine", { width: w, height: h, depth: 0.36 }, scene);
-      spine.position.set(sx + x + w / 2, -0.9 + rowY + h / 2, sz - 0.01);
+      spine.parent = shelfRoot; spine.position.set(x + w / 2, rowY + h / 2, -0.01);
       spine.rotation.z = ((n * 11) % 7 === 0) ? 0.06 : 0;
       spine.material = mat("spineM" + n, spineHues[n % spineHues.length], 0.03);
       x += w + 0.006 + (((n * 17) % 9 === 0) ? 0.05 : 0);
@@ -524,33 +541,38 @@ const spineHues = ["#7a2f3c", "#2f4b7a", "#7a6a2f", "#3c7a5a", "#5a3c7a", "#7a4b
 /* plants — one big monstera on the floor, a snake plant up on the shelf */
 const potM = mat("potM", "#5e3a2a", 0.03);
 const leafM = mat("leafM", "#1e4d2b", 0.05);
-function pot(x, y, z, s) {
+function potAt(parent, lx, ly, lz, s) {
   const p = B.MeshBuilder.CreateCylinder("pot", { diameterTop: 0.36 * s, diameterBottom: 0.26 * s, height: 0.32 * s, tessellation: 16 }, scene);
-  p.position.set(x, y + 0.16 * s, z); p.material = potM;
+  p.parent = parent; p.position.set(lx, ly + 0.16 * s, lz); p.material = potM;
   return p;
 }
-function monstera(x, y, z, s) {
-  pot(x, y, z, s);
+const monsteraRoot = new B.TransformNode("monstera", scene);
+monsteraRoot.position.set(2.9, -0.9, 2.7);
+{
+  const s = 1.5;
+  potAt(monsteraRoot, 0, 0, 0, s);
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2 + 0.4;
     const lean = 0.35 + (i % 3) * 0.14;
     const stem = B.MeshBuilder.CreateCylinder("stem", { diameter: 0.022 * s, height: 0.62 * s, tessellation: 6 }, scene);
-    stem.position.set(x + Math.cos(a) * 0.1 * s, y + 0.55 * s, z + Math.sin(a) * 0.1 * s);
+    stem.parent = monsteraRoot;
+    stem.position.set(Math.cos(a) * 0.1 * s, 0.55 * s, Math.sin(a) * 0.1 * s);
     stem.rotation.z = Math.cos(a) * lean; stem.rotation.x = -Math.sin(a) * lean;
     stem.material = leafM;
     const leaf = B.MeshBuilder.CreateDisc("leaf", { radius: 0.17 * s, tessellation: 10 }, scene);
+    leaf.parent = monsteraRoot;
     leaf.scaling.y = 1.35;
-    leaf.position.set(x + Math.cos(a) * 0.32 * s, y + (0.82 + (i % 3) * 0.1) * s, z + Math.sin(a) * 0.32 * s);
+    leaf.position.set(Math.cos(a) * 0.32 * s, (0.82 + (i % 3) * 0.1) * s, Math.sin(a) * 0.32 * s);
     leaf.rotation.x = Math.PI / 2 - 0.5 - (i % 2) * 0.3; leaf.rotation.y = -a + Math.PI / 2;
     leaf.material = leafM;
   }
 }
-monstera(2.9, -0.9, 2.7, 1.5);
 {
-  pot(-5.9, 1.4 + 0.06 - 0.9 + 0.83, 3.15, 0.7); // on the shelf's top — snake plant
+  potAt(shelfRoot, 0, 2.29, -0.05, 0.7); // snake plant rides the shelf wherever it goes
   for (let i = 0; i < 6; i++) {
     const blade = B.MeshBuilder.CreateBox("blade", { width: 0.05, height: 0.36 + (i % 3) * 0.09, depth: 0.016 }, scene);
-    blade.position.set(-5.9 + ((i * 29) % 11 - 5) * 0.014, 1.39 + 0.18, 3.15 + ((i * 17) % 7 - 3) * 0.014);
+    blade.parent = shelfRoot;
+    blade.position.set(((i * 29) % 11 - 5) * 0.014, 2.47, -0.05 + ((i * 17) % 7 - 3) * 0.014);
     blade.rotation.z = ((i * 13) % 5 - 2) * 0.09; blade.rotation.y = i * 0.6;
     blade.material = leafM;
   }
@@ -558,11 +580,14 @@ monstera(2.9, -0.9, 2.7, 1.5);
 
 /* framed pressings on the back wall */
 const frameM = mat("frameM", "#0b0b0e", 0.06);
+const frameRoots = [];
 [[-1.15, WORKS[2]], [0, WORKS[7]], [1.15, WORKS[21]]].forEach(([fx, w], fi) => {
-  const back = B.MeshBuilder.CreateBox("frame" + fi, { width: 0.8, height: 0.8, depth: 0.04 }, scene);
-  back.position.set(fx, 1.42, 3.385); back.material = frameM;
+  const fr = new B.TransformNode("frame" + fi, scene);
+  fr.position.set(fx, 1.42, 3.38); frameRoots.push(fr);
+  const back = B.MeshBuilder.CreateBox("frameB" + fi, { width: 0.8, height: 0.8, depth: 0.04 }, scene);
+  back.parent = fr; back.position.set(0, 0, 0.005); back.material = frameM;
   const art = B.MeshBuilder.CreateBox("frameArt" + fi, { width: 0.68, height: 0.68, depth: 0.05 }, scene);
-  art.position.set(fx, 1.42, 3.38);
+  art.parent = fr;
   const m = new B.StandardMaterial("frameArtM" + fi, scene);
   m.diffuseTexture = new B.Texture(w.artLocal, scene);
   m.specularColor = new B.Color3(0.04, 0.04, 0.04);
@@ -570,13 +595,13 @@ const frameM = mat("frameM", "#0b0b0e", 0.06);
 });
 
 /* armchair at the edge of the frame, floor lamp on the right */
+const chairRoot = new B.TransformNode("chair", scene);
 {
-  const chair = new B.TransformNode("chair", scene);
-  chair.position.set(-4.7, -0.9, -0.8); chair.rotation.y = 0.6;
+  chairRoot.position.set(-4.7, -0.9, -0.8); chairRoot.rotation.y = 0.6;
   const chM = mat("chM", "#262c3e", 0.03);
   const part = (w, h, d, px, py, pz, rx) => {
     const b = B.MeshBuilder.CreateBox("chP", { width: w, height: h, depth: d }, scene);
-    b.parent = chair; b.position.set(px, py, pz); if (rx) b.rotation.x = rx; b.material = chM;
+    b.parent = chairRoot; b.position.set(px, py, pz); if (rx) b.rotation.x = rx; b.material = chM;
     b.receiveShadows = true;
     return b;
   };
@@ -585,17 +610,20 @@ const frameM = mat("frameM", "#0b0b0e", 0.06);
   part(1.15, 0.9, 0.28, 0, 0.9, 0.45, -0.12);
   part(0.18, 0.62, 1.05, -0.665, 0.56, 0); part(0.18, 0.62, 1.05, 0.665, 0.56, 0);
 }
+const lampRoot = new B.TransformNode("lampRoot", scene);
 {
+  lampRoot.position.set(4.3, -0.9, 2.75);
   const pole = B.MeshBuilder.CreateCylinder("lampPole", { diameter: 0.045, height: 1.75, tessellation: 10 }, scene);
-  pole.position.set(4.3, -0.025, 2.75); pole.material = darkM;
+  pole.parent = lampRoot; pole.position.set(0, 0.875, 0); pole.material = darkM;
   const base = B.MeshBuilder.CreateCylinder("lampBase", { diameter: 0.42, height: 0.04, tessellation: 20 }, scene);
-  base.position.set(4.3, -0.88, 2.75); base.material = darkM;
+  base.parent = lampRoot; base.position.set(0, 0.02, 0); base.material = darkM;
   const shade = B.MeshBuilder.CreateCylinder("lampShade", { diameterTop: 0.3, diameterBottom: 0.44, height: 0.36, tessellation: 20 }, scene);
-  shade.position.set(4.3, 0.94, 2.75);
+  shade.parent = lampRoot; shade.position.set(0, 1.84, 0);
   const shM = new B.StandardMaterial("shadeM", scene);
   shM.diffuseColor = B.Color3.FromHexString("#3a2a1c"); shM.emissiveColor = B.Color3.FromHexString("#ffb277").scale(0.45);
   shade.material = shM;
-  const lampLight = new B.PointLight("lamp", new B.Vector3(4.3, 0.8, 2.75), scene);
+  const lampLight = new B.PointLight("lamp", new B.Vector3(0, 1.7, 0), scene);
+  lampLight.parent = lampRoot; // the warm light tags along when the lamp moves
   lampLight.diffuse = B.Color3.FromHexString("#ffb277"); lampLight.intensity = 0.65; lampLight.range = 7;
 }
 
@@ -623,16 +651,13 @@ const frameM = mat("frameM", "#0b0b0e", 0.06);
   dust.start();
 }
 
-/* ---- the deck: one node, grab the plinth and slide it where you like ---- */
+/* ---- the deck: one node, grab any bare part and slide it where you like ---- */
 const deckRoot = new B.TransformNode("deckRoot", scene);
 deckRoot.position.set(0, 0, -0.16);
-try { const sp = JSON.parse(localStorage.getItem("metro-tt-deck")); if (sp) deckRoot.position.set(sp.x, 0, sp.z); } catch (e) {}
-const DECK_X = 1.7, DECK_Z0 = -0.4, DECK_Z1 = -0.12; // stays on the console, clear of the crates
 
 const plinth = B.MeshBuilder.CreateBox("plinth", { width: 3.1, height: 0.22, depth: 1.9 }, scene);
 plinth.parent = deckRoot;
 plinth.position.set(0, 0.11, 0); plinth.material = plasticM; plinth.receiveShadows = true;
-plinth.metadata = { ctl: "deck" };
 
 const PLATTER = new B.Vector3(-0.62, 0.22, 0.05);
 const platterBase = B.MeshBuilder.CreateCylinder("platterBase", { diameter: 1.44, height: 0.05, tessellation: 64 }, scene);
@@ -822,6 +847,57 @@ const tLabel = label.clone("tLabel"); tLabel.parent = travel; tLabel.position.se
 const tLabelM = labelM.clone("tLabelM"); tLabel.material = tLabelM;
 travel.setEnabled(false);
 
+/* ---- everything is furniture: grab any piece, put it where it belongs, it remembers ---- */
+let layout = {};
+try { layout = JSON.parse(localStorage.getItem("metro-tt-layout")) || {}; } catch (e) {}
+try { const old = JSON.parse(localStorage.getItem("metro-tt-deck")); if (old && !layout.deck) layout.deck = { x: old.x, z: old.z }; } catch (e) {}
+const draggables = {};
+function movable(key, node, mode, baseOff) {
+  const d = { key, node, mode: mode || "floor", baseOff: baseOff || 0 };
+  draggables[key] = d;
+  const sv = layout[key];
+  if (sv) {
+    node.position.x = sv.x;
+    if (d.mode === "wall") node.position.y = sv.y;
+    else { node.position.z = sv.z; if (sv.y !== undefined) node.position.y = sv.y; }
+  }
+  const tag = (m) => { m.metadata = m.metadata || {}; m.metadata.drag = key; };
+  node.getChildMeshes?.().forEach(tag);
+  if (node instanceof B.Mesh) tag(node);
+}
+movable("deck", deckRoot);
+movable("console", consoleRoot, "floor", 0.9);
+movable("riser", riser, "floor", 0.07);
+movable("crateL", crates[0].root);
+movable("crateR", crates[1].root);
+movable("speakerL", spkL);
+movable("speakerR", spkR);
+movable("cat", catRoot);
+movable("shelf", shelfRoot);
+movable("plant", monsteraRoot);
+movable("lamp", lampRoot);
+movable("chair", chairRoot);
+movable("rug", rug, "floor", 0.015);
+frameRoots.forEach((fr, i) => movable("frame" + i, fr, "wall"));
+function saveLayout(key) {
+  const d = draggables[key], p = d.node.position;
+  layout[key] = d.mode === "wall" ? { x: p.x, y: p.y } : { x: p.x, y: p.y, z: p.z };
+  localStorage.setItem("metro-tt-layout", JSON.stringify(layout));
+}
+function dropSnap(d) { // let go and the piece settles onto whatever is under it
+  if (d.mode === "wall") return;
+  const p = d.node.position;
+  const ray = new B.Ray(new B.Vector3(p.x, 6, p.z), new B.Vector3(0, -1, 0), 12);
+  const hit = scene.pickWithRay(ray, (m) =>
+    m.isPickable && m.isEnabled() && m.metadata?.drag !== d.key &&
+    m !== backWall && m !== sideL && m !== sideR && m.parent !== travel);
+  if (hit?.hit) p.y = hit.pickedPoint.y + d.baseOff;
+}
+document.getElementById("resetroom").addEventListener("click", () => {
+  localStorage.removeItem("metro-tt-layout"); localStorage.removeItem("metro-tt-deck");
+  location.reload();
+});
+
 /* ---- state ---- */
 let current = -1;          // record on the platter
 let angle = 0, rpm = 0;
@@ -869,26 +945,38 @@ function putBack(quick) {
 }
 putbackBtn.addEventListener("click", () => putBack(false));
 
-/* ---- picking: taps for buttons + sleeves, drags for the pitch fader and the deck itself ---- */
-let faderDrag = false, deckDrag = null;
+/* ---- picking: taps for buttons + sleeves, drags for the fader and every piece of furniture ---- */
+let faderDrag = false, assetDrag = null;
 function planeHit(y) { // where the pointer ray crosses a horizontal plane
   const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
   if (Math.abs(ray.direction.y) < 1e-4) return null;
   const t = (y - ray.origin.y) / ray.direction.y;
   return { x: ray.origin.x + ray.direction.x * t, z: ray.origin.z + ray.direction.z * t };
 }
+function wallHit(z) { // and where it crosses the back wall's plane
+  const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
+  if (Math.abs(ray.direction.z) < 1e-4) return null;
+  const t = (z - ray.origin.z) / ray.direction.z;
+  return { x: ray.origin.x + ray.direction.x * t, y: ray.origin.y + ray.direction.y * t };
+}
 scene.onPointerObservable.add((pi) => {
   const pick = pi.pickInfo;
   if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.ctl === "pitch") {
     faderDrag = true; cam.detachControl();
   }
-  if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.ctl === "deck") {
-    const h = planeHit(0);
-    if (h) { deckDrag = { dx: deckRoot.position.x - h.x, dz: deckRoot.position.z - h.z }; cam.detachControl(); }
+  if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.drag && !pick.pickedMesh.metadata.ctl) {
+    const d = draggables[pick.pickedMesh.metadata.drag];
+    const h = d.mode === "wall" ? wallHit(d.node.position.z) : planeHit(d.node.position.y);
+    if (h) {
+      assetDrag = d.mode === "wall"
+        ? { d, ox: d.node.position.x - h.x, oy: d.node.position.y - h.y }
+        : { d, ox: d.node.position.x - h.x, oz: d.node.position.z - h.z };
+      cam.detachControl();
+    }
   }
-  if (pi.type === B.PointerEventTypes.POINTERUP && (faderDrag || deckDrag)) {
-    if (deckDrag) localStorage.setItem("metro-tt-deck", JSON.stringify({ x: deckRoot.position.x, z: deckRoot.position.z }));
-    faderDrag = false; deckDrag = null;
+  if (pi.type === B.PointerEventTypes.POINTERUP && (faderDrag || assetDrag)) {
+    if (assetDrag) { dropSnap(assetDrag.d); saveLayout(assetDrag.d.key); }
+    faderDrag = false; assetDrag = null;
     cam.attachControl(document.getElementById("scene"), true);
   }
   if (pi.type === B.PointerEventTypes.POINTERMOVE) {
@@ -903,11 +991,20 @@ scene.onPointerObservable.add((pi) => {
       }
       return;
     }
-    if (deckDrag) {
-      const h = planeHit(0);
-      if (h) {
-        deckRoot.position.x = Math.max(-DECK_X, Math.min(DECK_X, h.x + deckDrag.dx));
-        deckRoot.position.z = Math.max(DECK_Z0, Math.min(DECK_Z1, h.z + deckDrag.dz));
+    if (assetDrag) {
+      const d = assetDrag.d;
+      if (d.mode === "wall") {
+        const h = wallHit(d.node.position.z);
+        if (h) {
+          d.node.position.x = Math.max(-7, Math.min(7, h.x + assetDrag.ox));
+          d.node.position.y = Math.max(0.25, Math.min(3.6, h.y + assetDrag.oy));
+        }
+      } else {
+        const h = planeHit(d.node.position.y);
+        if (h) {
+          d.node.position.x = Math.max(-7.4, Math.min(7.4, h.x + assetDrag.ox));
+          d.node.position.z = Math.max(-5.8, Math.min(3.3, h.z + assetDrag.oz));
+        }
       }
       return;
     }
@@ -1018,7 +1115,7 @@ frameCamera();
 window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
 /* debug hooks, same spirit as the bedroom */
-window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot,
+window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot, draggables, saveLayout,
   get state() { return { current, rpm, pitch, paused, progress, armCur, YAW_IN, YAW_OUT, YAW_REST }; } };
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
