@@ -51,10 +51,11 @@ main { position: relative; z-index: 1; flex: 1; min-height: 0; }
 /* now-playing panel floats over the 3d */
 #panel {
   position: absolute; right: 16px; top: 14px; z-index: 2; width: 300px;
-  display: flex; flex-direction: column; gap: .55rem;
+  display: none; flex-direction: column; gap: .55rem;
   background: rgba(12,12,15,.78); backdrop-filter: blur(6px);
   border: 1px solid #26262e; border-radius: 12px; padding: .9rem;
 }
+#panel.on { display: flex; } /* the panel only exists while a record is out */
 #np-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem; letter-spacing: .1em; line-height: 1.05; min-height: 1.2rem; }
 #np-credit { font-size: .52rem; letter-spacing: .16em; color: var(--gray); text-transform: uppercase; }
 #embed { width: 100%; height: 152px; border-radius: 10px; overflow: hidden; }
@@ -66,12 +67,18 @@ main { position: relative; z-index: 1; flex: 1; min-height: 0; }
   display: none;
 }
 #putback:hover { border-color: var(--accent); color: var(--accent); }
-#resetroom, #copylayout {
-  align-self: flex-start; font: inherit; font-size: .5rem; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
-  color: #6a6a74; background: none; border: none; padding: 0; text-decoration: underline dotted;
+/* browse bar: flip through the crate without touching the 3d */
+#browse {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 6;
+  display: flex; gap: .5rem;
 }
-#resetroom:hover, #copylayout:hover { color: var(--accent); }
-#hint { font-size: .5rem; letter-spacing: .14em; color: #6a6a74; text-transform: uppercase; line-height: 1.9; }
+#browse button {
+  font: inherit; font-size: .85rem; line-height: 1; cursor: pointer;
+  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; transition: all .2s;
+}
+#browse button:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 
 footer { position: relative; z-index: 3; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: .5rem 1rem .7rem; text-transform: uppercase; background: rgba(10,10,12,.85); }
 footer a { color: #8a8792; text-decoration: none; }
@@ -93,8 +100,8 @@ footer a:hover { color: var(--accent); }
 }
 
 @media (max-width: 720px) {
-  #panel { left: 10px; right: 10px; bottom: 10px; top: auto; width: auto; padding: .7rem; gap: .45rem; }
-  #np-title { font-size: 1.05rem; }
+  #panel { left: 10px; right: 10px; bottom: 70px; top: auto; width: auto; padding: .6rem; gap: .35rem; }
+  #np-title { font-size: 1rem; }
   #embed { height: 80px; }
   header { padding: .9rem 1.1rem .65rem; }
 }
@@ -113,15 +120,15 @@ footer a:hover { color: var(--accent); }
   <canvas id="scene"></canvas>
   <aside id="panel">
     <div id="np-title">—</div>
-    <div id="np-credit">dig the crates · flip through, pull the record facing you</div>
+    <div id="np-credit"></div>
     <div id="embed"></div>
     <button id="putback">put it back</button>
-    <div id="hint">hover the crates to flip through · tap the record facing you to pull it · grab any piece of the room — even the deck's own buttons — to rearrange it (it remembers) · drag empty space to look around</div>
-    <div style="display:flex; gap:1rem;">
-      <button id="resetroom">reset the room</button>
-      <button id="copylayout">copy layout</button>
-    </div>
   </aside>
+  <div id="browse">
+    <button id="bprev" title="previous record">‹</button>
+    <button id="bplay" title="play">▶</button>
+    <button id="bnext" title="next record">›</button>
+  </div>
   <div id="fail">this environment needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
 
@@ -387,6 +394,7 @@ function ensureController(w, then) {
     c.addListener("ready", () => { if (then) then(); });
     c.addListener("playback_update", (e) => {
       paused = !!e.data.isPaused;
+      document.getElementById("bplay").textContent = paused ? "▶" : "❚❚";
       if (e.data.duration) progress = e.data.position / e.data.duration;
       posMs = e.data.position; posAt = performance.now(); // the light show phase-locks to this
     });
@@ -680,7 +688,7 @@ const sweep = new B.SpotLight("sweep", new B.Vector3(0, 3.3, -2.0), new B.Vector
   for (const m of [wallM, floorM, rug.material, table.material, tableM]) m.maxSimultaneousLights = 8;
 }
 
-/* ---- the deck: one node, grab any bare part and slide it where you like ---- */
+/* ---- the deck ---- */
 const deckRoot = new B.TransformNode("deckRoot", scene);
 deckRoot.position.set(0, 0, -0.16);
 
@@ -783,7 +791,7 @@ function labelPlane(text, w, h, size) {
   p.rotation.x = -Math.PI / 2; p.rotation.y = Math.PI; p.material = m;
   return p;
 }
-/* every control rides a little sled you can drag anywhere on the plinth; a plain tap still presses it */
+/* each control sits on its own little sled so the baked layout can place it */
 function ctlGroup(name, x, z) {
   const g = new B.TransformNode(name, scene);
   g.parent = deckRoot; g.position.set(x, 0, z);
@@ -812,7 +820,7 @@ const ledM = new B.StandardMaterial("ledM", scene);
 ledM.diffuseColor = B.Color3.FromHexString("#26262c"); ledM.emissiveColor = B.Color3.Black();
 led.material = ledM;
 
-/* pitch: a real fader you grab and slide — grab its slot or label to move the whole unit */
+/* pitch: a real fader you grab and slide */
 const grpPitch = ctlGroup("grpPitch", 1.18, -0.05);
 const slot = B.MeshBuilder.CreateBox("slot", { width: 0.035, height: 0.006, depth: 0.72 }, scene);
 slot.parent = grpPitch;
@@ -886,8 +894,8 @@ const tLabel = label.clone("tLabel"); tLabel.parent = travel; tLabel.position.se
 const tLabelM = labelM.clone("tLabelM"); tLabel.material = tLabelM;
 travel.setEnabled(false);
 
-/* ---- everything is furniture: grab any piece, put it where it belongs, it remembers ---- */
-const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-03 — visitors start from it
+/* ---- the room's arrangement ---- */
+const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-03 — this IS the room now
   "deck": { "x": -0.004, "y": 0, "z": -0.322 },
   "console": { "x": 0, "y": 0, "z": 0.55 },
   "riser": { "x": 0, "y": 0.07, "z": 1.58 },
@@ -909,78 +917,36 @@ const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-
   "ctl45": { "x": -0.826, "y": 0, "z": -0.796 },
   "ctlPitch": { "x": 1.137, "y": 0, "z": -0.094 }
 };
-let layout = {};
-try { layout = JSON.parse(localStorage.getItem("metro-tt-layout")) || {}; } catch (e) {}
-try { const old = JSON.parse(localStorage.getItem("metro-tt-deck")); if (old && !layout.deck) layout.deck = { x: old.x, z: old.z }; } catch (e) {}
-if (DEFAULT_LAYOUT) layout = Object.assign({}, DEFAULT_LAYOUT, layout);
-const draggables = {};
-function movable(key, node, mode, baseOff) {
-  const d = { key, node, mode: mode || "floor", baseOff: baseOff || 0 };
-  draggables[key] = d;
-  const sv = layout[key];
-  if (sv) {
-    node.position.x = sv.x;
-    if (d.mode === "wall") node.position.y = sv.y;
-    else { node.position.z = sv.z; if (sv.y !== undefined) node.position.y = sv.y; }
-  }
-  const tag = (m) => { m.metadata = m.metadata || {}; m.metadata.drag = key; };
-  node.getChildMeshes?.().forEach(tag);
-  if (node instanceof B.Mesh) tag(node);
+/* the room is set — the metro arranged it by hand; nothing moves anymore */
+function placeAsset(key, node, mode) {
+  const sv = DEFAULT_LAYOUT[key];
+  if (!sv) return;
+  node.position.x = sv.x;
+  if (mode === "wall") node.position.y = sv.y;
+  else { node.position.z = sv.z; if (sv.y !== undefined) node.position.y = sv.y; }
 }
-movable("deck", deckRoot);
-movable("console", consoleRoot, "floor", 0.9);
-movable("riser", riser, "floor", 0.07);
-movable("crateL", crates[0].root);
-movable("crateR", crates[1].root);
-movable("speakerL", spkL);
-movable("speakerR", spkR);
-movable("cat", catRoot);
-movable("shelf", shelfRoot);
-movable("plant", monsteraRoot);
-movable("lamp", lampRoot);
-movable("chair", chairRoot);
-movable("rug", rug, "floor", 0.015);
-frameRoots.forEach((fr, i) => movable("frame" + i, fr, "wall"));
-movable("ctlStart", grpStart, "deckctl");
-movable("ctl33", grp33, "deckctl");
-movable("ctl45", grp45, "deckctl");
-movable("ctlPitch", grpPitch, "deckctl");
-delete knob.metadata.drag; // the knob stays a pitch control — move the fader by its slot or label
-function saveLayout(key) {
-  const d = draggables[key], p = d.node.position;
-  layout[key] = d.mode === "wall" ? { x: p.x, y: p.y } : { x: p.x, y: p.y, z: p.z };
-  localStorage.setItem("metro-tt-layout", JSON.stringify(layout));
-}
-function dropSnap(d) { // let go and the piece settles onto whatever is under it
-  if (d.mode !== "floor") return;
-  const p = d.node.position;
-  const ray = new B.Ray(new B.Vector3(p.x, 6, p.z), new B.Vector3(0, -1, 0), 12);
-  const hit = scene.pickWithRay(ray, (m) =>
-    m.isPickable && m.isEnabled() && m.metadata?.drag !== d.key &&
-    m !== backWall && m !== sideL && m !== sideR && m.parent !== travel);
-  if (hit?.hit) p.y = hit.pickedPoint.y + d.baseOff;
-}
+placeAsset("deck", deckRoot);
+placeAsset("console", consoleRoot);
+placeAsset("riser", riser);
+placeAsset("crateL", crates[0].root);
+placeAsset("crateR", crates[1].root);
+placeAsset("speakerL", spkL);
+placeAsset("speakerR", spkR);
+placeAsset("cat", catRoot);
+placeAsset("shelf", shelfRoot);
+placeAsset("plant", monsteraRoot);
+placeAsset("lamp", lampRoot);
+placeAsset("chair", chairRoot);
+placeAsset("rug", rug);
+frameRoots.forEach((fr, i) => placeAsset("frame" + i, fr, "wall"));
+placeAsset("ctlStart", grpStart);
+placeAsset("ctl33", grp33);
+placeAsset("ctl45", grp45);
+placeAsset("ctlPitch", grpPitch);
 try { localStorage.setItem("mm-env", "turntable"); } catch (e) {} // being here IS the preference
 document.getElementById("envbtn").addEventListener("click", () => {
   try { localStorage.setItem("mm-env", "wall"); } catch (e) {}
   location.href = "./";
-});
-document.getElementById("resetroom").addEventListener("click", () => {
-  localStorage.removeItem("metro-tt-layout"); localStorage.removeItem("metro-tt-deck");
-  location.reload();
-});
-document.getElementById("copylayout").addEventListener("click", async () => {
-  // export the arrangement so it can be baked in as the room everyone sees
-  const out = {};
-  for (const k in draggables) {
-    const d = draggables[k], p = d.node.position;
-    out[k] = d.mode === "wall"
-      ? { x: +p.x.toFixed(3), y: +p.y.toFixed(3) }
-      : { x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3) };
-  }
-  const text = JSON.stringify(out);
-  try { await navigator.clipboard.writeText(text); alert("layout copied — paste it to claude"); }
-  catch (e) { prompt("copy this layout:", text); }
 });
 
 /* ---- state ---- */
@@ -990,6 +956,8 @@ let ritual = null;         // {phase, t, i}
 const npTitle = document.getElementById("np-title");
 const npCredit = document.getElementById("np-credit");
 const putbackBtn = document.getElementById("putback");
+const panel = document.getElementById("panel");
+const bplay = document.getElementById("bplay");
 
 function chooseRecord(i) {
   if (ritual || i === current) return;
@@ -1012,6 +980,7 @@ function landRecord(i) {
   npTitle.textContent = w.title;
   npCredit.textContent = w.credit;
   putbackBtn.style.display = "inline-block";
+  panel.classList.add("on");
   progress = 0; armTarget = YAW_IN;
   ensureController(w, () => { controller && controller.play(); });
 }
@@ -1023,67 +992,20 @@ function putBack(quick) {
   armTarget = YAW_REST; progress = 0;
   if (controller) try { controller.pause(); } catch (e) {}
   paused = true;
-  if (!quick) {
-    npTitle.textContent = "—";
-    npCredit.textContent = "dig the crates · flip through, pull the record facing you";
-    putbackBtn.style.display = "none";
-  }
+  bplay.textContent = "▶";
+  if (!quick) panel.classList.remove("on");
 }
 putbackBtn.addEventListener("click", () => putBack(false));
 
-/* ---- picking: taps for buttons + sleeves, drags for the fader and every piece of furniture ---- */
-let faderDrag = false, assetDrag = null;
-function planeHit(y) { // where the pointer ray crosses a horizontal plane
-  const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
-  if (Math.abs(ray.direction.y) < 1e-4) return null;
-  const t = (y - ray.origin.y) / ray.direction.y;
-  return { x: ray.origin.x + ray.direction.x * t, z: ray.origin.z + ray.direction.z * t };
-}
-function wallHit(z) { // and where it crosses the back wall's plane
-  const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
-  if (Math.abs(ray.direction.z) < 1e-4) return null;
-  const t = (z - ray.origin.z) / ray.direction.z;
-  return { x: ray.origin.x + ray.direction.x * t, y: ray.origin.y + ray.direction.y * t };
-}
+/* ---- picking: taps for buttons + sleeves, a drag for the pitch fader ---- */
+let faderDrag = false, focusIdx = -1;
 scene.onPointerObservable.add((pi) => {
   const pick = pi.pickInfo;
   if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.ctl === "pitch") {
     faderDrag = true; cam.detachControl();
   }
-  if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.drag) {
-    const md = pick.pickedMesh.metadata;
-    const d = draggables[md.drag];
-    if (d.mode === "deckctl") { // deck controls: drag repositions, a still tap presses
-      const h = planeHit(0.245);
-      if (h) {
-        assetDrag = { d, ox: d.node.position.x - (h.x - deckRoot.position.x), oz: d.node.position.z - (h.z - deckRoot.position.z),
-          sx: d.node.position.x, sz: d.node.position.z, moved: 0, ctl: md.ctl || null };
-        cam.detachControl();
-      }
-    } else if (!md.ctl) {
-      const h = d.mode === "wall" ? wallHit(d.node.position.z) : planeHit(d.node.position.y);
-      if (h) {
-        assetDrag = d.mode === "wall"
-          ? { d, ox: d.node.position.x - h.x, oy: d.node.position.y - h.y }
-          : { d, ox: d.node.position.x - h.x, oz: d.node.position.z - h.z };
-        cam.detachControl();
-      }
-    }
-  }
-  if (pi.type === B.PointerEventTypes.POINTERUP && (faderDrag || assetDrag)) {
-    if (assetDrag) {
-      const d = assetDrag.d;
-      if (d.mode === "deckctl") {
-        if (assetDrag.moved < 0.07) { // it was a press (finger jitter included), not a move
-          d.node.position.x = assetDrag.sx; d.node.position.z = assetDrag.sz;
-          if (assetDrag.ctl === "startstop" && current >= 0 && controller) controller.togglePlay();
-          if (assetDrag.ctl === "rpm33") setRPM(100 / 3);
-          if (assetDrag.ctl === "rpm45") setRPM(45);
-        }
-        saveLayout(d.key);
-      } else { dropSnap(d); saveLayout(d.key); }
-    }
-    faderDrag = false; assetDrag = null;
+  if (pi.type === B.PointerEventTypes.POINTERUP && faderDrag) {
+    faderDrag = false;
     cam.attachControl(document.getElementById("scene"), true);
   }
   if (pi.type === B.PointerEventTypes.POINTERMOVE) {
@@ -1098,50 +1020,48 @@ scene.onPointerObservable.add((pi) => {
       }
       return;
     }
-    if (assetDrag) {
-      const d = assetDrag.d;
-      if (d.mode === "deckctl") {
-        const h = planeHit(0.245);
-        if (h) {
-          const nx = Math.max(-1.42, Math.min(1.42, h.x - deckRoot.position.x + assetDrag.ox));
-          const nz = Math.max(-0.82, Math.min(0.82, h.z - deckRoot.position.z + assetDrag.oz));
-          d.node.position.x = nx; d.node.position.z = nz;
-          assetDrag.moved = Math.max(assetDrag.moved, Math.hypot(nx - assetDrag.sx, nz - assetDrag.sz));
-        }
-        return;
-      }
-      if (d.mode === "wall") {
-        const h = wallHit(d.node.position.z);
-        if (h) {
-          d.node.position.x = Math.max(-7, Math.min(7, h.x + assetDrag.ox));
-          d.node.position.y = Math.max(0.25, Math.min(3.6, h.y + assetDrag.oy));
-        }
-      } else {
-        const h = planeHit(d.node.position.y);
-        if (h) {
-          d.node.position.x = Math.max(-7.4, Math.min(7.4, h.x + assetDrag.ox));
-          d.node.position.z = Math.max(-5.8, Math.min(3.3, h.z + assetDrag.oz));
-        }
-      }
-      return;
-    }
     // hover (mouse): the record under the cursor becomes the dig point
     if (pi.event.pointerType === "mouse" && !ritual) {
       const h = scene.pick(scene.pointerX, scene.pointerY, (m) => m.metadata?.ctl === "sleeve");
-      if (h?.hit) { const md = h.pickedMesh.metadata; md.crate.focus = md.k; }
+      if (h?.hit) { const md = h.pickedMesh.metadata; md.crate.focus = md.k; focusIdx = md.i; }
     }
   }
   if (pi.type === B.PointerEventTypes.POINTERTAP && pick?.hit && pick.pickedMesh?.metadata) {
     const md = pick.pickedMesh.metadata;
     if (md.ctl === "sleeve") {
-      if (md.crate.focus === md.k) chooseRecord(md.i); // tap the record facing you = pull it
-      else md.crate.focus = md.k;                      // tap deeper in the crate = flip to it
+      if (md.crate.focus === md.k) chooseRecord(md.i);   // tap the record facing you = pull it
+      else { md.crate.focus = md.k; focusIdx = md.i; }   // tap deeper in the crate = flip to it
     }
-    // deck buttons fire from the drag-vs-press logic on pointerup, not here
+    if (md.ctl === "startstop" && current >= 0 && controller) controller.togglePlay();
+    if (md.ctl === "rpm33") setRPM(100 / 3);
+    if (md.ctl === "rpm45") setRPM(45);
   }
+});
+
+/* ---- the browse bar: ‹ › walk the crate, ▶ pulls (or pauses) — the mobile-friendly dig ---- */
+const N = WORKS.length;
+function setFocus(i) {
+  focusIdx = ((i % N) + N) % N;
+  for (const c of crates) c.focus = -1;
+  const md = sleeves[focusIdx].metadata;
+  md.crate.focus = md.k;
+}
+function step(dir) {
+  if (ritual) return;
+  if (current >= 0) chooseRecord(((current + dir) % N + N) % N); // playing: skip straight to the next record
+  else setFocus(focusIdx < 0 ? (dir > 0 ? 0 : N - 1) : focusIdx + dir);
+}
+document.getElementById("bprev").addEventListener("click", () => step(-1));
+document.getElementById("bnext").addEventListener("click", () => step(1));
+bplay.addEventListener("click", () => {
+  if (ritual) return;
+  if (current >= 0) { if (controller) controller.togglePlay(); }
+  else chooseRecord(focusIdx < 0 ? 0 : focusIdx);
 });
 window.addEventListener("keydown", (e) => {
   if (e.key === " ") { e.preventDefault(); if (current >= 0 && controller) controller.togglePlay(); }
+  if (e.key === "ArrowLeft") step(-1);
+  if (e.key === "ArrowRight") step(1);
   if (e.key === "Escape") putBack(false);
 });
 
@@ -1249,8 +1169,6 @@ scene.onBeforeRenderObservable.add(() => {
       }
     }
   }
-
-  // pitch readout on the panel hint
 });
 engine.runRenderLoop(() => scene.render());
 function frameCamera() { // portrait keeps the vertical fov — back the camera off so the whole rig fits
@@ -1262,7 +1180,7 @@ frameCamera();
 window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
 /* debug hooks, same spirit as the bedroom */
-window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot, draggables, saveLayout,
+window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot, setFocus, step,
   demo: (on) => { paused = !on; }, // pretend playback for testing the show without audio
   get state() { return { current, rpm, pitch, paused, progress, armCur, YAW_IN, YAW_OUT, YAW_REST }; } };
 </script>
