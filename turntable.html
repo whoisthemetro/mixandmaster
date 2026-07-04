@@ -413,23 +413,32 @@ const WORKS = [
 const B = BABYLON;
 const ACCENT = new B.Color3(1, 0.2, 0.4);
 
-/* ---- spotify: one controller in the panel, loadUri per record ---- */
-let IFA = null, controller = null, paused = true, progress = 0, posMs = 0, posAt = 0;
+/* ---- spotify: one controller in the panel, loadUri per record ----
+   play() must run INSIDE the tap's gesture window or phones refuse autoplay —
+   so the controller is warmed up on the first touch and every choose plays immediately */
+let IFA = null, controller = null, ctlPending = false, ctlQueued = null;
+let paused = true, progress = 0, posMs = 0, posAt = 0;
 window.onSpotifyIframeApiReady = (api) => { IFA = api; };
 function ensureController(w, then) {
   const uri = `spotify:${w.kind}:${w.id}`;
-  if (controller) { controller.loadUri(uri); if (then) setTimeout(then, 600); return; }
+  if (controller) { controller.loadUri(uri); if (then) then(); return; } // same gesture, no timers
+  if (ctlPending) { ctlQueued = { uri, then }; return; } // creation in flight — remember the latest ask
   if (!IFA) { // api blocked — plain embed; the deck still spins to its own start/stop
     document.getElementById("embed").innerHTML =
       `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
     return;
   }
+  ctlPending = true;
   const host = document.createElement("div");
   document.getElementById("embed").appendChild(host);
   IFA.createController(host, { uri, width: "100%", height: 152 }, (c) => {
     controller = c;
-    c.addListener("ready", () => { if (then) then(); });
+    c.addListener("ready", () => {
+      ctlPending = false;
+      if (ctlQueued) { const q = ctlQueued; ctlQueued = null; if (q.uri !== uri) c.loadUri(q.uri); if (q.then) q.then(); }
+      else if (then) then();
+    });
     c.addListener("playback_update", (e) => {
       paused = !!e.data.isPaused;
       document.getElementById("bplay").textContent = paused ? "▶" : "❚❚";
@@ -438,6 +447,9 @@ function ensureController(w, then) {
     });
   });
 }
+// the first touch of anything builds the player while nobody's looking
+window.addEventListener("pointerdown", () => { if (!controller && !ctlPending && IFA) ensureController(WORKS[0]); },
+  { once: true, capture: true });
 
 /* ---- the scene ---- */
 let engine, scene;
@@ -1025,6 +1037,7 @@ function chooseRecord(i) {
   const s = sleeves[i];
   s.metadata.crate.focus = s.metadata.k; // everything in front flips forward out of the way
   ritual = { phase: "pull", t: 0, i, yaw: s.metadata.crate.root.rotation.y };
+  ensureController(w, () => { controller && controller.play(); }); // play NOW, inside the tap — the song starts as the record flies
   enterDeck(); // the camera drifts over to watch it land
 }
 function landRecord(i) {
@@ -1040,7 +1053,6 @@ function landRecord(i) {
   document.getElementById("embed").style.height = (w.kind === "album" ? 352 : 152) + "px"; // albums show the whole tracklist
   panel.classList.add("on"); panel.classList.remove("min");
   progress = 0; armTarget = YAW_IN;
-  ensureController(w, () => { controller && controller.play(); });
 }
 function putBack(quick) {
   if (current < 0) return;
