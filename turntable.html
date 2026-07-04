@@ -81,6 +81,17 @@ footer a:hover { color: var(--accent); }
   font-size: .7rem; letter-spacing: .12em; line-height: 2; color: var(--gray); padding: 2rem; }
 #fail a { color: var(--accent); }
 
+#envbtn {
+  position: fixed; left: 16px; bottom: 14px; z-index: 6;
+  font: inherit; font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; padding: .55rem 1.05rem; transition: all .2s;
+}
+#envbtn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
+@media (max-width: 720px) {
+  #envbtn { bottom: auto; top: 82px; left: 10px; } /* the panel owns the bottom on phones */
+}
+
 @media (max-width: 720px) {
   #panel { left: 10px; right: 10px; bottom: 10px; top: auto; width: auto; padding: .7rem; gap: .45rem; }
   #np-title { font-size: 1.05rem; }
@@ -111,8 +122,10 @@ footer a:hover { color: var(--accent); }
       <button id="copylayout">copy layout</button>
     </div>
   </aside>
-  <div id="fail">this style needs webgl —<br><a href="./">head back to the wall</a></div>
+  <div id="fail">this environment needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
+
+<button id="envbtn" title="back out to the wall">⟲ change environment</button>
 
 <footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
 
@@ -947,6 +960,11 @@ function dropSnap(d) { // let go and the piece settles onto whatever is under it
     m !== backWall && m !== sideL && m !== sideR && m.parent !== travel);
   if (hit?.hit) p.y = hit.pickedPoint.y + d.baseOff;
 }
+try { localStorage.setItem("mm-env", "turntable"); } catch (e) {} // being here IS the preference
+document.getElementById("envbtn").addEventListener("click", () => {
+  try { localStorage.setItem("mm-env", "wall"); } catch (e) {}
+  location.href = "./";
+});
 document.getElementById("resetroom").addEventListener("click", () => {
   localStorage.removeItem("metro-tt-layout"); localStorage.removeItem("metro-tt-deck");
   location.reload();

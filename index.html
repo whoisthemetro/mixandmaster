@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>
+// one site, many environments — return visitors to the one they were last in
+// (session-guarded so the back button still wins an argument with the redirect)
+try {
+  if (localStorage.getItem("mm-env") === "turntable" && !sessionStorage.getItem("mm-envd")) {
+    sessionStorage.setItem("mm-envd", "1");
+    location.replace("turntable.html");
+  }
+} catch (e) {}
+</script>
 <title>Metro Mixing & Mastering | The Wall</title>
 <meta name="description" content="Albums and singles mixed & mastered by THE METRO — swipe the wall, flip a plaque, press play.">
 <meta property="og:title" content="Metro Mixing & Mastering">
@@ -187,6 +197,13 @@ nav button:hover { border-color: var(--accent); color: var(--accent); }
 #play.live { background: rgba(255,51,102,.12); border-color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 #counter { font-size: .66rem; letter-spacing: .3em; color: var(--gray); text-align: center; padding: .5rem 0 .9rem; }
 #counter b { color: var(--white); font-weight: 600; }
+#envbtn {
+  position: fixed; left: 16px; bottom: 14px; z-index: 6;
+  font: inherit; font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; padding: .55rem 1.05rem; transition: all .2s;
+}
+#envbtn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 footer { position: relative; z-index: 2; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: 0 1rem 1rem; text-transform: uppercase; }
 footer a { color: #8a8792; text-decoration: none; }
 footer a:hover { color: var(--accent); }
@@ -209,10 +226,11 @@ footer a:hover { color: var(--accent); }
 <header>
   <div>
     <h1>METRO <em>MIXING &amp; MASTERING</em></h1>
-    <div class="modes">style: <b>the wall</b> · <a href="turntable.html">the turntable</a></div>
   </div>
   <a class="ig" href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
 </header>
+
+<button id="envbtn" title="step into the listening room">⟲ change environment</button>
 
 <main>
   <div id="rail" aria-label="records wall"></div>
@@ -592,6 +610,11 @@ rail.addEventListener("scroll", () => {
     if (drag) return; // still holding the wall — wait for the hand to let go
     if (inPlayMode() && +open.dataset.i !== nearest()) flip(slots[nearest()], true);
   }, 180);
+});
+document.getElementById("envbtn").addEventListener("click", () => {
+  // a deliberate choice this session — the auto-redirect stands down so the back button behaves
+  try { localStorage.setItem("mm-env", "turntable"); sessionStorage.setItem("mm-envd", "1"); } catch (e) {}
+  location.href = "turntable.html";
 });
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
