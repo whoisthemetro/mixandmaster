@@ -105,7 +105,7 @@ footer a:hover { color: var(--accent); }
     <div id="np-credit">dig the crates · flip through, pull the record facing you</div>
     <div id="embed"></div>
     <button id="putback">put it back</button>
-    <div id="hint">hover the crates to flip through · tap the record facing you to pull it · grab any piece of the room to rearrange it (it remembers) · drag empty space to look around</div>
+    <div id="hint">hover the crates to flip through · tap the record facing you to pull it · grab any piece of the room — even the deck's own buttons — to rearrange it (it remembers) · drag empty space to look around</div>
     <div style="display:flex; gap:1rem;">
       <button id="resetroom">reset the room</button>
       <button id="copylayout">copy layout</button>
@@ -757,36 +757,46 @@ function labelPlane(text, w, h, size) {
   p.rotation.x = -Math.PI / 2; p.rotation.y = Math.PI; p.material = m;
   return p;
 }
-function deckButton(name, x, z, w, d) {
+/* every control rides a little sled you can drag anywhere on the plinth; a plain tap still presses it */
+function ctlGroup(name, x, z) {
+  const g = new B.TransformNode(name, scene);
+  g.parent = deckRoot; g.position.set(x, 0, z);
+  return g;
+}
+function deckButton(parent, name, w, d) {
   const b = B.MeshBuilder.CreateBox(name, { width: w, height: 0.05, depth: d }, scene);
-  b.parent = deckRoot;
-  b.position.set(x, 0.245, z); b.material = plasticM.clone(name + "m");
+  b.parent = parent;
+  b.position.set(0, 0.245, 0); b.material = plasticM.clone(name + "m");
   b.metadata = { ctl: name };
   return b;
 }
-const bStart = deckButton("startstop", -1.24, -0.70, 0.26, 0.16);
-const lStart = labelPlane("START·STOP", 0.24, 0.12, 40); lStart.position.set(-1.24, 0.2715, -0.70); lStart.metadata = { ctl: "startstop" };
-const b33 = deckButton("rpm33", -0.92, -0.70, 0.13, 0.13);
-const l33 = labelPlane("33", 0.11, 0.11, 64); l33.position.set(-0.92, 0.2715, -0.70); l33.metadata = { ctl: "rpm33" };
-const b45 = deckButton("rpm45", -0.74, -0.70, 0.13, 0.13);
-const l45 = labelPlane("45", 0.11, 0.11, 64); l45.position.set(-0.74, 0.2715, -0.70); l45.metadata = { ctl: "rpm45" };
+const grpStart = ctlGroup("grpStart", -1.24, -0.70);
+const bStart = deckButton(grpStart, "startstop", 0.26, 0.16);
+const lStart = labelPlane("START·STOP", 0.24, 0.12, 40); lStart.parent = grpStart; lStart.position.set(0, 0.2715, 0); lStart.metadata = { ctl: "startstop" };
+const grp33 = ctlGroup("grp33", -0.92, -0.70);
+const b33 = deckButton(grp33, "rpm33", 0.13, 0.13);
+const l33 = labelPlane("33", 0.11, 0.11, 64); l33.parent = grp33; l33.position.set(0, 0.2715, 0); l33.metadata = { ctl: "rpm33" };
+const grp45 = ctlGroup("grp45", -0.74, -0.70);
+const b45 = deckButton(grp45, "rpm45", 0.13, 0.13);
+const l45 = labelPlane("45", 0.11, 0.11, 64); l45.parent = grp45; l45.position.set(0, 0.2715, 0); l45.metadata = { ctl: "rpm45" };
 const led = B.MeshBuilder.CreateCylinder("led", { diameter: 0.035, height: 0.012, tessellation: 16 }, scene);
-led.parent = deckRoot;
-led.position.set(-1.24, 0.226, -0.55);
+led.parent = grpStart; // the light stays with its button
+led.position.set(0, 0.226, 0.15);
 const ledM = new B.StandardMaterial("ledM", scene);
 ledM.diffuseColor = B.Color3.FromHexString("#26262c"); ledM.emissiveColor = B.Color3.Black();
 led.material = ledM;
 
-/* pitch: a real fader you grab and slide */
+/* pitch: a real fader you grab and slide — grab its slot or label to move the whole unit */
+const grpPitch = ctlGroup("grpPitch", 1.18, -0.05);
 const slot = B.MeshBuilder.CreateBox("slot", { width: 0.035, height: 0.006, depth: 0.72 }, scene);
-slot.parent = deckRoot;
-slot.position.set(1.18, 0.223, -0.05); slot.material = darkM;
+slot.parent = grpPitch;
+slot.position.set(0, 0.223, 0); slot.material = darkM;
 const knob = B.MeshBuilder.CreateBox("knob", { width: 0.12, height: 0.05, depth: 0.07 }, scene);
-knob.parent = deckRoot;
-knob.position.set(1.18, 0.246, -0.05); knob.material = chromeM.clone("knobM");
+knob.parent = grpPitch;
+knob.position.set(0, 0.246, 0); knob.material = chromeM.clone("knobM");
 knob.metadata = { ctl: "pitch" };
-const lPitch = labelPlane("PITCH", 0.16, 0.08, 48); lPitch.position.set(1.18, 0.2715, 0.42);
-const PITCH_Z0 = -0.05, PITCH_HALF = 0.33;
+const lPitch = labelPlane("PITCH", 0.16, 0.08, 48); lPitch.parent = grpPitch; lPitch.position.set(0, 0.2715, 0.47);
+const PITCH_HALF = 0.33;
 
 /* rpm state marked on the buttons */
 let baseRPM = 100 / 3, pitch = 0;
@@ -901,13 +911,18 @@ movable("lamp", lampRoot);
 movable("chair", chairRoot);
 movable("rug", rug, "floor", 0.015);
 frameRoots.forEach((fr, i) => movable("frame" + i, fr, "wall"));
+movable("ctlStart", grpStart, "deckctl");
+movable("ctl33", grp33, "deckctl");
+movable("ctl45", grp45, "deckctl");
+movable("ctlPitch", grpPitch, "deckctl");
+delete knob.metadata.drag; // the knob stays a pitch control — move the fader by its slot or label
 function saveLayout(key) {
   const d = draggables[key], p = d.node.position;
   layout[key] = d.mode === "wall" ? { x: p.x, y: p.y } : { x: p.x, y: p.y, z: p.z };
   localStorage.setItem("metro-tt-layout", JSON.stringify(layout));
 }
 function dropSnap(d) { // let go and the piece settles onto whatever is under it
-  if (d.mode === "wall") return;
+  if (d.mode !== "floor") return;
   const p = d.node.position;
   const ray = new B.Ray(new B.Vector3(p.x, 6, p.z), new B.Vector3(0, -1, 0), 12);
   const hit = scene.pickWithRay(ray, (m) =>
@@ -999,18 +1014,39 @@ scene.onPointerObservable.add((pi) => {
   if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.ctl === "pitch") {
     faderDrag = true; cam.detachControl();
   }
-  if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.drag && !pick.pickedMesh.metadata.ctl) {
-    const d = draggables[pick.pickedMesh.metadata.drag];
-    const h = d.mode === "wall" ? wallHit(d.node.position.z) : planeHit(d.node.position.y);
-    if (h) {
-      assetDrag = d.mode === "wall"
-        ? { d, ox: d.node.position.x - h.x, oy: d.node.position.y - h.y }
-        : { d, ox: d.node.position.x - h.x, oz: d.node.position.z - h.z };
-      cam.detachControl();
+  if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.drag) {
+    const md = pick.pickedMesh.metadata;
+    const d = draggables[md.drag];
+    if (d.mode === "deckctl") { // deck controls: drag repositions, a still tap presses
+      const h = planeHit(0.245);
+      if (h) {
+        assetDrag = { d, ox: d.node.position.x - (h.x - deckRoot.position.x), oz: d.node.position.z - (h.z - deckRoot.position.z),
+          sx: d.node.position.x, sz: d.node.position.z, moved: 0, ctl: md.ctl || null };
+        cam.detachControl();
+      }
+    } else if (!md.ctl) {
+      const h = d.mode === "wall" ? wallHit(d.node.position.z) : planeHit(d.node.position.y);
+      if (h) {
+        assetDrag = d.mode === "wall"
+          ? { d, ox: d.node.position.x - h.x, oy: d.node.position.y - h.y }
+          : { d, ox: d.node.position.x - h.x, oz: d.node.position.z - h.z };
+        cam.detachControl();
+      }
     }
   }
   if (pi.type === B.PointerEventTypes.POINTERUP && (faderDrag || assetDrag)) {
-    if (assetDrag) { dropSnap(assetDrag.d); saveLayout(assetDrag.d.key); }
+    if (assetDrag) {
+      const d = assetDrag.d;
+      if (d.mode === "deckctl") {
+        if (assetDrag.moved < 0.07) { // it was a press (finger jitter included), not a move
+          d.node.position.x = assetDrag.sx; d.node.position.z = assetDrag.sz;
+          if (assetDrag.ctl === "startstop" && current >= 0 && controller) controller.togglePlay();
+          if (assetDrag.ctl === "rpm33") setRPM(100 / 3);
+          if (assetDrag.ctl === "rpm45") setRPM(45);
+        }
+        saveLayout(d.key);
+      } else { dropSnap(d); saveLayout(d.key); }
+    }
     faderDrag = false; assetDrag = null;
     cam.attachControl(document.getElementById("scene"), true);
   }
@@ -1019,15 +1055,25 @@ scene.onPointerObservable.add((pi) => {
       const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
       if (Math.abs(ray.direction.y) > 1e-4) {
         const t = (0.246 - ray.origin.y) / ray.direction.y;
-        let z = ray.origin.z + ray.direction.z * t - deckRoot.position.z; // fader lives in deck space
-        z = Math.max(PITCH_Z0 - PITCH_HALF, Math.min(PITCH_Z0 + PITCH_HALF, z));
+        let z = ray.origin.z + ray.direction.z * t - deckRoot.position.z - grpPitch.position.z; // fader lives on its sled
+        z = Math.max(-PITCH_HALF, Math.min(PITCH_HALF, z));
         knob.position.z = z;
-        pitch = ((PITCH_Z0 - z) / PITCH_HALF) * 8; // push away = slower, pull close = faster
+        pitch = (-z / PITCH_HALF) * 8; // push away = slower, pull close = faster
       }
       return;
     }
     if (assetDrag) {
       const d = assetDrag.d;
+      if (d.mode === "deckctl") {
+        const h = planeHit(0.245);
+        if (h) {
+          const nx = Math.max(-1.42, Math.min(1.42, h.x - deckRoot.position.x + assetDrag.ox));
+          const nz = Math.max(-0.82, Math.min(0.82, h.z - deckRoot.position.z + assetDrag.oz));
+          d.node.position.x = nx; d.node.position.z = nz;
+          assetDrag.moved = Math.max(assetDrag.moved, Math.hypot(nx - assetDrag.sx, nz - assetDrag.sz));
+        }
+        return;
+      }
       if (d.mode === "wall") {
         const h = wallHit(d.node.position.z);
         if (h) {
@@ -1055,9 +1101,7 @@ scene.onPointerObservable.add((pi) => {
       if (md.crate.focus === md.k) chooseRecord(md.i); // tap the record facing you = pull it
       else md.crate.focus = md.k;                      // tap deeper in the crate = flip to it
     }
-    if (md.ctl === "startstop") { if (current >= 0 && controller) controller.togglePlay(); }
-    if (md.ctl === "rpm33") setRPM(100 / 3);
-    if (md.ctl === "rpm45") setRPM(45);
+    // deck buttons fire from the drag-vs-press logic on pointerup, not here
   }
 });
 window.addEventListener("keydown", (e) => {
