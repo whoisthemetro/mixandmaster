@@ -89,7 +89,6 @@ footer a:hover { color: var(--accent); }
 <header>
   <div>
     <h1>METRO <em>MIXING &amp; MASTERING</em></h1>
-    <div class="modes">style: <a href="./">the wall</a> · <b>the turntable</b></div>
   </div>
   <a class="ig" href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
 </header>
@@ -98,10 +97,10 @@ footer a:hover { color: var(--accent); }
   <canvas id="scene"></canvas>
   <aside id="panel">
     <div id="np-title">—</div>
-    <div id="np-credit">dig the crate · tap a sleeve to pull a record</div>
+    <div id="np-credit">dig the crates · flip through, pull the record facing you</div>
     <div id="embed"></div>
     <button id="putback">put it back</button>
-    <div id="hint">start·stop plays and pauses · 33/45 and the pitch fader ride the platter · drag to look around</div>
+    <div id="hint">hover the crates to flip through · tap the record facing you to pull it · grab the deck to slide it (it remembers) · drag elsewhere to look around</div>
   </aside>
   <div id="fail">this style needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
@@ -385,7 +384,7 @@ scene.fogMode = B.Scene.FOGMODE_EXP2;
 scene.fogDensity = 0.055;
 scene.fogColor = B.Color3.FromHexString("#0a0a0c");
 
-const cam = new B.ArcRotateCamera("cam", -Math.PI / 2, 1.0, 5.4, new B.Vector3(-0.1, 0.1, -0.7), scene);
+const cam = new B.ArcRotateCamera("cam", -Math.PI / 2, 1.0, 6.0, new B.Vector3(0, 0.12, 0.2), scene);
 cam.attachControl(document.getElementById("scene"), true);
 cam.lowerAlphaLimit = -Math.PI / 2 - 0.6; cam.upperAlphaLimit = -Math.PI / 2 + 0.6;
 cam.lowerBetaLimit = 0.72; cam.upperBetaLimit = 1.32;
@@ -399,6 +398,8 @@ const key = new B.DirectionalLight("key", new B.Vector3(-0.35, -1, 0.4), scene);
 key.position = new B.Vector3(1.6, 5, -2.2); key.intensity = 1.45;
 const pink = new B.PointLight("pink", new B.Vector3(-2.2, 1.2, -2.0), scene);
 pink.diffuse = ACCENT; pink.intensity = 0.75; pink.range = 7;
+const fill = new B.PointLight("fill", new B.Vector3(0, 2.6, -2.4), scene); // soft front light so the crate faces read
+fill.diffuse = B.Color3.FromHexString("#cfd6e6"); fill.intensity = 0.4; fill.range = 9;
 const glow = new B.GlowLayer("glow", scene); glow.intensity = 0.6;
 const shadows = new B.ShadowGenerator(1024, key);
 shadows.useBlurExponentialShadowMap = true; shadows.blurKernel = 16; shadows.darkness = 0.35;
@@ -417,20 +418,230 @@ const woodM   = mat("wood", "#3a2c1c", 0.02);
 const woodDkM = mat("wooddk", "#241a10", 0.02);
 const chromeM = mat("chrome", "#9aa0ab", 0.5); chromeM.specularPower = 96;
 
-/* the table it all sits on */
-const table = B.MeshBuilder.CreateBox("table", { width: 9, height: 0.12, depth: 5.2 }, scene);
-table.position.set(0, -0.06, -0.2); table.material = tableM; table.receiveShadows = true;
+/* ---- the living room: we're zoomed in on the listening corner ---- */
+const floorTex = new B.DynamicTexture("floorTex", { width: 512, height: 512 }, scene, false);
+{
+  const g = floorTex.getContext();
+  g.fillStyle = "#1c130c"; g.fillRect(0, 0, 512, 512);
+  const tones = ["#241910", "#20160e", "#281c12", "#1e140c"];
+  for (let row = 0; row < 8; row++) {
+    const y = row * 64, off = (row % 2) * 128;
+    for (let px = -1; px < 3; px++) {
+      g.fillStyle = tones[(row * 3 + px + 4) % 4];
+      g.fillRect(off + px * 256 + 2, y + 2, 252, 60);
+    }
+  }
+  floorTex.update(false);
+}
+const floorM = new B.StandardMaterial("floorM", scene);
+floorM.diffuseTexture = floorTex; floorM.diffuseTexture.uScale = 5; floorM.diffuseTexture.vScale = 5;
+floorM.specularColor = new B.Color3(0.05, 0.05, 0.05);
+const floor = B.MeshBuilder.CreateGround("floor", { width: 20, height: 17 }, scene);
+floor.position.set(0, -0.9, 1.4); floor.material = floorM; floor.receiveShadows = true;
 
-/* ---- the deck ---- */
+const rug = B.MeshBuilder.CreateBox("rug", { width: 6.8, height: 0.03, depth: 4.6 }, scene);
+rug.position.set(0, -0.885, 0.5); rug.material = mat("rugM", "#3a1622", 0.01); rug.receiveShadows = true;
+
+const wallM = mat("wallM", "#15121a", 0.02);
+const backWall = B.MeshBuilder.CreateBox("backWall", { width: 20, height: 5.4, depth: 0.2 }, scene);
+backWall.position.set(0, 1.8, 3.5); backWall.material = wallM; backWall.receiveShadows = true;
+const sideL = B.MeshBuilder.CreateBox("sideL", { width: 0.2, height: 5.4, depth: 17 }, scene);
+sideL.position.set(-8, 1.8, 0.9); sideL.material = wallM;
+const sideR = sideL.clone("sideR"); sideR.position.x = 8;
+
+/* the media console the deck lives on */
+const table = B.MeshBuilder.CreateBox("table", { width: 6.6, height: 0.12, depth: 3.8 }, scene);
+table.position.set(0, -0.06, 0.55); table.material = mat("walnut", "#2c2015", 0.05); table.receiveShadows = true;
+const tableBody = B.MeshBuilder.CreateBox("tableBody", { width: 6.2, height: 0.78, depth: 3.5 }, scene);
+tableBody.position.set(0, -0.51, 0.55); tableBody.material = tableM; tableBody.receiveShadows = true;
+
+/* big floor speakers flanking the console */
+const spkM = mat("spkM", "#191a1f", 0.08);
+const spkDk = mat("spkDk", "#0c0c0f", 0.04);
+const spkCone = mat("spkCone", "#2a2b31", 0.14);
+function speaker(x) {
+  const body = B.MeshBuilder.CreateBox("spk" + x, { width: 0.62, height: 1.72, depth: 0.5 }, scene);
+  body.position.set(x, -0.04, 0.75); body.material = spkM; body.receiveShadows = true;
+  shadows.addShadowCaster(body);
+  const disc = (d, y, m, dz) => {
+    const c = B.MeshBuilder.CreateCylinder("spkd", { diameter: d, height: 0.03, tessellation: 32 }, scene);
+    c.rotation.x = Math.PI / 2; c.position.set(x, y, 0.75 - 0.25 - (dz || 0)); c.material = m;
+    return c;
+  };
+  disc(0.38, 0.05, spkDk, 0.005); disc(0.3, 0.05, spkCone, 0.02);
+  disc(0.17, 0.5, spkDk, 0.005); disc(0.11, 0.5, spkCone, 0.02);
+  return body;
+}
+speaker(-3.9); speaker(3.9);
+
+/* the cat asleep on the left speaker, doing its one job */
+const catM = mat("catM", "#26242a", 0.03);
+const catBody = B.MeshBuilder.CreateSphere("catBody", { diameter: 1, segments: 16 }, scene);
+catBody.scaling.set(0.38, 0.145, 0.3); catBody.position.set(-3.9, 0.9, 0.75); catBody.material = catM;
+shadows.addShadowCaster(catBody);
+const catHead = B.MeshBuilder.CreateSphere("catHead", { diameter: 0.19, segments: 12 }, scene);
+catHead.scaling.set(1, 0.82, 0.92); catHead.position.set(-3.77, 0.88, 0.64); catHead.material = catM;
+for (const ex of [-0.05, 0.05]) {
+  const ear = B.MeshBuilder.CreateCylinder("ear", { diameterTop: 0, diameterBottom: 0.05, height: 0.06, tessellation: 8 }, scene);
+  ear.position.set(-3.77 + ex, 0.97, 0.6); ear.rotation.x = -0.25; ear.material = catM;
+}
+{
+  const pts = [];
+  for (let a = Math.PI + 0.35; a <= Math.PI + 1.9; a += 0.12)
+    pts.push(new B.Vector3(-3.9 + Math.cos(a) * 0.2, 0.85, 0.75 + Math.sin(a) * 0.2));
+  const tail = B.MeshBuilder.CreateTube("tail", { path: pts, radius: 0.022, tessellation: 8 }, scene);
+  tail.material = catM;
+}
+
+/* shelf unit stuffed with records, off to the left */
+const spineHues = ["#7a2f3c", "#2f4b7a", "#7a6a2f", "#3c7a5a", "#5a3c7a", "#7a4b2f", "#2f6b7a", "#6b7a2f"];
+{
+  const sx = -5.9, sz = 3.2;
+  const beam = (w, h, d, px, py, pz) => {
+    const b = B.MeshBuilder.CreateBox("shelfB", { width: w, height: h, depth: d }, scene);
+    b.position.set(sx + px, -0.9 + py, sz + pz); b.material = woodDkM; b.receiveShadows = true;
+    return b;
+  };
+  beam(0.06, 2.3, 0.42, -0.73, 1.15, 0); beam(0.06, 2.3, 0.42, 0.73, 1.15, 0);
+  beam(1.52, 0.06, 0.42, 0, 2.27, 0); beam(1.52, 0.06, 0.42, 0, 0.03, 0);
+  beam(1.4, 0.05, 0.42, 0, 0.78, 0); beam(1.4, 0.05, 0.42, 0, 1.53, 0);
+  for (const rowY of [0.06, 0.805, 1.555]) {
+    let x = -0.66;
+    let n = Math.round(rowY * 100);
+    while (x < 0.6) {
+      const w = 0.035 + ((n * 7) % 4) * 0.008;
+      const h = 0.56 + ((n * 13) % 5) * 0.025;
+      const spine = B.MeshBuilder.CreateBox("spine", { width: w, height: h, depth: 0.36 }, scene);
+      spine.position.set(sx + x + w / 2, -0.9 + rowY + h / 2, sz - 0.01);
+      spine.rotation.z = ((n * 11) % 7 === 0) ? 0.06 : 0;
+      spine.material = mat("spineM" + n, spineHues[n % spineHues.length], 0.03);
+      x += w + 0.006 + (((n * 17) % 9 === 0) ? 0.05 : 0);
+      n++;
+    }
+  }
+}
+
+/* plants — one big monstera on the floor, a snake plant up on the shelf */
+const potM = mat("potM", "#5e3a2a", 0.03);
+const leafM = mat("leafM", "#1e4d2b", 0.05);
+function pot(x, y, z, s) {
+  const p = B.MeshBuilder.CreateCylinder("pot", { diameterTop: 0.36 * s, diameterBottom: 0.26 * s, height: 0.32 * s, tessellation: 16 }, scene);
+  p.position.set(x, y + 0.16 * s, z); p.material = potM;
+  return p;
+}
+function monstera(x, y, z, s) {
+  pot(x, y, z, s);
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 + 0.4;
+    const lean = 0.35 + (i % 3) * 0.14;
+    const stem = B.MeshBuilder.CreateCylinder("stem", { diameter: 0.022 * s, height: 0.62 * s, tessellation: 6 }, scene);
+    stem.position.set(x + Math.cos(a) * 0.1 * s, y + 0.55 * s, z + Math.sin(a) * 0.1 * s);
+    stem.rotation.z = Math.cos(a) * lean; stem.rotation.x = -Math.sin(a) * lean;
+    stem.material = leafM;
+    const leaf = B.MeshBuilder.CreateDisc("leaf", { radius: 0.17 * s, tessellation: 10 }, scene);
+    leaf.scaling.y = 1.35;
+    leaf.position.set(x + Math.cos(a) * 0.32 * s, y + (0.82 + (i % 3) * 0.1) * s, z + Math.sin(a) * 0.32 * s);
+    leaf.rotation.x = Math.PI / 2 - 0.5 - (i % 2) * 0.3; leaf.rotation.y = -a + Math.PI / 2;
+    leaf.material = leafM;
+  }
+}
+monstera(2.9, -0.9, 2.7, 1.5);
+{
+  pot(-5.9, 1.4 + 0.06 - 0.9 + 0.83, 3.15, 0.7); // on the shelf's top — snake plant
+  for (let i = 0; i < 6; i++) {
+    const blade = B.MeshBuilder.CreateBox("blade", { width: 0.05, height: 0.36 + (i % 3) * 0.09, depth: 0.016 }, scene);
+    blade.position.set(-5.9 + ((i * 29) % 11 - 5) * 0.014, 1.39 + 0.18, 3.15 + ((i * 17) % 7 - 3) * 0.014);
+    blade.rotation.z = ((i * 13) % 5 - 2) * 0.09; blade.rotation.y = i * 0.6;
+    blade.material = leafM;
+  }
+}
+
+/* framed pressings on the back wall */
+const frameM = mat("frameM", "#0b0b0e", 0.06);
+[[-1.15, WORKS[2]], [0, WORKS[7]], [1.15, WORKS[21]]].forEach(([fx, w], fi) => {
+  const back = B.MeshBuilder.CreateBox("frame" + fi, { width: 0.8, height: 0.8, depth: 0.04 }, scene);
+  back.position.set(fx, 1.42, 3.385); back.material = frameM;
+  const art = B.MeshBuilder.CreateBox("frameArt" + fi, { width: 0.68, height: 0.68, depth: 0.05 }, scene);
+  art.position.set(fx, 1.42, 3.38);
+  const m = new B.StandardMaterial("frameArtM" + fi, scene);
+  m.diffuseTexture = new B.Texture(w.artLocal, scene);
+  m.specularColor = new B.Color3(0.04, 0.04, 0.04);
+  art.material = m;
+});
+
+/* armchair at the edge of the frame, floor lamp on the right */
+{
+  const chair = new B.TransformNode("chair", scene);
+  chair.position.set(-4.7, -0.9, -0.8); chair.rotation.y = 0.6;
+  const chM = mat("chM", "#262c3e", 0.03);
+  const part = (w, h, d, px, py, pz, rx) => {
+    const b = B.MeshBuilder.CreateBox("chP", { width: w, height: h, depth: d }, scene);
+    b.parent = chair; b.position.set(px, py, pz); if (rx) b.rotation.x = rx; b.material = chM;
+    b.receiveShadows = true;
+    return b;
+  };
+  part(1.15, 0.5, 1.05, 0, 0.25, 0);
+  part(1.05, 0.16, 0.95, 0, 0.58, 0);
+  part(1.15, 0.9, 0.28, 0, 0.9, 0.45, -0.12);
+  part(0.18, 0.62, 1.05, -0.665, 0.56, 0); part(0.18, 0.62, 1.05, 0.665, 0.56, 0);
+}
+{
+  const pole = B.MeshBuilder.CreateCylinder("lampPole", { diameter: 0.045, height: 1.75, tessellation: 10 }, scene);
+  pole.position.set(4.3, -0.025, 2.75); pole.material = darkM;
+  const base = B.MeshBuilder.CreateCylinder("lampBase", { diameter: 0.42, height: 0.04, tessellation: 20 }, scene);
+  base.position.set(4.3, -0.88, 2.75); base.material = darkM;
+  const shade = B.MeshBuilder.CreateCylinder("lampShade", { diameterTop: 0.3, diameterBottom: 0.44, height: 0.36, tessellation: 20 }, scene);
+  shade.position.set(4.3, 0.94, 2.75);
+  const shM = new B.StandardMaterial("shadeM", scene);
+  shM.diffuseColor = B.Color3.FromHexString("#3a2a1c"); shM.emissiveColor = B.Color3.FromHexString("#ffb277").scale(0.45);
+  shade.material = shM;
+  const lampLight = new B.PointLight("lamp", new B.Vector3(4.3, 0.8, 2.75), scene);
+  lampLight.diffuse = B.Color3.FromHexString("#ffb277"); lampLight.intensity = 0.65; lampLight.range = 7;
+}
+
+/* dust motes hanging in the light */
+{
+  const dustTex = new B.DynamicTexture("dustTex", { width: 64, height: 64 }, scene, false);
+  const g = dustTex.getContext();
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 30);
+  grad.addColorStop(0, "rgba(255,255,255,0.9)"); grad.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+  dustTex.update(false); dustTex.hasAlpha = true;
+  const dust = new B.ParticleSystem("dust", 150, scene);
+  dust.particleTexture = dustTex;
+  dust.emitter = new B.Vector3(0, 1.0, 0.5);
+  dust.minEmitBox = new B.Vector3(-3.6, -1.7, -2.0); dust.maxEmitBox = new B.Vector3(3.6, 1.7, 2.2);
+  dust.color1 = new B.Color4(1, 1, 1, 0.09); dust.color2 = new B.Color4(1, 0.9, 0.95, 0.16);
+  dust.colorDead = new B.Color4(1, 1, 1, 0);
+  dust.minSize = 0.012; dust.maxSize = 0.038;
+  dust.minLifeTime = 6; dust.maxLifeTime = 13;
+  dust.emitRate = 15;
+  dust.blendMode = B.ParticleSystem.BLENDMODE_ADD;
+  dust.direction1 = new B.Vector3(-0.04, -0.015, -0.03); dust.direction2 = new B.Vector3(0.04, 0.025, 0.03);
+  dust.minEmitPower = 0.15; dust.maxEmitPower = 0.5;
+  dust.updateSpeed = 0.004;
+  dust.start();
+}
+
+/* ---- the deck: one node, grab the plinth and slide it where you like ---- */
+const deckRoot = new B.TransformNode("deckRoot", scene);
+deckRoot.position.set(0, 0, -0.16);
+try { const sp = JSON.parse(localStorage.getItem("metro-tt-deck")); if (sp) deckRoot.position.set(sp.x, 0, sp.z); } catch (e) {}
+const DECK_X = 1.7, DECK_Z0 = -0.4, DECK_Z1 = -0.12; // stays on the console, clear of the crates
+
 const plinth = B.MeshBuilder.CreateBox("plinth", { width: 3.1, height: 0.22, depth: 1.9 }, scene);
+plinth.parent = deckRoot;
 plinth.position.set(0, 0.11, 0); plinth.material = plasticM; plinth.receiveShadows = true;
+plinth.metadata = { ctl: "deck" };
 
 const PLATTER = new B.Vector3(-0.62, 0.22, 0.05);
 const platterBase = B.MeshBuilder.CreateCylinder("platterBase", { diameter: 1.44, height: 0.05, tessellation: 64 }, scene);
+platterBase.parent = deckRoot;
 platterBase.position.copyFrom(PLATTER); platterBase.position.y += 0.025;
 platterBase.material = darkM; platterBase.receiveShadows = true;
 
 const spin = new B.TransformNode("spin", scene); // everything on this node rotates
+spin.parent = deckRoot;
 spin.position.copyFrom(PLATTER);
 
 /* vinyl: groove texture drawn once, label art swapped per record */
@@ -460,14 +671,17 @@ label.parent = spin; label.position.y = 0.058; label.material = labelM;
 label.setEnabled(false);
 
 const spindle = B.MeshBuilder.CreateCylinder("spindle", { diameter: 0.024, height: 0.05, tessellation: 16 }, scene);
+spindle.parent = deckRoot;
 spindle.position.copyFrom(PLATTER); spindle.position.y += 0.07; spindle.material = chromeM;
 
 /* tonearm — angles solved numerically, no sign bugs */
 const PIVOT = new B.Vector3(0.80, 0.32, 0.62);
 const ARM_L = 1.15;
 const armBase = B.MeshBuilder.CreateCylinder("armBase", { diameter: 0.2, height: 0.1, tessellation: 32 }, scene);
+armBase.parent = deckRoot;
 armBase.position.set(PIVOT.x, 0.27, PIVOT.z); armBase.material = darkM;
 const armYaw = new B.TransformNode("armYaw", scene);
+armYaw.parent = deckRoot;
 armYaw.position.copyFrom(PIVOT);
 const tube = B.MeshBuilder.CreateCylinder("tube", { diameter: 0.028, height: ARM_L, tessellation: 16 }, scene);
 tube.parent = armYaw; tube.rotation.z = Math.PI / 2; tube.position.x = -ARM_L / 2;
@@ -511,11 +725,13 @@ function labelPlane(text, w, h, size) {
   const m = new B.StandardMaterial("lm" + text, scene);
   m.diffuseTexture = t; m.emissiveColor = new B.Color3(0.22, 0.23, 0.26); m.specularColor = B.Color3.Black();
   const p = B.MeshBuilder.CreatePlane("lp" + text, { width: w, height: h }, scene);
+  p.parent = deckRoot;
   p.rotation.x = -Math.PI / 2; p.rotation.y = Math.PI; p.material = m;
   return p;
 }
 function deckButton(name, x, z, w, d) {
   const b = B.MeshBuilder.CreateBox(name, { width: w, height: 0.05, depth: d }, scene);
+  b.parent = deckRoot;
   b.position.set(x, 0.245, z); b.material = plasticM.clone(name + "m");
   b.metadata = { ctl: name };
   return b;
@@ -527,6 +743,7 @@ const l33 = labelPlane("33", 0.11, 0.11, 64); l33.position.set(-0.92, 0.2715, -0
 const b45 = deckButton("rpm45", -0.74, -0.70, 0.13, 0.13);
 const l45 = labelPlane("45", 0.11, 0.11, 64); l45.position.set(-0.74, 0.2715, -0.70); l45.metadata = { ctl: "rpm45" };
 const led = B.MeshBuilder.CreateCylinder("led", { diameter: 0.035, height: 0.012, tessellation: 16 }, scene);
+led.parent = deckRoot;
 led.position.set(-1.24, 0.226, -0.55);
 const ledM = new B.StandardMaterial("ledM", scene);
 ledM.diffuseColor = B.Color3.FromHexString("#26262c"); ledM.emissiveColor = B.Color3.Black();
@@ -534,8 +751,10 @@ led.material = ledM;
 
 /* pitch: a real fader you grab and slide */
 const slot = B.MeshBuilder.CreateBox("slot", { width: 0.035, height: 0.006, depth: 0.72 }, scene);
+slot.parent = deckRoot;
 slot.position.set(1.18, 0.223, -0.05); slot.material = darkM;
 const knob = B.MeshBuilder.CreateBox("knob", { width: 0.12, height: 0.05, depth: 0.07 }, scene);
+knob.parent = deckRoot;
 knob.position.set(1.18, 0.246, -0.05); knob.material = chromeM.clone("knobM");
 knob.metadata = { ctl: "pitch" };
 const lPitch = labelPlane("PITCH", 0.16, 0.08, 48); lPitch.position.set(1.18, 0.2715, 0.42);
@@ -550,37 +769,51 @@ function setRPM(v) {
 }
 setRPM(baseRPM);
 
-/* ---- the crate ---- */
-const crateRoot = new B.TransformNode("crate", scene);
-crateRoot.position.set(0.55, 0, -1.95);
-crateRoot.rotation.y = 0.25;
-function crateWall(name, w, h, d, x, y, z, m) {
-  const b = B.MeshBuilder.CreateBox(name, { width: w, height: h, depth: d }, scene);
-  b.parent = crateRoot; b.position.set(x, y, z); b.material = m; b.receiveShadows = true;
-  return b;
-}
-crateWall("cbottom", 1.66, 0.05, 0.84, 0, 0.025, 0, woodDkM);
-crateWall("cleft",  0.05, 0.55, 0.84, -0.83, 0.275, 0, woodM);
-crateWall("cright", 0.05, 0.55, 0.84,  0.83, 0.275, 0, woodM);
-crateWall("cfront", 1.66, 0.36, 0.05, 0, 0.18, -0.42, woodM);
-crateWall("cback",  1.66, 0.46, 0.05, 0, 0.23,  0.42, woodM);
+/* ---- the crates: two of them on a riser behind the deck, records packed face-out ---- */
+const riser = B.MeshBuilder.CreateBox("riser", { width: 3.3, height: 0.14, depth: 1.5 }, scene);
+riser.position.set(0, 0.07, 1.58); riser.material = woodDkM; riser.receiveShadows = true;
 
+const LEAN = 0.16;   // resting lean-back, shoulder to shoulder
+const DIG = -0.62;   // flipped forward over the front wall while you dig past
+const DZ = 0.062;    // sleeve-to-sleeve spacing
 const sleeves = [];
-WORKS.forEach((w, i) => {
-  const s = B.MeshBuilder.CreateBox("sleeve" + i, { width: 0.6, height: 0.6, depth: 0.02 }, scene);
-  s.parent = crateRoot;
-  const x = -0.71 + i * (1.42 / Math.max(1, WORKS.length - 1));
-  s.position.set(x, 0.36, ((i * 7) % 5 - 2) * 0.008);
-  s.rotation.x = -0.14 - ((i * 3) % 4) * 0.02;   // records lean back in a crate
-  s.rotation.y = ((i * 5) % 5 - 2) * 0.02;
-  const m = new B.StandardMaterial("sm" + i, scene);
-  m.diffuseTexture = new B.Texture(w.artLocal, scene);
-  m.specularColor = new B.Color3(0.04, 0.04, 0.04);
-  s.material = m;
-  s.metadata = { ctl: "sleeve", i };
-  s._homeY = 0.36; s._lift = 0; s._liftTarget = 0;
-  sleeves.push(s);
-});
+function buildCrate(x, yaw, works, offset) {
+  const depth = works.length * DZ + 0.46; // room up front for the flipped stack to rest
+  const root = new B.TransformNode("crate" + offset, scene);
+  root.position.set(x, 0.14, 1.60); root.rotation.y = yaw;
+  const wall = (name, w, h, d, px, py, pz, m) => {
+    const b = B.MeshBuilder.CreateBox(name + offset, { width: w, height: h, depth: d }, scene);
+    b.parent = root; b.position.set(px, py, pz); b.material = m; b.receiveShadows = true;
+    return b;
+  };
+  wall("cbottom", 0.78, 0.05, depth, 0, 0.025, 0, woodDkM);
+  wall("cleft", 0.05, 0.5, depth, -0.415, 0.25, 0, woodM);
+  wall("cright", 0.05, 0.5, depth, 0.415, 0.25, 0, woodM);
+  wall("cfront", 0.78, 0.34, 0.05, 0, 0.17, -depth / 2 + 0.025, woodM);
+  wall("cback", 0.78, 0.44, 0.05, 0, 0.22, depth / 2 - 0.025, woodM);
+  const crate = { root, focus: -1, sleeves: [] };
+  const z0 = -depth / 2 + 0.34; // first record stands clear of the front wall so the dug stack can rest over it
+  works.forEach((w, k) => {
+    const fuv = []; // art on both faces; edges sample the middle of the art so nothing smears
+    for (let f = 0; f < 6; f++) fuv[f] = new B.Vector4(0.48, 0.48, 0.52, 0.52);
+    fuv[0] = new B.Vector4(0, 0, 1, 1); fuv[1] = new B.Vector4(0, 0, 1, 1); // babylon draws each face unmirrored from outside — no flipping
+    const s = B.MeshBuilder.CreateBox("sleeve" + (offset + k), { width: 0.6, height: 0.6, depth: 0.018, faceUV: fuv }, scene);
+    s.position.y = 0.3; s.bakeCurrentTransformIntoVertices(); // pivot at the bottom edge, like a record standing on it
+    s.parent = root; s.position.set(0, 0.055, z0 + k * DZ);
+    s.rotation.x = LEAN;
+    const m = new B.StandardMaterial("sm" + (offset + k), scene);
+    m.diffuseTexture = new B.Texture(w.artLocal, scene);
+    m.specularColor = new B.Color3(0.04, 0.04, 0.04);
+    s.material = m;
+    s.metadata = { ctl: "sleeve", i: offset + k, crate, k };
+    s._lean = LEAN; s._lift = 0;
+    shadows.addShadowCaster(s);
+    crate.sleeves.push(s); sleeves.push(s);
+  });
+  return crate;
+}
+const half = Math.ceil(WORKS.length / 2);
+const crates = [buildCrate(-0.98, -0.10, WORKS.slice(0, half), 0), buildCrate(0.98, 0.10, WORKS.slice(half), half)];
 
 /* travelling record for the pull-out ritual */
 const travel = new B.TransformNode("travel", scene);
@@ -603,8 +836,9 @@ function chooseRecord(i) {
   const w = WORKS[i];
   tLabelM.diffuseTexture?.dispose();
   tLabelM.diffuseTexture = new B.Texture(w.artLocal, scene);
-  ritual = { phase: "pull", t: 0, i };
-  sleeves[i]._liftTarget = 0.46;
+  const s = sleeves[i];
+  s.metadata.crate.focus = s.metadata.k; // everything in front flips forward out of the way
+  ritual = { phase: "pull", t: 0, i, yaw: s.metadata.crate.root.rotation.y };
 }
 function landRecord(i) {
   const w = WORKS[i];
@@ -612,7 +846,7 @@ function landRecord(i) {
   labelM.diffuseTexture?.dispose();
   labelM.diffuseTexture = new B.Texture(w.artLocal, scene);
   vinyl.setEnabled(true); label.setEnabled(true);
-  sleeves.forEach((s, j) => { s.visibility = j === i ? 0.28 : 1; s._liftTarget = 0; });
+  sleeves.forEach((s, j) => { s.visibility = j === i ? 0.28 : 1; });
   npTitle.textContent = w.title;
   npCredit.textContent = w.credit;
   putbackBtn.style.display = "inline-block";
@@ -629,42 +863,66 @@ function putBack(quick) {
   paused = true;
   if (!quick) {
     npTitle.textContent = "—";
-    npCredit.textContent = "dig the crate · tap a sleeve to pull a record";
+    npCredit.textContent = "dig the crates · flip through, pull the record facing you";
     putbackBtn.style.display = "none";
   }
 }
 putbackBtn.addEventListener("click", () => putBack(false));
 
-/* ---- picking: taps for buttons + sleeves, drag for the pitch fader ---- */
-let faderDrag = false;
+/* ---- picking: taps for buttons + sleeves, drags for the pitch fader and the deck itself ---- */
+let faderDrag = false, deckDrag = null;
+function planeHit(y) { // where the pointer ray crosses a horizontal plane
+  const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
+  if (Math.abs(ray.direction.y) < 1e-4) return null;
+  const t = (y - ray.origin.y) / ray.direction.y;
+  return { x: ray.origin.x + ray.direction.x * t, z: ray.origin.z + ray.direction.z * t };
+}
 scene.onPointerObservable.add((pi) => {
   const pick = pi.pickInfo;
   if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.ctl === "pitch") {
     faderDrag = true; cam.detachControl();
   }
-  if (pi.type === B.PointerEventTypes.POINTERUP && faderDrag) {
-    faderDrag = false; cam.attachControl(document.getElementById("scene"), true);
+  if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.ctl === "deck") {
+    const h = planeHit(0);
+    if (h) { deckDrag = { dx: deckRoot.position.x - h.x, dz: deckRoot.position.z - h.z }; cam.detachControl(); }
+  }
+  if (pi.type === B.PointerEventTypes.POINTERUP && (faderDrag || deckDrag)) {
+    if (deckDrag) localStorage.setItem("metro-tt-deck", JSON.stringify({ x: deckRoot.position.x, z: deckRoot.position.z }));
+    faderDrag = false; deckDrag = null;
+    cam.attachControl(document.getElementById("scene"), true);
   }
   if (pi.type === B.PointerEventTypes.POINTERMOVE) {
     if (faderDrag) {
       const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
       if (Math.abs(ray.direction.y) > 1e-4) {
         const t = (0.246 - ray.origin.y) / ray.direction.y;
-        let z = ray.origin.z + ray.direction.z * t;
+        let z = ray.origin.z + ray.direction.z * t - deckRoot.position.z; // fader lives in deck space
         z = Math.max(PITCH_Z0 - PITCH_HALF, Math.min(PITCH_Z0 + PITCH_HALF, z));
         knob.position.z = z;
         pitch = ((PITCH_Z0 - z) / PITCH_HALF) * 8; // push away = slower, pull close = faster
       }
       return;
     }
-    // hover: sleeves rise to meet your hand
-    const h = scene.pick(scene.pointerX, scene.pointerY, (m) => m.metadata?.ctl === "sleeve");
-    sleeves.forEach((s) => { if (!ritual || ritual.i !== s.metadata.i) s._liftTarget = 0; });
-    if (h?.hit && !ritual) h.pickedMesh._liftTarget = Math.max(h.pickedMesh._liftTarget, 0.1);
+    if (deckDrag) {
+      const h = planeHit(0);
+      if (h) {
+        deckRoot.position.x = Math.max(-DECK_X, Math.min(DECK_X, h.x + deckDrag.dx));
+        deckRoot.position.z = Math.max(DECK_Z0, Math.min(DECK_Z1, h.z + deckDrag.dz));
+      }
+      return;
+    }
+    // hover (mouse): the record under the cursor becomes the dig point
+    if (pi.event.pointerType === "mouse" && !ritual) {
+      const h = scene.pick(scene.pointerX, scene.pointerY, (m) => m.metadata?.ctl === "sleeve");
+      if (h?.hit) { const md = h.pickedMesh.metadata; md.crate.focus = md.k; }
+    }
   }
   if (pi.type === B.PointerEventTypes.POINTERTAP && pick?.hit && pick.pickedMesh?.metadata) {
     const md = pick.pickedMesh.metadata;
-    if (md.ctl === "sleeve") chooseRecord(md.i);
+    if (md.ctl === "sleeve") {
+      if (md.crate.focus === md.k) chooseRecord(md.i); // tap the record facing you = pull it
+      else md.crate.focus = md.k;                      // tap deeper in the crate = flip to it
+    }
     if (md.ctl === "startstop") { if (current >= 0 && controller) controller.togglePlay(); }
     if (md.ctl === "rpm33") setRPM(100 / 3);
     if (md.ctl === "rpm45") setRPM(45);
@@ -677,8 +935,13 @@ window.addEventListener("keydown", (e) => {
 
 /* ---- the loop: motor physics, arm tracking, the ritual ---- */
 const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+let roomT = 0;
 scene.onBeforeRenderObservable.add(() => {
   const dt = Math.min(0.05, engine.getDeltaTime() / 1000);
+  roomT += dt;
+
+  // the cat breathes, slowly, because it is asleep and life is good
+  catBody.scaling.y = 0.145 + Math.sin(roomT * 1.5) * 0.006;
 
   // platter: motor spin-up, lazy spin-down, pitch rides it
   const spinning = current >= 0 && !paused;
@@ -698,10 +961,19 @@ scene.onBeforeRenderObservable.add(() => {
   armCur += (armTarget - armCur) * Math.min(1, dt * 3);
   armYaw.rotation.y = armCur;
 
-  // sleeves breathe up/down
-  for (const s of sleeves) {
-    s._lift += (s._liftTarget - s._lift) * Math.min(1, dt * 8);
-    s.position.y = s._homeY + s._lift;
+  // the dig: records in front of the focus flip forward, the focus stands up to meet you
+  for (const c of crates) for (let k = 0; k < c.sleeves.length; k++) {
+    const s = c.sleeves[k];
+    let lean = LEAN, lift = 0;
+    if (c.focus >= 0) {
+      if (k < c.focus) lean = DIG;
+      else if (k === c.focus) { lean = 0.05; lift = 0.16; }
+    }
+    if (ritual && ritual.i === s.metadata.i && ritual.phase === "pull") { lean = 0.02; lift = 0.5; }
+    s._lean += (lean - s._lean) * Math.min(1, dt * 9);
+    s._lift += (lift - s._lift) * Math.min(1, dt * 8);
+    s.rotation.x = s._lean;
+    s.position.y = 0.055 + s._lift;
   }
 
   // the ritual: pull → eject → fly → land
@@ -712,19 +984,19 @@ scene.onBeforeRenderObservable.add(() => {
       ritual.phase = "eject"; ritual.t = 0;
       travel.setEnabled(true);
       travel.position = s.getAbsolutePosition().clone();
-      travel.position.y += 0.1;
-      travel.rotation.set(Math.PI / 2 - 0.14, crateRoot.rotation.y, 0); // upright, like it slid from the sleeve
+      travel.position.y += 0.42; // sliding up out of the raised sleeve
+      travel.rotation.set(Math.PI / 2 - 0.05, ritual.yaw, 0);
       travel.scaling.setAll(0.85);
     } else if (ritual.phase === "eject") {
       travel.position.y += dt * 1.1;
-      if (ritual.t > 0.35) { ritual.phase = "fly"; ritual.t = 0; ritual.from = travel.position.clone(); s._liftTarget = 0; }
+      if (ritual.t > 0.35) { ritual.phase = "fly"; ritual.t = 0; ritual.from = travel.position.clone(); }
     } else if (ritual.phase === "fly") {
       const k = ease(Math.min(1, ritual.t / 0.75));
-      const dest = new B.Vector3(PLATTER.x, PLATTER.y + 0.06, PLATTER.z);
+      const dest = new B.Vector3(PLATTER.x + deckRoot.position.x, PLATTER.y + 0.06, PLATTER.z + deckRoot.position.z);
       travel.position = B.Vector3.Lerp(ritual.from, dest, k);
-      travel.position.y += Math.sin(k * Math.PI) * 0.55;                 // an arc, not a slide
-      travel.rotation.x = (Math.PI / 2 - 0.14) * (1 - k);                // lays itself flat
-      travel.rotation.y = crateRoot.rotation.y * (1 - k) + k * 2.2;      // lazy spin on the way over
+      travel.position.y += Math.sin(k * Math.PI) * 0.55;                 // an arc over the deck, not a slide
+      travel.rotation.x = (Math.PI / 2 - 0.05) * (1 - k);                // lays itself flat
+      travel.rotation.y = ritual.yaw * (1 - k) + k * 2.2;                // lazy spin on the way over
       const sc = 0.85 + 0.15 * k; travel.scaling.setAll(sc);
       if (ritual.t >= 0.78) {
         travel.setEnabled(false);
@@ -739,14 +1011,14 @@ scene.onBeforeRenderObservable.add(() => {
 engine.runRenderLoop(() => scene.render());
 function frameCamera() { // portrait keeps the vertical fov — back the camera off so the whole rig fits
   const a = engine.getRenderWidth() / engine.getRenderHeight();
-  if (a < 0.8) { cam.radius = 7.6; cam.target.set(-0.1, -0.2, -0.9); }
-  else { cam.radius = 5.4; cam.target.set(-0.1, 0.1, -0.7); }
+  if (a < 0.8) { cam.radius = 8.6; cam.target.set(0, -0.1, 0.1); }
+  else { cam.radius = 6.0; cam.target.set(0, 0.12, 0.2); }
 }
 frameCamera();
 window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
 /* debug hooks, same spirit as the bedroom */
-window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM,
+window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot,
   get state() { return { current, rpm, pitch, paused, progress, armCur, YAW_IN, YAW_OUT, YAW_REST }; } };
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
