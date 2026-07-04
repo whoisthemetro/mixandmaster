@@ -66,11 +66,11 @@ main { position: relative; z-index: 1; flex: 1; min-height: 0; }
   display: none;
 }
 #putback:hover { border-color: var(--accent); color: var(--accent); }
-#resetroom {
+#resetroom, #copylayout {
   align-self: flex-start; font: inherit; font-size: .5rem; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
   color: #6a6a74; background: none; border: none; padding: 0; text-decoration: underline dotted;
 }
-#resetroom:hover { color: var(--accent); }
+#resetroom:hover, #copylayout:hover { color: var(--accent); }
 #hint { font-size: .5rem; letter-spacing: .14em; color: #6a6a74; text-transform: uppercase; line-height: 1.9; }
 
 footer { position: relative; z-index: 3; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: .5rem 1rem .7rem; text-transform: uppercase; background: rgba(10,10,12,.85); }
@@ -106,7 +106,10 @@ footer a:hover { color: var(--accent); }
     <div id="embed"></div>
     <button id="putback">put it back</button>
     <div id="hint">hover the crates to flip through · tap the record facing you to pull it · grab any piece of the room to rearrange it (it remembers) · drag empty space to look around</div>
-    <button id="resetroom">reset the room</button>
+    <div style="display:flex; gap:1rem;">
+      <button id="resetroom">reset the room</button>
+      <button id="copylayout">copy layout</button>
+    </div>
   </aside>
   <div id="fail">this style needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
@@ -848,9 +851,11 @@ const tLabelM = labelM.clone("tLabelM"); tLabel.material = tLabelM;
 travel.setEnabled(false);
 
 /* ---- everything is furniture: grab any piece, put it where it belongs, it remembers ---- */
+const DEFAULT_LAYOUT = null; // the metro's own arrangement gets baked in here — visitors start from it
 let layout = {};
 try { layout = JSON.parse(localStorage.getItem("metro-tt-layout")) || {}; } catch (e) {}
 try { const old = JSON.parse(localStorage.getItem("metro-tt-deck")); if (old && !layout.deck) layout.deck = { x: old.x, z: old.z }; } catch (e) {}
+if (DEFAULT_LAYOUT) layout = Object.assign({}, DEFAULT_LAYOUT, layout);
 const draggables = {};
 function movable(key, node, mode, baseOff) {
   const d = { key, node, mode: mode || "floor", baseOff: baseOff || 0 };
@@ -896,6 +901,19 @@ function dropSnap(d) { // let go and the piece settles onto whatever is under it
 document.getElementById("resetroom").addEventListener("click", () => {
   localStorage.removeItem("metro-tt-layout"); localStorage.removeItem("metro-tt-deck");
   location.reload();
+});
+document.getElementById("copylayout").addEventListener("click", async () => {
+  // export the arrangement so it can be baked in as the room everyone sees
+  const out = {};
+  for (const k in draggables) {
+    const d = draggables[k], p = d.node.position;
+    out[k] = d.mode === "wall"
+      ? { x: +p.x.toFixed(3), y: +p.y.toFixed(3) }
+      : { x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3) };
+  }
+  const text = JSON.stringify(out);
+  try { await navigator.clipboard.writeText(text); alert("layout copied — paste it to claude"); }
+  catch (e) { prompt("copy this layout:", text); }
 });
 
 /* ---- state ---- */
