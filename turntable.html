@@ -356,7 +356,7 @@ const B = BABYLON;
 const ACCENT = new B.Color3(1, 0.2, 0.4);
 
 /* ---- spotify: one controller in the panel, loadUri per record ---- */
-let IFA = null, controller = null, paused = true, progress = 0;
+let IFA = null, controller = null, paused = true, progress = 0, posMs = 0, posAt = 0;
 window.onSpotifyIframeApiReady = (api) => { IFA = api; };
 function ensureController(w, then) {
   const uri = `spotify:${w.kind}:${w.id}`;
@@ -375,6 +375,7 @@ function ensureController(w, then) {
     c.addListener("playback_update", (e) => {
       paused = !!e.data.isPaused;
       if (e.data.duration) progress = e.data.position / e.data.duration;
+      posMs = e.data.position; posAt = performance.now(); // the light show phase-locks to this
     });
   });
 }
@@ -472,6 +473,7 @@ tableBody.position.set(0, -0.51, 0); tableBody.material = tableM; tableBody.rece
 const spkM = mat("spkM", "#191a1f", 0.08);
 const spkDk = mat("spkDk", "#0c0c0f", 0.04);
 const spkCone = mat("spkCone", "#2a2b31", 0.14);
+const woofers = []; // the cones thump with the show
 function speaker(x) {
   const root = new B.TransformNode("speaker" + x, scene);
   root.position.set(x, -0.9, 0.75);
@@ -483,7 +485,8 @@ function speaker(x) {
     c.parent = root; c.rotation.x = Math.PI / 2; c.position.set(0, y, -0.25 - (dz || 0)); c.material = m;
     return c;
   };
-  disc(0.38, 0.95, spkDk, 0.005); disc(0.3, 0.95, spkCone, 0.02);
+  disc(0.38, 0.95, spkDk, 0.005);
+  const woof = disc(0.3, 0.95, spkCone, 0.02); woof._side = x > 0; woofers.push(woof);
   disc(0.17, 1.4, spkDk, 0.005); disc(0.11, 1.4, spkCone, 0.02);
   return root;
 }
@@ -652,6 +655,16 @@ const lampRoot = new B.TransformNode("lampRoot", scene);
   dust.minEmitPower = 0.15; dust.maxEmitPower = 0.5;
   dust.updateSpeed = 0.004;
   dust.start();
+}
+
+/* the light show: sleeps until a record spins, then washes the room on the beat */
+const partyA = new B.PointLight("partyA", new B.Vector3(-3.2, 2.6, 0.8), scene);
+const partyB = new B.PointLight("partyB", new B.Vector3(3.2, 2.6, 0.8), scene);
+const sweep = new B.SpotLight("sweep", new B.Vector3(0, 3.3, -2.0), new B.Vector3(0, -0.15, 1).normalize(), 0.95, 2, scene);
+{
+  const stage = [backWall, sideL, sideR, floor, rug, table, tableBody]; // the big surfaces carry the show; small clutter stays cheap
+  for (const l of [partyA, partyB, sweep]) { l.intensity = 0; l.range = 12; l.includedOnlyMeshes = stage; }
+  for (const m of [wallM, floorM, rug.material, table.material, tableM]) m.maxSimultaneousLights = 8;
 }
 
 /* ---- the deck: one node, grab any bare part and slide it where you like ---- */
@@ -976,6 +989,7 @@ function landRecord(i) {
   labelM.diffuseTexture?.dispose();
   labelM.diffuseTexture = new B.Texture(w.artLocal, scene);
   vinyl.setEnabled(true); label.setEnabled(true);
+  beatPos = 0; posAt = 0; // fresh beat grid for the new record
   sleeves.forEach((s, j) => { s.visibility = j === i ? 0.28 : 1; });
   npTitle.textContent = w.title;
   npCredit.textContent = w.credit;
@@ -1115,7 +1129,7 @@ window.addEventListener("keydown", (e) => {
 
 /* ---- the loop: motor physics, arm tracking, the ritual ---- */
 const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-let roomT = 0;
+let roomT = 0, partyAmt = 0, beatPos = 0;
 scene.onBeforeRenderObservable.add(() => {
   const dt = Math.min(0.05, engine.getDeltaTime() / 1000);
   roomT += dt;
@@ -1133,6 +1147,38 @@ scene.onBeforeRenderObservable.add(() => {
 
   // led honest to actual playback
   ledM.emissiveColor = spinning ? ACCENT : B.Color3.Black();
+
+  // the show eases in while the record plays, phase-locked to playback position
+  partyAmt += ((spinning ? 1 : 0) - partyAmt) * Math.min(1, dt * 1.8);
+  if (spinning) {
+    if (controller && posAt) beatPos = (posMs + performance.now() - posAt) / 1000;
+    else beatPos += dt; // plain-embed fallback free-runs the grid
+  }
+  if (partyAmt > 0.01) {
+    const bpm = (current >= 0 && WORKS[current].bpm) || 120;
+    const beat = beatPos * bpm / 60;
+    const kick = Math.pow(Math.max(0, 1 - (beat % 1)), 2.4);        // hits on the beat, decays fast
+    const off = Math.pow(Math.max(0, 1 - ((beat + 0.5) % 1)), 2.4); // the offbeat answer
+    const bar = Math.floor(beat / 4);
+    partyA.diffuse = B.Color3.FromHSV((bar * 47) % 360, 0.85, 1);
+    partyB.diffuse = B.Color3.FromHSV((bar * 47 + 160) % 360, 0.85, 1);
+    partyA.intensity = partyAmt * (0.18 + 1.5 * kick);
+    partyB.intensity = partyAmt * (0.18 + 1.5 * off);
+    sweep.diffuse = B.Color3.FromHSV((bar * 47 + 80) % 360, 0.7, 1);
+    sweep.intensity = partyAmt * (0.4 + 1.1 * Math.pow(Math.max(0, 1 - ((beat * 0.5) % 1)), 2));
+    sweep.direction = new B.Vector3(Math.sin(beat * Math.PI / 4) * 0.8, -0.15, 1).normalize();
+    pink.intensity = 0.75 + partyAmt * 1.1 * kick;
+    glow.intensity = 0.6 + partyAmt * 0.5 * kick;
+    for (const w of woofers) w.scaling.setAll(1 + partyAmt * 0.16 * (w._side ? off : kick));
+  } else {
+    partyA.intensity = 0; partyB.intensity = 0; sweep.intensity = 0;
+    pink.intensity = 0.75; glow.intensity = 0.6;
+    for (const w of woofers) w.scaling.setAll(1);
+  }
+  // house lights ease down when the show is on
+  key.intensity = 1.45 - 0.55 * partyAmt;
+  hemi.intensity = 0.52 - 0.16 * partyAmt;
+  fill.intensity = 0.4 - 0.25 * partyAmt;
 
   // arm rides the groove
   if (current >= 0 && armTarget !== YAW_REST) {
@@ -1199,6 +1245,7 @@ window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
 /* debug hooks, same spirit as the bedroom */
 window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot, draggables, saveLayout,
+  demo: (on) => { paused = !on; }, // pretend playback for testing the show without audio
   get state() { return { current, rpm, pitch, paused, progress, armCur, YAW_IN, YAW_OUT, YAW_REST }; } };
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
