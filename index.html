@@ -3,16 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script>
-// one site, many environments — return visitors to the one they were last in
-// (session-guarded so the back button still wins an argument with the redirect)
-try {
-  if (localStorage.getItem("mm-env") === "turntable" && !sessionStorage.getItem("mm-envd")) {
-    sessionStorage.setItem("mm-envd", "1");
-    location.replace("turntable.html");
-  }
-} catch (e) {}
-</script>
 <title>Metro Mixing & Mastering | The Wall</title>
 <meta name="description" content="Albums and singles mixed & mastered by THE METRO — swipe the wall, flip a plaque, press play.">
 <meta property="og:title" content="Metro Mixing & Mastering">
@@ -612,8 +602,7 @@ rail.addEventListener("scroll", () => {
   }, 180);
 });
 document.getElementById("envbtn").addEventListener("click", () => {
-  // a deliberate choice this session — the auto-redirect stands down so the back button behaves
-  try { localStorage.setItem("mm-env", "turntable"); sessionStorage.setItem("mm-envd", "1"); } catch (e) {}
+  // the wall is always home base — the turntable is a room you walk into, not a place that claims you
   location.href = "turntable.html";
 });
 </script>

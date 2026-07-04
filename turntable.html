@@ -413,37 +413,28 @@ const WORKS = [
 const B = BABYLON;
 const ACCENT = new B.Color3(1, 0.2, 0.4);
 
-/* ---- spotify: one controller in the panel, loadUri per record ----
-   play() must run INSIDE the tap's gesture window or phones refuse autoplay —
-   so the controller is warmed up on the first touch and every choose plays immediately */
-let IFA = null, controller = null, ctlPending = false, ctlQueued = null;
+/* ---- spotify: a fresh controller per record — the wall's proven pattern ----
+   never loadUri a live embed: on phones the load gets swallowed and the creation
+   record sticks (the "born to be" bug). destroy + recreate with the right uri,
+   created inside the tap; play() rides the embed's ready event */
+let IFA = null, controller = null;
 let paused = true, progress = 0, posMs = 0, posAt = 0;
-window.onSpotifyIframeApiReady = (api) => {
-  IFA = api;
-  ensureController(WORKS[0]); // build the player right away — creation needs no gesture, only play() does
-};
-function ensureController(w, then) {
-  const uri = `spotify:${w.kind}:${w.id}`;
-  if (controller) { controller.loadUri(uri); if (then) then(); return; } // same gesture, no timers
-  if (ctlPending) { ctlQueued = { uri, then }; return; } // creation in flight — remember the latest ask
+window.onSpotifyIframeApiReady = (api) => { IFA = api; };
+function ensureController(w) {
+  const embed = document.getElementById("embed");
+  if (controller) { try { controller.destroy(); } catch (e) {} controller = null; }
+  embed.innerHTML = "";
   if (!IFA) { // api blocked — plain embed; the deck still spins to its own start/stop
-    document.getElementById("embed").innerHTML =
+    embed.innerHTML =
       `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
     return;
   }
-  ctlPending = true;
   const host = document.createElement("div");
-  document.getElementById("embed").appendChild(host);
-  IFA.createController(host, { uri, width: "100%", height: 152 }, (c) => {
-    // NOT controller yet — loadUri on an unready embed gets swallowed and the
-    // creation uri wins (every pick looked overwritten by the warm-up record)
-    c.addListener("ready", () => {
-      if (controller) return; // ready can re-fire per load — hand over exactly once
-      controller = c; ctlPending = false;
-      if (ctlQueued) { const q = ctlQueued; ctlQueued = null; if (q.uri !== uri) c.loadUri(q.uri); if (q.then) q.then(); }
-      else if (then) then();
-    });
+  embed.appendChild(host);
+  IFA.createController(host, { uri: `spotify:${w.kind}:${w.id}`, width: "100%", height: "100%" }, (c) => {
+    controller = c;
+    c.addListener("ready", () => c.play());
     c.addListener("playback_update", (e) => {
       paused = !!e.data.isPaused;
       document.getElementById("bplay").textContent = paused ? "▶" : "❚❚";
@@ -1014,9 +1005,7 @@ placeAsset("ctlStart", grpStart);
 placeAsset("ctl33", grp33);
 placeAsset("ctl45", grp45);
 placeAsset("ctlPitch", grpPitch);
-try { localStorage.setItem("mm-env", "turntable"); } catch (e) {} // being here IS the preference
 document.getElementById("envbtn").addEventListener("click", () => {
-  try { localStorage.setItem("mm-env", "wall"); } catch (e) {}
   location.href = "./";
 });
 
@@ -1039,7 +1028,7 @@ function chooseRecord(i) {
   const s = sleeves[i];
   s.metadata.crate.focus = s.metadata.k; // everything in front flips forward out of the way
   ritual = { phase: "pull", t: 0, i, yaw: s.metadata.crate.root.rotation.y };
-  ensureController(w, () => { controller && controller.play(); }); // play NOW, inside the tap — the song starts as the record flies
+  ensureController(w); // fresh player built inside the tap — play() rides its ready event
   enterDeck(); // the camera drifts over to watch it land
 }
 function landRecord(i) {
