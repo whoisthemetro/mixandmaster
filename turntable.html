@@ -418,7 +418,10 @@ const ACCENT = new B.Color3(1, 0.2, 0.4);
    so the controller is warmed up on the first touch and every choose plays immediately */
 let IFA = null, controller = null, ctlPending = false, ctlQueued = null;
 let paused = true, progress = 0, posMs = 0, posAt = 0;
-window.onSpotifyIframeApiReady = (api) => { IFA = api; };
+window.onSpotifyIframeApiReady = (api) => {
+  IFA = api;
+  ensureController(WORKS[0]); // build the player right away — creation needs no gesture, only play() does
+};
 function ensureController(w, then) {
   const uri = `spotify:${w.kind}:${w.id}`;
   if (controller) { controller.loadUri(uri); if (then) then(); return; } // same gesture, no timers
@@ -433,9 +436,11 @@ function ensureController(w, then) {
   const host = document.createElement("div");
   document.getElementById("embed").appendChild(host);
   IFA.createController(host, { uri, width: "100%", height: 152 }, (c) => {
-    controller = c;
+    // NOT controller yet — loadUri on an unready embed gets swallowed and the
+    // creation uri wins (every pick looked overwritten by the warm-up record)
     c.addListener("ready", () => {
-      ctlPending = false;
+      if (controller) return; // ready can re-fire per load — hand over exactly once
+      controller = c; ctlPending = false;
       if (ctlQueued) { const q = ctlQueued; ctlQueued = null; if (q.uri !== uri) c.loadUri(q.uri); if (q.then) q.then(); }
       else if (then) then();
     });
@@ -447,9 +452,6 @@ function ensureController(w, then) {
     });
   });
 }
-// the first touch of anything builds the player while nobody's looking
-window.addEventListener("pointerdown", () => { if (!controller && !ctlPending && IFA) ensureController(WORKS[0]); },
-  { once: true, capture: true });
 
 /* ---- the scene ---- */
 let engine, scene;
