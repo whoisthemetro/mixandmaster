@@ -45,28 +45,46 @@ h1 em { font-style: normal; color: var(--accent); }
   border: 1px solid #333; border-radius: 999px; padding: .5rem 1rem; white-space: nowrap; transition: all .2s; }
 .ig:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 
-main { position: relative; z-index: 1; flex: 1; min-height: 0; }
+main { position: relative; z-index: 4; flex: 1; min-height: 0; } /* above the footer, so the bottom sheet paints (and clicks) over it */
 #scene { width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
 
-/* now-playing panel floats over the 3d */
+/* now-playing panel: right dock on desktop, bottom sheet on phones */
 #panel {
-  position: absolute; right: 16px; top: 14px; z-index: 2; width: 300px;
+  position: absolute; right: 16px; top: 14px; z-index: 5; width: 380px;
   display: none; flex-direction: column; gap: .55rem;
-  background: rgba(12,12,15,.78); backdrop-filter: blur(6px);
-  border: 1px solid #26262e; border-radius: 12px; padding: .9rem;
+  background: rgba(12,12,15,.82); backdrop-filter: blur(8px);
+  border: 1px solid #26262e; border-radius: 14px; padding: .9rem;
 }
 #panel.on { display: flex; } /* the panel only exists while a record is out */
+#np-head { display: flex; align-items: center; justify-content: space-between; gap: .7rem; cursor: pointer; }
 #np-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem; letter-spacing: .1em; line-height: 1.05; min-height: 1.2rem; }
-#np-credit { font-size: .52rem; letter-spacing: .16em; color: var(--gray); text-transform: uppercase; }
-#embed { width: 100%; height: 152px; border-radius: 10px; overflow: hidden; }
+#np-credit { font-size: .52rem; letter-spacing: .16em; color: var(--gray); text-transform: uppercase; margin-top: .15rem; }
+#np-chevron { display: none; color: var(--gray); font-size: .8rem; transition: transform .35s; padding: .3rem; }
+#embed { width: 100%; height: 152px; border-radius: 10px; overflow: hidden; transition: height .3s; }
 #embed:empty { display: none; }
 #embed iframe { display: block; width: 100%; height: 100%; border: 0; }
-#putback {
-  align-self: flex-start; font: inherit; font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;
-  color: var(--white); background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: .45rem 1rem; transition: all .2s;
-  display: none;
+#np-actions { display: flex; gap: .45rem; align-items: stretch; }
+#np-actions button {
+  font: inherit; font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  color: var(--white); background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: .5rem .9rem; transition: all .2s;
 }
-#putback:hover { border-color: var(--accent); color: var(--accent); }
+#np-actions button:hover { border-color: var(--accent); color: var(--accent); }
+#np-actions .grow { flex: 1; }
+/* ✕ out of a locked camera — back to the room */
+#closeview {
+  position: fixed; right: 16px; top: 84px; z-index: 6;
+  width: 42px; height: 42px; display: none; align-items: center; justify-content: center;
+  font: inherit; font-size: .85rem; line-height: 1; cursor: pointer;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; transition: all .2s;
+}
+#closeview:hover { border-color: var(--accent); color: var(--accent); }
+body[data-mode="crate"] #closeview, body[data-mode="deck"] #closeview { display: flex; }
+@media (min-width: 721px) {
+  body[data-mode="deck"] #closeview { right: 412px; } /* clear of the docked panel */
+}
+body[data-mode="crate"] #envbtn, body[data-mode="deck"] #envbtn { display: none; }
+body[data-mode="deck"] #browse { display: none; }
 /* browse bar: flip through the crate without touching the 3d */
 #browse {
   position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 6;
@@ -100,9 +118,18 @@ footer a:hover { color: var(--accent); }
 }
 
 @media (max-width: 720px) {
-  #panel { left: 10px; right: 10px; bottom: 70px; top: auto; width: auto; padding: .6rem; gap: .35rem; }
-  #np-title { font-size: 1rem; }
-  #embed { height: 80px; }
+  #panel {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto;
+    border-radius: 16px 16px 0 0; border-left: none; border-right: none; border-bottom: none;
+    padding: .65rem .9rem calc(.65rem + env(safe-area-inset-bottom));
+    transition: transform .35s ease;
+  }
+  #panel.min { transform: translateY(calc(100% - 62px)); } /* slide down to a mini bar; the iframe stays alive */
+  #panel.min #np-chevron { transform: rotate(180deg); }
+  #np-chevron { display: block; }
+  #np-title { font-size: 1.1rem; }
+  #panel.on ~ #browse { bottom: 76px; } /* a record is out — the mini bar owns the very bottom */
+  #closeview { right: 10px; top: 82px; }
   header { padding: .9rem 1.1rem .65rem; }
 }
 </style>
@@ -119,16 +146,27 @@ footer a:hover { color: var(--accent); }
 <main>
   <canvas id="scene"></canvas>
   <aside id="panel">
-    <div id="np-title">—</div>
-    <div id="np-credit"></div>
+    <div id="np-head">
+      <div>
+        <div id="np-title">—</div>
+        <div id="np-credit"></div>
+      </div>
+      <div id="np-chevron">▼</div>
+    </div>
     <div id="embed"></div>
-    <button id="putback">put it back</button>
+    <div id="np-actions">
+      <button id="skipb" title="previous record">‹</button>
+      <button id="putback" class="grow">put it back</button>
+      <button id="digb" class="grow">the crates</button>
+      <button id="skipf" title="next record">›</button>
+    </div>
   </aside>
   <div id="browse">
     <button id="bprev" title="previous record">‹</button>
     <button id="bplay" title="play">▶</button>
     <button id="bnext" title="next record">›</button>
   </div>
+  <button id="closeview" title="back to the room">✕</button>
   <div id="fail">this environment needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
 
@@ -417,11 +455,29 @@ scene.fogColor = B.Color3.FromHexString("#0a0a0c");
 
 const cam = new B.ArcRotateCamera("cam", -Math.PI / 2, 1.0, 6.0, new B.Vector3(0, 0.12, 0.2), scene);
 cam.attachControl(document.getElementById("scene"), true);
-cam.lowerAlphaLimit = -Math.PI / 2 - 0.6; cam.upperAlphaLimit = -Math.PI / 2 + 0.6;
-cam.lowerBetaLimit = 0.72; cam.upperBetaLimit = 1.32;
-cam.lowerRadiusLimit = 2.6; cam.upperRadiusLimit = 9.5;
 cam.wheelPrecision = 60; cam.pinchPrecision = 120;
 cam.panningSensibility = 0; // no panning — the deck is the world
+
+/* the camera has two moods: roaming the room (limits on) and locked on a subject (limits off, we drive) */
+function roomLimits() {
+  cam.lowerAlphaLimit = -Math.PI / 2 - 0.6; cam.upperAlphaLimit = -Math.PI / 2 + 0.6;
+  cam.lowerBetaLimit = 0.72; cam.upperBetaLimit = 1.32;
+  cam.lowerRadiusLimit = 2.6; cam.upperRadiusLimit = 9.5;
+}
+function freeLimits() {
+  cam.lowerAlphaLimit = null; cam.upperAlphaLimit = null;
+  cam.lowerBetaLimit = 0.05; cam.upperBetaLimit = 1.5;
+  cam.lowerRadiusLimit = 1.2; cam.upperRadiusLimit = 14;
+}
+roomLimits();
+const portrait = () => engine.getRenderWidth() / engine.getRenderHeight() < 0.8;
+const camAnim = { on: false, t: 0, dur: 0.9, from: null, to: null, thenAttach: false };
+function camTo(v, dur, thenAttach) {
+  camAnim.on = true; camAnim.t = 0; camAnim.dur = dur || 0.9; camAnim.thenAttach = !!thenAttach;
+  camAnim.from = { alpha: cam.alpha, beta: cam.beta, radius: cam.radius, target: cam.target.clone(),
+    ox: cam.targetScreenOffset.x, oy: cam.targetScreenOffset.y };
+  camAnim.to = v;
+}
 
 const hemi = new B.HemisphericLight("hemi", new B.Vector3(0.2, 1, -0.3), scene);
 hemi.intensity = 0.52; hemi.groundColor = B.Color3.FromHexString("#1a1216");
@@ -864,6 +920,7 @@ function buildCrate(x, yaw, works, offset) {
   wall("cfront", 0.78, 0.34, 0.05, 0, 0.17, -depth / 2 + 0.025, woodM);
   wall("cback", 0.78, 0.44, 0.05, 0, 0.22, depth / 2 - 0.025, woodM);
   const crate = { root, focus: -1, sleeves: [] };
+  root.getChildMeshes().forEach((m) => { m.metadata = { ctl: "cratebox", crate }; }); // the box itself is the invitation — tap it to step up
   const z0 = -depth / 2 + 0.34; // first record stands clear of the front wall so the dug stack can rest over it
   works.forEach((w, k) => {
     const fuv = []; // art on both faces; edges sample the middle of the art so nothing smears
@@ -968,6 +1025,7 @@ function chooseRecord(i) {
   const s = sleeves[i];
   s.metadata.crate.focus = s.metadata.k; // everything in front flips forward out of the way
   ritual = { phase: "pull", t: 0, i, yaw: s.metadata.crate.root.rotation.y };
+  enterDeck(); // the camera drifts over to watch it land
 }
 function landRecord(i) {
   const w = WORKS[i];
@@ -979,8 +1037,8 @@ function landRecord(i) {
   sleeves.forEach((s, j) => { s.visibility = j === i ? 0.28 : 1; });
   npTitle.textContent = w.title;
   npCredit.textContent = w.credit;
-  putbackBtn.style.display = "inline-block";
-  panel.classList.add("on");
+  document.getElementById("embed").style.height = (w.kind === "album" ? 352 : 152) + "px"; // albums show the whole tracklist
+  panel.classList.add("on"); panel.classList.remove("min");
   progress = 0; armTarget = YAW_IN;
   ensureController(w, () => { controller && controller.play(); });
 }
@@ -993,20 +1051,71 @@ function putBack(quick) {
   if (controller) try { controller.pause(); } catch (e) {}
   paused = true;
   bplay.textContent = "▶";
-  if (!quick) panel.classList.remove("on");
+  if (!quick) { panel.classList.remove("on"); toRoom(); }
 }
 putbackBtn.addEventListener("click", () => putBack(false));
 
-/* ---- picking: taps for buttons + sleeves, a drag for the pitch fader ---- */
+/* ---- three camera moods: roam the room, lean into a crate, hang over the deck ---- */
+let mode = "room", curCrate = null;
+document.body.dataset.mode = "room";
+function viewRoom() {
+  return portrait()
+    ? { alpha: -Math.PI / 2, beta: 1.0, radius: 8.6, target: new B.Vector3(0, -0.1, 0.1), ox: 0, oy: 0 }
+    : { alpha: -Math.PI / 2, beta: 1.0, radius: 6.0, target: new B.Vector3(0, 0.12, 0.2), ox: 0, oy: 0 };
+}
+function viewCrate(c) {
+  const p = c.root.position;
+  return { alpha: -Math.PI / 2, beta: 1.02, radius: portrait() ? 2.6 : 2.1,
+    target: new B.Vector3(p.x, p.y + 0.30, p.z), ox: 0, oy: portrait() ? 0.1 : 0 };
+}
+function viewDeck() {
+  const p = deckRoot.position;
+  return portrait()
+    ? { alpha: -Math.PI / 2, beta: 0.52, radius: 5.0, target: new B.Vector3(p.x, 0.1, p.z), ox: 0, oy: 0.72 }
+    : { alpha: -Math.PI / 2, beta: 0.58, radius: 3.6, target: new B.Vector3(p.x, 0.1, p.z), ox: 0.9, oy: 0 };
+}
+function enterCrate(c) {
+  mode = "crate"; curCrate = c;
+  document.body.dataset.mode = "crate";
+  cam.detachControl(); freeLimits();
+  if (c.focus < 0) setFocus(c.sleeves[0].metadata.i); // walk in facing the front of the stack
+  panel.classList.add("min"); // listening? the sheet ducks out of the way
+  camTo(viewCrate(c), 0.8);
+}
+function enterDeck() {
+  mode = "deck";
+  document.body.dataset.mode = "deck";
+  cam.detachControl(); freeLimits();
+  panel.classList.remove("min");
+  camTo(viewDeck(), 0.95);
+}
+function toRoom() {
+  mode = "room";
+  document.body.dataset.mode = "room";
+  for (const c of crates) c.focus = -1; // records settle back down
+  panel.classList.add("min");
+  cam.detachControl(); // no doubled-up inputs — reattach exactly once, when the camera gets home
+  camTo(viewRoom(), 0.85, true);
+}
+
+/* ---- picking: taps for buttons + sleeves + crates, a drag for the pitch fader, swipes to dig ---- */
 let faderDrag = false, focusIdx = -1;
+const swipe = { on: false, x: 0 };
 scene.onPointerObservable.add((pi) => {
   const pick = pi.pickInfo;
-  if (pi.type === B.PointerEventTypes.POINTERDOWN && pick?.hit && pick.pickedMesh?.metadata?.ctl === "pitch") {
-    faderDrag = true; cam.detachControl();
+  if (pi.type === B.PointerEventTypes.POINTERDOWN) {
+    if (pick?.hit && pick.pickedMesh?.metadata?.ctl === "pitch") {
+      faderDrag = true; cam.detachControl();
+    } else if (mode === "crate") {
+      swipe.on = true; swipe.x = pi.event.clientX; // a finger on the crate view digs by swiping
+    }
   }
-  if (pi.type === B.PointerEventTypes.POINTERUP && faderDrag) {
-    faderDrag = false;
-    cam.attachControl(document.getElementById("scene"), true);
+  if (pi.type === B.PointerEventTypes.POINTERUP) {
+    swipe.on = false;
+    if (faderDrag) {
+      faderDrag = false;
+      if (mode === "room") cam.attachControl(document.getElementById("scene"), true);
+    }
   }
   if (pi.type === B.PointerEventTypes.POINTERMOVE) {
     if (faderDrag) {
@@ -1020,17 +1129,28 @@ scene.onPointerObservable.add((pi) => {
       }
       return;
     }
+    if (swipe.on && mode === "crate" && !ritual) {
+      const dx = pi.event.clientX - swipe.x;
+      if (Math.abs(dx) > 46) { step(dx < 0 ? 1 : -1); swipe.x = pi.event.clientX; } // keep dragging, keep digging
+      return;
+    }
     // hover (mouse): the record under the cursor becomes the dig point
-    if (pi.event.pointerType === "mouse" && !ritual) {
+    if (pi.event.pointerType === "mouse" && !ritual && mode !== "deck") {
       const h = scene.pick(scene.pointerX, scene.pointerY, (m) => m.metadata?.ctl === "sleeve");
       if (h?.hit) { const md = h.pickedMesh.metadata; md.crate.focus = md.k; focusIdx = md.i; }
     }
   }
   if (pi.type === B.PointerEventTypes.POINTERTAP && pick?.hit && pick.pickedMesh?.metadata) {
     const md = pick.pickedMesh.metadata;
-    if (md.ctl === "sleeve") {
-      if (md.crate.focus === md.k) chooseRecord(md.i);   // tap the record facing you = pull it
-      else { md.crate.focus = md.k; focusIdx = md.i; }   // tap deeper in the crate = flip to it
+    if (md.ctl === "sleeve" || md.ctl === "cratebox") {
+      const crate = md.crate;
+      if (mode !== "crate" || crate !== curCrate) {
+        if (md.ctl === "sleeve") { crate.focus = md.k; focusIdx = md.i; }
+        enterCrate(crate);                                 // first tap walks you up to the crate
+      } else if (md.ctl === "sleeve") {
+        if (crate.focus === md.k) chooseRecord(md.i);      // tap the record facing you = pull it
+        else { crate.focus = md.k; focusIdx = md.i; }      // tap deeper in the crate = flip to it
+      }
     }
     if (md.ctl === "startstop" && current >= 0 && controller) controller.togglePlay();
     if (md.ctl === "rpm33") setRPM(100 / 3);
@@ -1038,17 +1158,18 @@ scene.onPointerObservable.add((pi) => {
   }
 });
 
-/* ---- the browse bar: ‹ › walk the crate, ▶ pulls (or pauses) — the mobile-friendly dig ---- */
+/* ---- browse bar + panel actions ---- */
 const N = WORKS.length;
 function setFocus(i) {
   focusIdx = ((i % N) + N) % N;
   for (const c of crates) c.focus = -1;
   const md = sleeves[focusIdx].metadata;
   md.crate.focus = md.k;
+  if (mode === "crate" && md.crate !== curCrate) { curCrate = md.crate; camTo(viewCrate(curCrate), 0.7); } // the dig walks across to the other crate
 }
 function step(dir) {
   if (ritual) return;
-  if (current >= 0) chooseRecord(((current + dir) % N + N) % N); // playing: skip straight to the next record
+  if (current >= 0 && mode !== "crate") chooseRecord(((current + dir) % N + N) % N); // playing: skip straight to the next record
   else setFocus(focusIdx < 0 ? (dir > 0 ? 0 : N - 1) : focusIdx + dir);
 }
 document.getElementById("bprev").addEventListener("click", () => step(-1));
@@ -1058,11 +1179,20 @@ bplay.addEventListener("click", () => {
   if (current >= 0) { if (controller) controller.togglePlay(); }
   else chooseRecord(focusIdx < 0 ? 0 : focusIdx);
 });
+document.getElementById("skipb").addEventListener("click", () => { if (!ritual && current >= 0) chooseRecord(((current - 1) % N + N) % N); });
+document.getElementById("skipf").addEventListener("click", () => { if (!ritual && current >= 0) chooseRecord(((current + 1) % N + N) % N); });
+document.getElementById("digb").addEventListener("click", () => enterCrate(curCrate || crates[0])); // browse while it plays
+document.getElementById("closeview").addEventListener("click", () => toRoom());
+document.getElementById("np-head").addEventListener("click", () => {
+  if (current < 0) return;
+  if (panel.classList.contains("min")) enterDeck(); // the mini bar reopens onto the deck
+  else toRoom();
+});
 window.addEventListener("keydown", (e) => {
   if (e.key === " ") { e.preventDefault(); if (current >= 0 && controller) controller.togglePlay(); }
   if (e.key === "ArrowLeft") step(-1);
   if (e.key === "ArrowRight") step(1);
-  if (e.key === "Escape") putBack(false);
+  if (e.key === "Escape") { if (mode === "crate") toRoom(); else putBack(false); }
 });
 
 /* ---- the loop: motor physics, arm tracking, the ritual ---- */
@@ -1071,6 +1201,22 @@ let roomT = 0, partyAmt = 0, beatPos = 0;
 scene.onBeforeRenderObservable.add(() => {
   const dt = Math.min(0.05, engine.getDeltaTime() / 1000);
   roomT += dt;
+
+  // the camera glides between its moods
+  if (camAnim.on) {
+    camAnim.t += dt;
+    const k = ease(Math.min(1, camAnim.t / camAnim.dur));
+    const f = camAnim.from, v = camAnim.to;
+    cam.alpha = f.alpha + (v.alpha - f.alpha) * k;
+    cam.beta = f.beta + (v.beta - f.beta) * k;
+    cam.radius = f.radius + (v.radius - f.radius) * k;
+    cam.target.copyFrom(B.Vector3.Lerp(f.target, v.target, k)); // mutate in place — the target SETTER would recompute alpha/beta/radius and fight us
+    cam.targetScreenOffset.set(f.ox + (v.ox - f.ox) * k, f.oy + (v.oy - f.oy) * k);
+    if (camAnim.t >= camAnim.dur) {
+      camAnim.on = false;
+      if (camAnim.thenAttach) { roomLimits(); cam.attachControl(document.getElementById("scene"), true); }
+    }
+  }
 
   // the cat breathes, slowly, because it is asleep and life is good
   catBody.scaling.y = 0.145 + Math.sin(roomT * 1.5) * 0.006;
@@ -1171,18 +1317,21 @@ scene.onBeforeRenderObservable.add(() => {
   }
 });
 engine.runRenderLoop(() => scene.render());
-function frameCamera() { // portrait keeps the vertical fov — back the camera off so the whole rig fits
-  const a = engine.getRenderWidth() / engine.getRenderHeight();
-  if (a < 0.8) { cam.radius = 8.6; cam.target.set(0, -0.1, 0.1); }
-  else { cam.radius = 6.0; cam.target.set(0, 0.12, 0.2); }
+function frameCamera() { // portrait keeps the vertical fov — reframe whatever we're looking at
+  if (mode === "room") {
+    const v = viewRoom();
+    cam.radius = v.radius; cam.target.copyFrom(v.target); cam.targetScreenOffset.set(0, 0);
+  } else if (mode === "crate" && curCrate) camTo(viewCrate(curCrate), 0.4);
+  else if (mode === "deck") camTo(viewDeck(), 0.4);
 }
 frameCamera();
 window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
 /* debug hooks, same spirit as the bedroom */
 window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot, setFocus, step,
+  enterCrate, enterDeck, toRoom,
   demo: (on) => { paused = !on; }, // pretend playback for testing the show without audio
-  get state() { return { current, rpm, pitch, paused, progress, armCur, YAW_IN, YAW_OUT, YAW_REST }; } };
+  get state() { return { current, rpm, pitch, paused, progress, armCur, mode, YAW_IN, YAW_OUT, YAW_REST }; } };
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
