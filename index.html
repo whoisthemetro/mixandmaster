@@ -192,20 +192,6 @@ main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: c
 }
 .back .close:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ------ nav ------ */
-nav {
-  position: relative; z-index: 2;
-  display: flex; align-items: center; justify-content: center; gap: 1.4rem;
-  padding: .4rem 0 0;
-}
-nav button {
-  font: inherit; font-size: 1rem; line-height: 1; cursor: pointer;
-  color: var(--white); background: rgba(255,255,255,.04);
-  border: 1px solid #333; border-radius: 999px; width: 2.6rem; height: 2.6rem; transition: all .2s;
-}
-nav button:hover { border-color: var(--accent); color: var(--accent); }
-#play { border-color: rgba(255,51,102,.55); color: var(--accent); font-size: 1.05rem; }
-#play.live { background: rgba(255,51,102,.12); border-color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 #counter { font-size: .66rem; letter-spacing: .3em; color: var(--gray); text-align: center; padding: .5rem 0 .9rem; }
 #counter b { color: var(--white); font-weight: 600; }
 footer { position: relative; z-index: 2; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: 0 1rem 1rem; text-transform: uppercase; }
@@ -246,11 +232,6 @@ footer a:hover { color: var(--accent); }
   <div id="rail" aria-label="records wall"></div>
 </main>
 
-<nav>
-  <button id="prev" aria-label="previous plaque">←</button>
-  <button id="play" aria-label="play this plaque">▶</button>
-  <button id="next" aria-label="next plaque">→</button>
-</nav>
 <div id="counter"><b>01</b> / 00</div>
 
 <footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
@@ -501,7 +482,7 @@ function unflip() {
   const s = open; open = null;
   s.classList.remove("flipped");
   if (controller) { try { controller.destroy(); } catch (e) {} controller = null; }
-  paused = true; updatePlayBtn();
+  paused = true;
   setTimeout(() => { s.querySelector(".player").innerHTML = ""; }, 700); // let the flip finish, then clear the leftovers
 }
 function flip(slot, autoplay) {
@@ -515,7 +496,7 @@ function flip(slot, autoplay) {
     player.appendChild(host);
     IFA.createController(host, { uri: `spotify:${w.kind}:${w.id}`, width: "100%", height: "100%" }, (c) => {
       controller = c;
-      c.addListener("playback_update", (e) => { paused = !!e.data.isPaused; updatePlayBtn(); });
+      c.addListener("playback_update", (e) => { paused = !!e.data.isPaused; });
       if (autoplay) c.addListener("ready", () => c.play());
     });
   } else {
@@ -532,20 +513,7 @@ rail.addEventListener("click", (e) => {
   const slot = e.target.closest(".slot"); if (!slot || dragged) return;
   if (e.target.closest(".close")) return unflip();
   if (e.target.closest("iframe, .player")) return;
-  flip(slot);
-});
-
-/* ---- the transport: play whatever plaque is front and center ---- */
-const playBtn = document.getElementById("play");
-function updatePlayBtn() {
-  const focusedPlaying = open && +open.dataset.i === nearest() && controller && !paused;
-  playBtn.textContent = focusedPlaying ? "❚❚" : "▶";
-  playBtn.classList.toggle("live", !!focusedPlaying);
-}
-playBtn.addEventListener("click", () => {
-  const slot = slots[nearest()];
-  if (open === slot && controller) return controller.togglePlay(); // already showing its back — just play/pause
-  flip(slot, true);                                                // flip it over and start it spinning
+  flip(slot, true); // the art IS the play button — flip it over and start it spinning
 });
 
 /* ---- the wall moves as a whole: native swipe (snap) + desktop drag + wheel + keys ---- */
@@ -553,14 +521,17 @@ let dragged = false;
 let drag = null;
 rail.addEventListener("pointerdown", (e) => {
   if (e.pointerType !== "mouse" || e.target.closest("iframe")) return; // touch gets native momentum scrolling
-  drag = { x: e.clientX, left: rail.scrollLeft }; dragged = false;
-  rail.classList.add("dragging"); rail.setPointerCapture(e.pointerId);
+  drag = { x: e.clientX, left: rail.scrollLeft, id: e.pointerId }; dragged = false;
 });
 rail.addEventListener("pointermove", (e) => {
   if (!drag) return;
   const dx = e.clientX - drag.x;
-  if (Math.abs(dx) > 8) dragged = true;
-  rail.scrollLeft = drag.left - dx;
+  if (!dragged && Math.abs(dx) > 8) {
+    dragged = true;
+    rail.classList.add("dragging");
+    rail.setPointerCapture(drag.id); // capture only once it's a real drag — a captured click retargets to the rail and eats the plaque tap
+  }
+  if (dragged) rail.scrollLeft = drag.left - dx;
 });
 function endDrag() {
   if (!drag) return;
@@ -599,12 +570,15 @@ function skip(dir) {
     unflip(); center(target, true);                        // just browsing
   }
 }
-document.getElementById("prev").addEventListener("click", () => skip(-1));
-document.getElementById("next").addEventListener("click", () => skip(1));
 window.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft")  skip(-1);
   if (e.key === "ArrowRight") skip(1);
-  if (e.key === " ") { e.preventDefault(); playBtn.click(); }
+  if (e.key === " ") { // space still plays the plaque that's front and center
+    e.preventDefault();
+    const slot = slots[nearest()];
+    if (open === slot && controller) controller.togglePlay();
+    else flip(slot, true);
+  }
   if (e.key === "Escape") unflip();
 });
 let tick = null, settleT = null;
@@ -612,7 +586,6 @@ rail.addEventListener("scroll", () => {
   if (!tick) tick = requestAnimationFrame(() => {
     tick = null;
     document.querySelector("#counter b").textContent = String(nearest() + 1).padStart(2, "0");
-    updatePlayBtn(); // scrolled away from the playing plaque? the transport offers ▶ for the new one
   });
   // swipes count as skips too: when the wall settles on a new plaque mid-song, it takes over
   clearTimeout(settleT);
