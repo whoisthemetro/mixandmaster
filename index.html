@@ -237,7 +237,8 @@ footer a:hover { color: var(--accent); }
   <button id="menubtn" aria-label="menu" title="menu">☰</button>
   <div id="menudrop">
     <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
-    <button id="envbtn" title="step into the listening room">⟲ change environment</button>
+    <a href="turntable.html" title="step into the listening room">⟲ the turntable</a>
+    <a href="car.html" title="slide into the car">⟲ the car</a>
   </div>
 </div>
 
@@ -619,10 +620,6 @@ rail.addEventListener("scroll", () => {
     if (drag) return; // still holding the wall — wait for the hand to let go
     if (inPlayMode() && +open.dataset.i !== nearest()) flip(slots[nearest()], true);
   }, 180);
-});
-document.getElementById("envbtn").addEventListener("click", () => {
-  // the wall is always home base — the turntable is a room you walk into, not a place that claims you
-  location.href = "turntable.html";
 });
 const menuEl = document.getElementById("menu");
 document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));

@@ -192,7 +192,8 @@ footer a:hover { color: var(--accent); }
   <button id="menubtn" aria-label="menu" title="menu">☰</button>
   <div id="menudrop">
     <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
-    <button id="envbtn" title="back out to the wall">⟲ change environment</button>
+    <a href="./" title="back out to the wall">⟲ the wall</a>
+    <a href="car.html" title="slide into the car">⟲ the car</a>
   </div>
 </div>
 
@@ -1035,9 +1036,6 @@ placeAsset("ctlStart", grpStart);
 placeAsset("ctl33", grp33);
 placeAsset("ctl45", grp45);
 placeAsset("ctlPitch", grpPitch);
-document.getElementById("envbtn").addEventListener("click", () => {
-  location.href = "./";
-});
 const menuEl = document.getElementById("menu");
 document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
 document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));

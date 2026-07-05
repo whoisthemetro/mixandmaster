@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Metro Mixing & Mastering | The Car</title>
+<meta name="description" content="Slide in, tune the dial — every station on this radio was mixed & mastered by THE METRO.">
+<meta property="og:title" content="Metro Mixing & Mastering — The Car">
+<meta property="og:description" content="Night drive. Tune the radio.">
+<meta property="og:url" content="https://whoisthemetro.com/mixandmaster/car.html">
+<meta property="og:image" content="https://whoisthemetro.com/mixandmaster/art/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://whoisthemetro.com/mixandmaster/art/og.jpg">
+<link rel="icon" type="image/png" href="art/favicon.png">
+<link rel="apple-touch-icon" href="art/apple-touch.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0c;
+  --white: #fafafa;
+  --accent: #ff3366;
+  --gray: #888;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--black);
+  color: var(--white);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+}
+header {
+  position: relative; z-index: 3;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  padding: 1.1rem 66px .8rem 2rem; /* right side stays clear of the hamburger */
+  border-bottom: 2px solid var(--accent);
+  background: rgba(10,10,12,.85);
+}
+h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.4rem, 4vw, 2.2rem); letter-spacing: .12em; line-height: 1; font-weight: 400; }
+h1 em { font-style: normal; color: var(--accent); }
+/* the hamburger: one quiet door to contact + environment, instead of pills all over the screen */
+#menu { position: fixed; top: 10px; right: 12px; z-index: 8; }
+#menubtn {
+  width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+  font: inherit; font-size: 1.05rem; line-height: 1; cursor: pointer;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; transition: all .2s;
+}
+#menubtn:hover, #menu.open #menubtn { border-color: var(--accent); color: var(--accent); }
+#menudrop { display: none; position: absolute; right: 0; top: 50px; flex-direction: column; gap: .45rem; white-space: nowrap; }
+#menu.open #menudrop { display: flex; }
+#menudrop a, #menudrop button {
+  font: inherit; font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer; text-align: center;
+  color: var(--white); background: rgba(12,12,15,.85); backdrop-filter: blur(6px); text-decoration: none;
+  border: 1px solid #333; border-radius: 999px; padding: .55rem 1.05rem; transition: all .2s;
+}
+#menudrop a:hover, #menudrop button:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
+
+main { position: relative; z-index: 4; flex: 1; min-height: 0; } /* above the footer, so the bottom sheet paints (and clicks) over it */
+#scene { width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
+
+/* now-playing panel: right dock on desktop, bottom sheet on phones */
+#panel {
+  position: absolute; right: 16px; top: 14px; z-index: 5; width: 380px;
+  max-height: calc(100% - 28px); overflow-y: auto; /* never taller than the cabin it floats in */
+  display: none; flex-direction: column; gap: .55rem;
+  background: rgba(12,12,15,.82); backdrop-filter: blur(8px);
+  border: 1px solid #26262e; border-radius: 14px; padding: .9rem;
+}
+#panel.on { display: flex; } /* the panel only exists while a station is on */
+#np-head { display: flex; align-items: center; justify-content: space-between; gap: .7rem; cursor: pointer; }
+#np-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem; letter-spacing: .1em; line-height: 1.05; min-height: 1.2rem; }
+#np-credit { font-size: .52rem; letter-spacing: .16em; color: var(--gray); text-transform: uppercase; margin-top: .15rem; }
+#np-chevron { display: none; color: var(--gray); font-size: .8rem; transition: transform .35s; padding: .3rem; }
+#embed { width: 100%; height: 152px; border-radius: 10px; overflow: hidden; transition: height .3s; }
+#embed:empty { display: none; }
+#embed iframe { display: block; width: 100%; height: 100%; border: 0; }
+#np-actions { display: flex; gap: .45rem; align-items: stretch; }
+#np-actions button {
+  font: inherit; font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  color: var(--white); background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: .5rem .9rem; transition: all .2s;
+}
+#np-actions button:hover { border-color: var(--accent); color: var(--accent); }
+#np-actions .grow { flex: 1; }
+/* ✕ out of a locked camera — back to the cabin */
+#closeview {
+  position: fixed; right: 16px; top: 84px; z-index: 6;
+  width: 42px; height: 42px; display: none; align-items: center; justify-content: center;
+  font: inherit; font-size: .85rem; line-height: 1; cursor: pointer;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; transition: all .2s;
+}
+#closeview:hover { border-color: var(--accent); color: var(--accent); }
+body[data-mode="radio"] #closeview { display: flex; }
+@media (min-width: 721px) {
+  body[data-mode="radio"] #closeview { right: 412px; } /* clear of the docked panel */
+}
+body[data-mode="radio"] #browse { display: none; }
+/* browse bar: surf the stations without touching the 3d */
+#browse {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 6;
+  display: flex; gap: .5rem;
+}
+#browse button {
+  font: inherit; font-size: .85rem; line-height: 1; cursor: pointer;
+  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; transition: all .2s;
+}
+#browse button:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
+
+footer { position: relative; z-index: 3; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: .5rem 1rem .7rem; text-transform: uppercase; background: rgba(10,10,12,.85); }
+footer a { color: #8a8792; text-decoration: none; }
+footer a:hover { color: var(--accent); }
+
+#fail { position: absolute; inset: 0; z-index: 4; display: none; align-items: center; justify-content: center; text-align: center;
+  font-size: .7rem; letter-spacing: .12em; line-height: 2; color: var(--gray); padding: 2rem; }
+#fail a { color: var(--accent); }
+
+/* landscape phones are wide enough to read as "desktop" — size the dock by height too,
+   or the full album embed marches straight off the bottom of the screen */
+@media (min-width: 721px) and (max-height: 540px) {
+  #panel { width: 300px; top: 10px; right: 10px; max-height: calc(100% - 20px); padding: .7rem; gap: .45rem; }
+  #np-title { font-size: 1.05rem; }
+  body[data-mode="radio"] #closeview { right: 322px; } /* clear of the slimmer dock */
+}
+
+@media (max-width: 720px) {
+  #panel {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto;
+    border-radius: 16px 16px 0 0; border-left: none; border-right: none; border-bottom: none;
+    padding: .65rem .9rem calc(.65rem + env(safe-area-inset-bottom));
+    transition: transform .35s ease;
+  }
+  #panel.min { transform: translateY(calc(100% - 62px)); } /* slide down to a mini bar; the iframe stays alive */
+  #panel.min #np-chevron { transform: rotate(180deg); }
+  #np-chevron { display: block; }
+  #np-title { font-size: 1.1rem; }
+  #panel.on ~ #browse { bottom: 76px; } /* a station is on — the mini bar owns the very bottom */
+  #closeview { right: 10px; top: 82px; }
+  header { padding: .9rem 62px .65rem 1.1rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>METRO <em>MIXING &amp; MASTERING</em></h1>
+  </div>
+</header>
+
+<main>
+  <canvas id="scene"></canvas>
+  <aside id="panel">
+    <div id="np-head">
+      <div>
+        <div id="np-title">—</div>
+        <div id="np-credit"></div>
+      </div>
+      <div id="np-chevron">▼</div>
+    </div>
+    <div id="embed"></div>
+    <div id="np-actions">
+      <button id="skipb" title="previous station">‹</button>
+      <button id="offb" class="grow">turn it off</button>
+      <button id="dialb" class="grow">the dial</button>
+      <button id="skipf" title="next station">›</button>
+    </div>
+  </aside>
+  <div id="browse">
+    <button id="bprev" title="previous station">‹</button>
+    <button id="bplay" title="play">▶</button>
+    <button id="bnext" title="next station">›</button>
+  </div>
+  <button id="closeview" title="back to the cabin">✕</button>
+  <div id="fail">this environment needs webgl —<br><a href="./">head back to the wall</a></div>
+</main>
+
+<div id="menu">
+  <button id="menubtn" aria-label="menu" title="menu">☰</button>
+  <div id="menudrop">
+    <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
+    <a href="./" title="back out to the wall">⟲ the wall</a>
+    <a href="turntable.html" title="the listening room">⟲ the turntable</a>
+  </div>
+</div>
+
+<footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
+
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script>
+const WORKS = [
+{
+"kind": "album",
+"id": "1oUPauDyhV2zoX5DQ0AimS",
+"title": "Born To Be",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0248c09fd32d15017a3a183290",
+"artLocal": "art/1oUPauDyhV2zoX5DQ0AimS.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "2bwq4RXItbm9SKAwCWMqj4",
+"title": "BLK.FERRYMEN",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02677f0639cf77e16be17a0a1b",
+"artLocal": "art/2bwq4RXItbm9SKAwCWMqj4.jpg",
+"credit": "mastered by the metro"
+},
+{
+"kind": "album",
+"id": "19k3Zv8uK4WvLEdUgBPCqg",
+"title": "Signs",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e021538074c3ea2fb25ad9f5bc0",
+"artLocal": "art/19k3Zv8uK4WvLEdUgBPCqg.jpg",
+"credit": "written, produced, mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "2KPkkPDpArz9G2i6102wjV",
+"title": "Acid Incantation",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e021ebfceaa78a91e8041266058",
+"artLocal": "art/2KPkkPDpArz9G2i6102wjV.jpg",
+"credit": "mastered by the metro"
+},
+{
+"kind": "track",
+"id": "6jrRvrqAFFgXdXnFkfzJ0D",
+"title": "You're Not The Same",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020b34dd7ea794fe5e0e123181",
+"artLocal": "art/6jrRvrqAFFgXdXnFkfzJ0D.jpg",
+"credit": "engineered, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "0iOez7zPHcJs3kvhsWSCdS",
+"title": "Grey",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029f1c3abd82bdd630c29cc3c9",
+"artLocal": "art/0iOez7zPHcJs3kvhsWSCdS.jpg",
+"credit": "engineered, mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "2ImN6RSke4EZUMOrMjCL6T",
+"title": "Artistic Suicide",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02f2e8d6fafe52c40bc7178b75",
+"artLocal": "art/2ImN6RSke4EZUMOrMjCL6T.jpg",
+"credit": "written, produced, mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "5rUQ3tQHfBz3bLQz5n4yu4",
+"title": "Beat Therapy",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029f1d9b0ffb008ca6552e9bcc",
+"artLocal": "art/5rUQ3tQHfBz3bLQz5n4yu4.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "3a1EKFGccKVWpBmxTcuO8N",
+"title": "Wet Brain",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02eb7e9d2648debfe4dbe2787c",
+"artLocal": "art/3a1EKFGccKVWpBmxTcuO8N.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "5EgHF6oEa1wyRcUYNueIOP",
+"title": "Cut to the Chase",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020027545ed926383edc532925",
+"artLocal": "art/5EgHF6oEa1wyRcUYNueIOP.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "6W8iHlH2wTJJHiA5elND2R",
+"title": "What Do You Want From Me?",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0231b6d317b6977e359a4004d9",
+"artLocal": "art/6W8iHlH2wTJJHiA5elND2R.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "3bvrwYJtKxqP6zGv2SjTnP",
+"title": "Nvm",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a2d70fff65667b0e3acfe253",
+"artLocal": "art/3bvrwYJtKxqP6zGv2SjTnP.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "33UKlSszMN2l6FTvsL5AWv",
+"title": "Nothing Basic",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0238ab79ff0f025040f973c6bd",
+"artLocal": "art/33UKlSszMN2l6FTvsL5AWv.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "3mWvJ3SQFBo7FaLIPRDzzv",
+"title": "Cloud Nine",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0234d5da1320d7906ca562cb2b",
+"artLocal": "art/3mWvJ3SQFBo7FaLIPRDzzv.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "7BfgsTLCP60202M1g2031F",
+"title": "Vivid Sunset",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02845d57cad1d995ff9a8701da",
+"artLocal": "art/7BfgsTLCP60202M1g2031F.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "7JyRapE8D0m1RqE2kc6948",
+"title": "Horsetooth",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0296cef987cd249cc9708eae86",
+"artLocal": "art/7JyRapE8D0m1RqE2kc6948.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "2PpTNa5qSjUIa7D0jXeeSx",
+"title": "here & there",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0250f80fb18305e08da364a682",
+"artLocal": "art/2PpTNa5qSjUIa7D0jXeeSx.jpg",
+"credit": "produced, mixed & mastered by the metro"
+},
+{
+"kind": "track",
+"id": "5S9mdx3QjG4GukxEH6pB9I",
+"title": "Are Dreams Even Real?",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022f8b28871fac2a2a6edf974e",
+"artLocal": "art/5S9mdx3QjG4GukxEH6pB9I.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "7CNJjJtg3tJP2EbeC5lhiZ",
+"title": "DingoDongo",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e027199cca9c381342f2b27396a",
+"artLocal": "art/7CNJjJtg3tJP2EbeC5lhiZ.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "3niYu8wOVqTDGkAY760coY",
+"title": "Girls Girls Girls",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0208bf886637fc78c1df8766cb",
+"artLocal": "art/3niYu8wOVqTDGkAY760coY.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "5fXV5c6MRKM9caB2Oj94Vx",
+"title": "Baby Baby Boy!",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02989ba9aa6428447c6bccbdbb",
+"artLocal": "art/5fXV5c6MRKM9caB2Oj94Vx.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "5m9DyvhiWXwUwj0oDZLrUJ",
+"title": "In Your Arms Tonight (I don't want to be)",
+"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0237a0a5443444a49f1a16bf3c",
+"artLocal": "art/5m9DyvhiWXwUwj0oDZLrUJ.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "08LF3pj1xX7JXuUmwVlPqg",
+"title": "Kiss Me Kiss Me Say Goodbye",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0285cdff1b875daafcee45ea69",
+"artLocal": "art/08LF3pj1xX7JXuUmwVlPqg.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "45fu5JdOhsGQi34dvzMifY",
+"title": "Mercy",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02b2bfc6a1a71f2a2a3dea6f69",
+"artLocal": "art/45fu5JdOhsGQi34dvzMifY.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "63jW7RX8zyh8y8XfzWRwCD",
+"title": "D_evil",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022c0c9e68779290d99db31998",
+"artLocal": "art/63jW7RX8zyh8y8XfzWRwCD.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "5yhDlVe0io5FVgF6MeuQHj",
+"title": "Memories (Will Get More Golden Over Time)",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ce8e1eccd67730a496b87168",
+"artLocal": "art/5yhDlVe0io5FVgF6MeuQHj.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "3J8NSCs7MF8fTY6FzxiGDJ",
+"title": "Stained Dress",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0203e82caaa11384402d2af930",
+"artLocal": "art/3J8NSCs7MF8fTY6FzxiGDJ.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "32zoosDllsJNqP2z43eM4S",
+"title": "Dont Want To See You Again!",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0240f8a083c7981b325216dc49",
+"artLocal": "art/32zoosDllsJNqP2z43eM4S.jpg",
+"credit": "mixed & mastered by the metro"
+},
+{
+"kind": "album",
+"id": "37FEHxsrq96yYRs2bC9sXx",
+"title": "My OnlyFans (RIP)",
+"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020f815a7e7173ff1d9a0d9dc1",
+"artLocal": "art/37FEHxsrq96yYRs2bC9sXx.jpg",
+"credit": "mixed & mastered by the metro"
+}
+];
+const B = BABYLON;
+const ACCENT = new B.Color3(1, 0.2, 0.4);
+const N = WORKS.length;
+
+/* every record is a station on the dial, spread across the fm band */
+const FM_LO = 87.9, FM_HI = 107.9;
+const freqOf = (i) => FM_LO + (i / (N - 1)) * (FM_HI - FM_LO);
+const stationAt = (f) => Math.max(0, Math.min(N - 1, Math.round((f - FM_LO) / (FM_HI - FM_LO) * (N - 1))));
+const PRESETS = [0, 5, 10, 15, 20, 25]; // six saved stations, spread across the band
+
+/* ---- spotify: a fresh controller per station — the wall's proven pattern ----
+   never loadUri a live embed: on phones the load gets swallowed and the creation
+   record sticks (the "born to be" bug). destroy + recreate with the right uri,
+   created inside the tap; play() rides the embed's ready event */
+let IFA = null, controller = null, wantPlay = false;
+let paused = true, progress = 0, posMs = 0, posAt = 0;
+window.onSpotifyIframeApiReady = (api) => { IFA = api; };
+function ensureController(w) {
+  const embed = document.getElementById("embed");
+  if (controller) { try { controller.destroy(); } catch (e) {} controller = null; }
+  embed.innerHTML = "";
+  if (!IFA) { // api blocked — plain embed; the dash still lights up to its own start/stop
+    embed.innerHTML =
+      `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+    return;
+  }
+  wantPlay = true; // stays set until playback_update confirms audio — every chance to start it gets taken
+  const host = document.createElement("div");
+  embed.appendChild(host);
+  IFA.createController(host, { uri: `spotify:${w.kind}:${w.id}`, width: "100%", height: "100%" }, (c) => {
+    controller = c;
+    c.addListener("ready", () => { if (wantPlay) c.play(); });
+    c.addListener("playback_update", (e) => {
+      paused = !!e.data.isPaused;
+      if (!paused) wantPlay = false; // it's actually playing — stand down, respect a manual pause from here
+      document.getElementById("bplay").textContent = paused ? "▶" : "❚❚";
+      if (e.data.duration) progress = e.data.position / e.data.duration;
+      posMs = e.data.position; posAt = performance.now(); // the whole cabin phase-locks to this
+      screenDirty = true;
+    });
+  });
+}
+// phones can refuse the async ready-play (no gesture) — so the next real touch retries it
+window.addEventListener("pointerdown", () => {
+  if (wantPlay && controller) try { controller.play(); } catch (e) {}
+}, true);
+
+/* ---- a little webaudio: dial static + the horn. no files, gesture-gated ---- */
+let AC = null, staticGain = null, vol = 0.8;
+function audioUp() {
+  if (AC) { if (AC.state === "suspended") AC.resume(); return; }
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  const master = AC.createDynamicsCompressor(); master.connect(AC.destination);
+  const buf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = AC.createBufferSource(); src.buffer = buf; src.loop = true;
+  const filt = AC.createBiquadFilter(); filt.type = "bandpass"; filt.frequency.value = 2200; filt.Q.value = 0.5;
+  staticGain = AC.createGain(); staticGain.gain.value = 0;
+  src.connect(filt); filt.connect(staticGain); staticGain.connect(master);
+  src.start();
+  AC._master = master;
+}
+function setStatic(on) {
+  if (!staticGain) return;
+  const t = AC.currentTime;
+  staticGain.gain.cancelScheduledValues(t);
+  staticGain.gain.setValueAtTime(staticGain.gain.value, t);
+  staticGain.gain.linearRampToValueAtTime(on ? 0.05 * vol : 0, t + 0.06);
+}
+function honk() {
+  audioUp();
+  const t = AC.currentTime + 0.005;
+  const g = AC.createGain(); g.connect(AC._master);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.16 * vol, t + 0.015);
+  g.gain.setValueAtTime(0.16 * vol, t + 0.3);
+  g.gain.linearRampToValueAtTime(0, t + 0.42);
+  for (const f of [345, 440]) {
+    const o = AC.createOscillator(); o.type = "sawtooth"; o.frequency.value = f;
+    const og = AC.createGain(); og.gain.value = 0.5;
+    o.connect(og); og.connect(g); o.start(t); o.stop(t + 0.45);
+  }
+}
+
+/* ---- the scene ---- */
+let engine, scene;
+try {
+  engine = new B.Engine(document.getElementById("scene"), true, { adaptToDeviceRatio: true });
+  scene = new B.Scene(engine);
+} catch (e) {
+  document.getElementById("fail").style.display = "flex";
+  throw e;
+}
+scene.clearColor = B.Color4.FromHexString("#06070dff");
+scene.fogMode = B.Scene.FOGMODE_EXP2;
+scene.fogDensity = 0.010;
+scene.fogColor = B.Color3.FromHexString("#06070d");
+
+const cam = new B.ArcRotateCamera("cam", -Math.PI / 2, 1.16, 2.0, new B.Vector3(0, 0.42, 0.95), scene);
+cam.attachControl(document.getElementById("scene"), true);
+cam.wheelPrecision = 120; cam.pinchPrecision = 240;
+cam.panningSensibility = 0; // no panning — you're buckled in
+cam.minZ = 0.04; cam.maxZ = 400; // we live inches from the dash and stare at a skyline
+
+/* two moods: riding shotgun-of-nowhere in the cabin, or leaned into the radio */
+function cabinLimits() {
+  cam.lowerAlphaLimit = -Math.PI / 2 - 0.75; cam.upperAlphaLimit = -Math.PI / 2 + 0.75;
+  cam.lowerBetaLimit = 1.0; cam.upperBetaLimit = 1.38;
+  cam.lowerRadiusLimit = 1.3; cam.upperRadiusLimit = 2.3;
+}
+function freeLimits() {
+  cam.lowerAlphaLimit = null; cam.upperAlphaLimit = null;
+  cam.lowerBetaLimit = 0.6; cam.upperBetaLimit = 1.5;
+  cam.lowerRadiusLimit = 0.45; cam.upperRadiusLimit = 3.0;
+}
+cabinLimits();
+const portrait = () => engine.getRenderWidth() / engine.getRenderHeight() < 0.8;
+const camAnim = { on: false, t: 0, dur: 0.9, from: null, to: null, thenAttach: false };
+function camTo(v, dur, thenAttach) {
+  camAnim.on = true; camAnim.t = 0; camAnim.dur = dur || 0.9; camAnim.thenAttach = !!thenAttach;
+  camAnim.from = { alpha: cam.alpha, beta: cam.beta, radius: cam.radius, target: cam.target.clone(),
+    ox: cam.targetScreenOffset.x, oy: cam.targetScreenOffset.y };
+  camAnim.to = v;
+}
+
+/* lights: moon through the windshield, a warm dash glow, and the street doing the rest */
+const hemi = new B.HemisphericLight("hemi", new B.Vector3(0.1, 1, -0.2), scene);
+hemi.intensity = 0.45; hemi.groundColor = B.Color3.FromHexString("#0c0a12");
+hemi.diffuse = B.Color3.FromHexString("#8d97b8");
+const moon = new B.DirectionalLight("moon", new B.Vector3(-0.25, -0.8, -0.55), scene);
+moon.position = new B.Vector3(4, 12, 30); moon.intensity = 0.75;
+moon.diffuse = B.Color3.FromHexString("#aebbe6");
+const dashGlow = new B.PointLight("dashGlow", new B.Vector3(0, 0.85, 0.5), scene); // hangs mid-cabin so the dash face and wheel read
+dashGlow.diffuse = B.Color3.FromHexString("#ff9a5a"); dashGlow.intensity = 0.85; dashGlow.range = 3.0;
+const pinkUnder = new B.PointLight("pinkUnder", new B.Vector3(0, -0.25, 0.75), scene); // brand pink in the footwell
+pinkUnder.diffuse = ACCENT; pinkUnder.intensity = 0.5; pinkUnder.range = 2.2;
+const glow = new B.GlowLayer("glow", scene); glow.intensity = 0.55;
+
+/* materials */
+function mat(name, hex, spec = 0.06) {
+  const m = new B.StandardMaterial(name, scene);
+  m.diffuseColor = B.Color3.FromHexString(hex);
+  m.specularColor = new B.Color3(spec, spec, spec);
+  return m;
+}
+const dashM   = mat("dashM", "#23252d", 0.10);
+const trimM   = mat("trimM", "#191a21", 0.05);
+const seatM   = mat("seatM", "#262d40", 0.03);
+const carpetM = mat("carpetM", "#111218", 0.01);
+const chromeM = mat("chromeM", "#8f96a3", 0.5); chromeM.specularPower = 96;
+const wheelM  = mat("wheelM", "#1a1b22", 0.12);
+const doorM   = mat("doorM", "#1e2028", 0.06);
+const roofM   = mat("roofM", "#17171d", 0.02);
+/* unlit surfaces (screens, city windows): diffuse texture × emissive multiplier — this build's
+   emissiveTexture path renders flat white on some gpus, so nothing self-lit uses it */
+function unlit(name, tex, tint) {
+  const m = new B.StandardMaterial(name, scene);
+  m.diffuseTexture = tex; m.disableLighting = true;
+  m.emissiveColor = tint || B.Color3.White();
+  m.specularColor = B.Color3.Black();
+  return m;
+}
+
+/* ---- the cabin: everything you can touch rides this node, so the road can shake it ---- */
+const cab = new B.TransformNode("cab", scene);
+const cabinLit = []; // the surfaces the streetlights get to wash
+function cabBox(name, w, h, d, x, y, z, m) {
+  const b = B.MeshBuilder.CreateBox(name, { width: w, height: h, depth: d }, scene);
+  b.parent = cab; b.position.set(x, y, z); b.material = m;
+  cabinLit.push(b);
+  return b;
+}
+const carpet = cabBox("carpet", 2.3, 0.06, 3.8, 0, -0.58, -0.1, carpetM);
+const dashBody = cabBox("dashBody", 2.3, 0.52, 0.55, 0, 0.26, 1.28, dashM);
+const dashTop = cabBox("dashTop", 2.3, 0.07, 0.62, 0, 0.545, 1.26, trimM);
+cabBox("dashKnee", 2.3, 0.16, 0.44, 0, -0.02, 1.18, trimM);
+const centerStack = cabBox("centerStack", 0.62, 0.62, 0.16, 0, 0.14, 0.99, trimM); // the radio's own podium, proud of the dash
+/* vents: quiet dark slots so the dash reads as a dash */
+for (const vx of [-0.85, -0.25, 0.25, 0.85]) cabBox("vent" + vx, 0.16, 0.05, 0.02, vx, 0.47, 1.005, mat("ventM" + vx, "#0a0b0e", 0.02));
+/* doors + armrests */
+const doorL = cabBox("doorL", 0.12, 1.14, 3.4, -1.16, 0.02, 0.1, doorM);
+const doorR = cabBox("doorR", 0.12, 1.14, 3.4, 1.16, 0.02, 0.1, doorM);
+cabBox("armL", 0.14, 0.07, 1.1, -1.06, 0.18, 0.35, trimM);
+cabBox("armR", 0.14, 0.07, 1.1, 1.06, 0.18, 0.35, trimM);
+/* roof + pillars + rear */
+const roof = cabBox("roof", 2.4, 0.08, 2.9, 0, 1.56, -0.15, roofM);
+cabBox("pillarL", 0.09, 1.0, 0.09, -1.13, 1.05, 1.32, trimM).rotation.x = 0.32;
+cabBox("pillarR", 0.09, 1.0, 0.09, 1.13, 1.05, 1.32, trimM).rotation.x = 0.32;
+cabBox("pillarBL", 0.1, 1.0, 0.12, -1.14, 1.05, -0.6, trimM);
+cabBox("pillarBR", 0.1, 1.0, 0.12, 1.14, 1.05, -0.6, trimM);
+const shelf = cabBox("shelf", 2.3, 0.06, 0.6, 0, 0.32, -2.0, carpetM);
+cabBox("rearSeat", 2.2, 0.5, 0.6, 0, -0.3, -1.85, seatM);
+/* front seats, seen from between the headrests */
+function seat(x) {
+  cabBox("seatB" + x, 0.62, 0.24, 0.62, x, -0.32, -0.35, seatM);
+  const back = cabBox("seatK" + x, 0.62, 0.85, 0.2, x, 0.12, -0.62, seatM); back.rotation.x = 0.14;
+  cabBox("seatH" + x, 0.3, 0.2, 0.14, x, 0.68, -0.72, seatM);
+}
+seat(-0.55); seat(0.55);
+/* center console + shifter */
+cabBox("console", 0.34, 0.34, 1.5, 0, -0.28, 0.45, trimM);
+const shiftStick = B.MeshBuilder.CreateCylinder("shift", { diameter: 0.03, height: 0.22, tessellation: 10 }, scene);
+shiftStick.parent = cab; shiftStick.position.set(0, 0.0, 0.35); shiftStick.rotation.x = 0.25; shiftStick.material = chromeM;
+const shiftKnob = B.MeshBuilder.CreateSphere("shiftKnob", { diameter: 0.07, segments: 12 }, scene);
+shiftKnob.parent = cab; shiftKnob.position.set(0, 0.11, 0.32); shiftKnob.material = wheelM;
+
+/* glass: windshield + side windows, just present enough to catch the streetlight */
+const glassM = new B.StandardMaterial("glassM", scene);
+glassM.diffuseColor = B.Color3.FromHexString("#7d92b8"); glassM.alpha = 0.07;
+glassM.specularColor = new B.Color3(0.5, 0.5, 0.55); glassM.specularPower = 64;
+glassM.backFaceCulling = false;
+const windshield = B.MeshBuilder.CreatePlane("windshield", { width: 2.26, height: 1.0 }, scene);
+windshield.parent = cab; windshield.position.set(0, 1.02, 1.45); windshield.rotation.x = -0.32;
+windshield.material = glassM;
+for (const gx of [-1.15, 1.15]) {
+  const g = B.MeshBuilder.CreatePlane("glass" + gx, { width: 1.5, height: 0.8 }, scene);
+  g.parent = cab; g.position.set(gx, 1.0, 0.25); g.rotation.y = Math.PI / 2;
+  g.material = glassM;
+}
+const rearGlass = B.MeshBuilder.CreatePlane("rearGlass", { width: 2.2, height: 0.85 }, scene);
+rearGlass.parent = cab; rearGlass.position.set(0, 0.95, -2.25); rearGlass.rotation.x = 0.35; rearGlass.material = glassM;
+
+/* steering wheel + column, ready to micro-correct on its own */
+const wheelRoot = new B.TransformNode("wheelRoot", scene);
+wheelRoot.parent = cab; wheelRoot.position.set(-0.55, 0.33, 0.98); wheelRoot.rotation.x = -1.05;
+const rim = B.MeshBuilder.CreateTorus("rim", { diameter: 0.42, thickness: 0.045, tessellation: 32 }, scene);
+rim.parent = wheelRoot; rim.material = wheelM; cabinLit.push(rim);
+for (const sa of [0, 2.1, -2.1]) {
+  const spoke = B.MeshBuilder.CreateBox("spoke", { width: 0.05, height: 0.02, depth: 0.19 }, scene);
+  spoke.parent = wheelRoot; spoke.rotation.y = sa;
+  spoke.position.set(Math.sin(sa) * 0.105, 0, Math.cos(sa) * 0.105);
+  spoke.material = wheelM;
+}
+const hornPad = B.MeshBuilder.CreateCylinder("hornPad", { diameter: 0.13, height: 0.05, tessellation: 20 }, scene);
+hornPad.parent = wheelRoot; hornPad.material = trimM;
+hornPad.metadata = { ctl: "horn" };
+const column = B.MeshBuilder.CreateCylinder("column", { diameter: 0.07, height: 0.35, tessellation: 12 }, scene);
+column.parent = cab; column.position.set(-0.55, 0.28, 1.12); column.rotation.x = 0.5; column.material = trimM;
+
+/* instrument cluster: painted dials, real needles */
+const clusterTex = new B.DynamicTexture("clusterTex", { width: 512, height: 256 }, scene, true);
+{
+  const g = clusterTex.getContext();
+  g.fillStyle = "#0a0b0f"; g.fillRect(0, 0, 512, 256);
+  const dial = (cx, label) => {
+    g.strokeStyle = "#2a2d38"; g.lineWidth = 6;
+    g.beginPath(); g.arc(cx, 138, 96, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = "#aeb6c8"; g.lineWidth = 4;
+    for (let a = -210; a <= 30; a += 24) {
+      const r = a * Math.PI / 180;
+      g.beginPath();
+      g.moveTo(cx + Math.cos(r) * 78, 138 + Math.sin(r) * 78);
+      g.lineTo(cx + Math.cos(r) * 90, 138 + Math.sin(r) * 90);
+      g.stroke();
+    }
+    g.fillStyle = "#5a6072"; g.font = "600 26px monospace"; g.textAlign = "center";
+    g.fillText(label, cx, 210);
+  };
+  dial(128, "MPH"); dial(384, "RPM");
+  clusterTex.update(true);
+}
+const clusterM = unlit("clusterM", clusterTex, new B.Color3(0.7, 0.75, 0.9));
+const cluster = B.MeshBuilder.CreatePlane("cluster", { width: 0.44, height: 0.22 }, scene);
+cluster.parent = cab; cluster.position.set(-0.55, 0.58, 1.12); cluster.rotation.x = -0.22;
+cluster.material = clusterM;
+glow.addExcludedMesh(cluster); // unlit surfaces carry a white emissive multiplier — keep the bloom off them
+const needleM = new B.StandardMaterial("needleM", scene);
+needleM.emissiveColor = ACCENT; needleM.diffuseColor = B.Color3.Black();
+function needle(dx) { // pivot at the dial centre; rotation.z sweeps it
+  const root = new B.TransformNode("needleRoot" + dx, scene);
+  root.parent = cab; root.position.set(-0.55 + dx, 0.575, 1.115); root.rotation.x = -0.22;
+  const n = B.MeshBuilder.CreateBox("needle" + dx, { width: 0.012, height: 0.07, depth: 0.004 }, scene);
+  n.parent = root; n.position.y = 0.035; n.material = needleM;
+  return root;
+}
+const speedNeedle = needle(-0.11), tachNeedle = needle(0.11);
+
+/* rearview mirror + the little tree that never stops swinging */
+const mirror = cabBox("mirror", 0.36, 0.1, 0.04, 0, 1.32, 1.18, trimM);
+mirror.rotation.x = -0.12;
+const mirrorGlassM = mat("mirrorGlassM", "#232b3c", 0.6); mirrorGlassM.specularPower = 90;
+const mirrorGlass = B.MeshBuilder.CreatePlane("mirrorGlass", { width: 0.32, height: 0.07 }, scene);
+mirrorGlass.parent = mirror; mirrorGlass.position.z = -0.021; mirrorGlass.material = mirrorGlassM;
+const treeTex = new B.DynamicTexture("treeTex", { width: 128, height: 128 }, scene, true);
+{
+  const g = treeTex.getContext();
+  g.clearRect(0, 0, 128, 128);
+  g.fillStyle = "#2f9e57";
+  g.beginPath(); g.moveTo(64, 8); g.lineTo(112, 108); g.lineTo(16, 108); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(64, 34); g.lineTo(120, 118); g.lineTo(8, 118); g.closePath(); g.fill();
+  g.fillStyle = "#23713f"; g.fillRect(56, 108, 16, 14);
+  treeTex.update(true); treeTex.hasAlpha = true;
+}
+const treeRoot = new B.TransformNode("treeRoot", scene); // pivot up at the mirror stem
+treeRoot.parent = cab; treeRoot.position.set(0.06, 1.27, 1.2);
+const treeString = B.MeshBuilder.CreateBox("treeString", { width: 0.004, height: 0.16, depth: 0.004 }, scene);
+treeString.parent = treeRoot; treeString.position.y = -0.08; treeString.material = chromeM;
+const treeM = new B.StandardMaterial("treeM", scene);
+treeM.diffuseTexture = treeTex; treeM.diffuseTexture.hasAlpha = true; treeM.useAlphaFromDiffuseTexture = true;
+treeM.emissiveColor = new B.Color3(0.04, 0.13, 0.07); treeM.backFaceCulling = false;
+const tree = B.MeshBuilder.CreatePlane("tree", { width: 0.09, height: 0.09 }, scene);
+tree.parent = treeRoot; tree.position.y = -0.205; tree.material = treeM;
+glow.addExcludedMesh(tree);
+
+/* the bobblehead cat on the dash — same cat, new job */
+const catM = mat("catM", "#26242a", 0.03);
+const bobbleRoot = new B.TransformNode("bobbleRoot", scene);
+bobbleRoot.parent = cab; bobbleRoot.position.set(0.62, 0.58, 1.22);
+const bobbleBase = B.MeshBuilder.CreateCylinder("bobbleBase", { diameter: 0.09, height: 0.02, tessellation: 16 }, scene);
+bobbleBase.parent = bobbleRoot; bobbleBase.material = trimM;
+const bobbleBody = B.MeshBuilder.CreateSphere("bobbleBody", { diameter: 0.09, segments: 12 }, scene);
+bobbleBody.parent = bobbleRoot; bobbleBody.scaling.set(1, 1.15, 0.9); bobbleBody.position.y = 0.055; bobbleBody.material = catM;
+const bobbleHead = new B.TransformNode("bobbleHead", scene); // the spring lives here
+bobbleHead.parent = bobbleRoot; bobbleHead.position.y = 0.115;
+const bhSphere = B.MeshBuilder.CreateSphere("bhSphere", { diameter: 0.075, segments: 12 }, scene);
+bhSphere.parent = bobbleHead; bhSphere.position.y = 0.028; bhSphere.material = catM;
+for (const ex of [-0.02, 0.02]) {
+  const ear = B.MeshBuilder.CreateCylinder("bEar", { diameterTop: 0, diameterBottom: 0.024, height: 0.03, tessellation: 8 }, scene);
+  ear.parent = bobbleHead; ear.position.set(ex, 0.062, 0); ear.material = catM;
+}
+
+/* ---- the head unit: the whole reason we're in this car ---- */
+const unitRoot = new B.TransformNode("unitRoot", scene);
+unitRoot.parent = cab; unitRoot.position.set(0, 0.30, 0.895); unitRoot.rotation.x = -0.22; // rides the stack face, tipped up at the camera
+const unitPanel = B.MeshBuilder.CreateBox("unitPanel", { width: 0.5, height: 0.32, depth: 0.07 }, scene);
+unitPanel.parent = unitRoot; unitPanel.material = mat("unitM", "#0c0d11", 0.15);
+unitPanel.metadata = { ctl: "radio" };
+cabinLit.push(unitPanel);
+/* the screen glows on its own — emissive texture, redrawn as the music moves */
+const screenTex = new B.DynamicTexture("screenTex", { width: 512, height: 256 }, scene, true);
+const screenM = unlit("screenM", screenTex);
+const screen = B.MeshBuilder.CreatePlane("screen", { width: 0.42, height: 0.16 }, scene);
+screen.parent = unitRoot; screen.position.set(0, 0.052, -0.037);
+screen.material = screenM;
+screen.metadata = { ctl: "screen" };
+glow.addExcludedMesh(screen);
+/* accent strip under the screen — it breathes with the music */
+const stripM = new B.StandardMaterial("stripM", scene);
+stripM.emissiveColor = ACCENT.scale(0.4); stripM.diffuseColor = B.Color3.Black();
+const strip = B.MeshBuilder.CreateBox("strip", { width: 0.42, height: 0.006, depth: 0.004 }, scene);
+strip.parent = unitRoot; strip.position.set(0, -0.034, -0.037); strip.material = stripM;
+/* knobs: tap the left one for power, drag it for volume; drag the right one to tune, tap it to seek */
+function knob(name, x) {
+  const k = B.MeshBuilder.CreateCylinder(name, { diameter: 0.055, height: 0.035, tessellation: 24 }, scene);
+  k.rotation.x = Math.PI / 2; k.bakeCurrentTransformIntoVertices(); // axis now points at the camera; rotation.z spins it
+  k.parent = unitRoot; k.position.set(x, -0.083, -0.05);
+  k.material = mat(name + "M", "#1c1e26", 0.3);
+  k.metadata = { ctl: name };
+  const notch = B.MeshBuilder.CreateBox(name + "Notch", { width: 0.006, height: 0.018, depth: 0.006 }, scene);
+  notch.parent = k; notch.position.set(0, 0.017, -0.016); notch.material = chromeM;
+  notch.metadata = { ctl: name };
+  return k;
+}
+const volKnob = knob("volknob", -0.2);
+const tuneKnob = knob("tuneknob", 0.2);
+/* preset row between the knobs */
+function tinyLabel(text, w, h, size, emiss) {
+  const t = new B.DynamicTexture("tl" + text + w, { width: 128, height: 64 }, scene, true);
+  const g = t.getContext();
+  g.fillStyle = "#0c0d11"; g.fillRect(0, 0, 128, 64);
+  g.fillStyle = "#c9ceda"; g.font = `600 ${size || 34}px monospace`; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(text, 64, 34);
+  t.update(true);
+  const m = new B.StandardMaterial("tlm" + text + w, scene);
+  m.diffuseTexture = t; m.emissiveColor = new B.Color3(emiss || 0.25, emiss || 0.25, (emiss || 0.25) * 1.1);
+  m.specularColor = B.Color3.Black();
+  const p = B.MeshBuilder.CreatePlane("tlp" + text + w, { width: w, height: h }, scene);
+  p.material = m; // planes are born facing the camera side here — no flip
+  return p;
+}
+const presetMats = [];
+PRESETS.forEach((wi, k) => {
+  const btn = B.MeshBuilder.CreateBox("preset" + k, { width: 0.042, height: 0.028, depth: 0.014 }, scene);
+  btn.parent = unitRoot; btn.position.set(-0.13 + k * 0.052, -0.083, -0.042);
+  btn.material = mat("presetM" + k, "#1c1e26", 0.2);
+  btn.metadata = { ctl: "preset", k };
+  presetMats.push(btn.material);
+  const lb = tinyLabel(String(k + 1), 0.03, 0.015, 40);
+  lb.parent = unitRoot; lb.position.set(-0.13 + k * 0.052, -0.115, -0.039);
+  lb.metadata = { ctl: "preset", k };
+});
+const volLb = tinyLabel("VOL·PWR", 0.06, 0.014, 26); volLb.parent = unitRoot; volLb.position.set(-0.2, -0.125, -0.039);
+const tuneLb = tinyLabel("TUNE", 0.05, 0.014, 30); tuneLb.parent = unitRoot; tuneLb.position.set(0.2, -0.125, -0.039);
+/* the unit is the star of the car — its own reading light, and the street/neon get to touch it too */
+const unitMeshes = unitRoot.getChildMeshes();
+for (const m of unitMeshes) {
+  if (!cabinLit.includes(m)) cabinLit.push(m);
+  if (m.material) m.material.maxSimultaneousLights = 8;
+}
+const unitGlow = new B.PointLight("unitGlow", new B.Vector3(0, 0.36, 0.55), scene);
+unitGlow.diffuse = B.Color3.FromHexString("#ffd9b0"); unitGlow.intensity = 0.6; unitGlow.range = 1.2;
+unitGlow.includedOnlyMeshes = [...unitMeshes, centerStack];
+
+/* ---- the world outside, forever arriving ---- */
+const outside = [];   // everything that streams past: {node, recycle}
+const roadTex = new B.DynamicTexture("roadTex", { width: 256, height: 512 }, scene, true);
+{
+  const g = roadTex.getContext();
+  g.fillStyle = "#131318"; g.fillRect(0, 0, 256, 512);
+  for (let i = 0; i < 500; i++) { // asphalt speckle
+    g.fillStyle = `rgba(255,255,255,${0.015 + Math.random() * 0.03})`;
+    g.fillRect(Math.random() * 256, Math.random() * 512, 2, 2);
+  }
+  g.fillStyle = "#6e6e76"; // lane dashes
+  for (let y = 20; y < 512; y += 128) { g.fillRect(61, y, 6, 60); g.fillRect(189, y, 6, 60); }
+  g.fillStyle = "#6f683c"; g.fillRect(126, 0, 4, 512); // the centre line
+  roadTex.update(false);
+}
+const roadM = new B.StandardMaterial("roadM", scene);
+roadM.diffuseTexture = roadTex; roadM.diffuseTexture.vScale = 8;
+roadM.specularColor = new B.Color3(0.04, 0.04, 0.05);
+const road = B.MeshBuilder.CreateGround("road", { width: 15, height: 160 }, scene);
+road.position.set(1.9, -1.05, 55); road.material = roadM; // we drive the right lane, not the paint
+const shoulderM = mat("shoulderM", "#0a0b0e", 0.01);
+for (const sx of [-11.5, 15.3]) {
+  const sh = B.MeshBuilder.CreateGround("shoulder" + sx, { width: 12, height: 160 }, scene);
+  sh.position.set(sx, -1.06, 55); sh.material = shoulderM;
+}
+
+/* street lamps, on both sides, forever */
+const lampHeadM = new B.StandardMaterial("lampHeadM", scene);
+lampHeadM.emissiveColor = B.Color3.FromHexString("#d9955a"); lampHeadM.diffuseColor = B.Color3.Black();
+const poleM = mat("poleM", "#1a1c22", 0.1);
+for (let k = 0; k < 18; k++) {
+  const side = k % 2 ? 1 : -1;
+  const lamp = new B.TransformNode("lamp" + k, scene);
+  lamp.position.set(side > 0 ? 10.1 : -6.3, 0, Math.floor(k / 2) * 14 - 10); // hugging the kerbs of the shifted road
+  const pole = B.MeshBuilder.CreateCylinder("pole" + k, { diameter: 0.12, height: 5.4, tessellation: 8 }, scene);
+  pole.parent = lamp; pole.position.y = 1.65; pole.material = poleM;
+  const arm = B.MeshBuilder.CreateBox("arm" + k, { width: 1.3, height: 0.08, depth: 0.08 }, scene);
+  arm.parent = lamp; arm.position.set(-side * 0.6, 4.3, 0); arm.material = poleM;
+  const head = B.MeshBuilder.CreateBox("head" + k, { width: 0.45, height: 0.09, depth: 0.2 }, scene);
+  head.parent = lamp; head.position.set(-side * 1.2, 4.26, 0); head.material = lampHeadM;
+  outside.push({ node: lamp, span: 126, min: -14 });
+}
+/* dark blocks with lit windows drifting by beyond the shoulders */
+const winTex = new B.DynamicTexture("winTex", { width: 256, height: 256 }, scene, true);
+{
+  const g = winTex.getContext();
+  g.fillStyle = "#0b0c12"; g.fillRect(0, 0, 256, 256);
+  for (let yy = 12; yy < 244; yy += 26) for (let xx = 12; xx < 244; xx += 22) {
+    if (Math.random() < 0.24) {
+      g.fillStyle = Math.random() < 0.7 ? "rgba(255,190,110,0.85)" : "rgba(150,200,255,0.8)";
+      g.fillRect(xx, yy, 10, 14);
+    }
+  }
+  winTex.update(false);
+}
+const bldgM = unlit("bldgM", winTex, new B.Color3(0.85, 0.85, 0.9));
+for (let k = 0; k < 10; k++) {
+  const side = k % 2 ? 1 : -1;
+  const h = 7 + ((k * 37) % 12), w = 9 + ((k * 23) % 7);
+  const b = B.MeshBuilder.CreateBox("bldg" + k, { width: w, height: h, depth: 14 }, scene);
+  b.position.set(side * (18 + ((k * 13) % 3) * 2.5), h / 2 - 1.1, Math.floor(k / 2) * 30 - 12);
+  b.material = bldgM;
+  glow.addExcludedMesh(b);
+  outside.push({ node: b, span: 150, min: -18 });
+}
+/* skyline + moon: far enough that they don't move, close enough to matter */
+const skyTex = new B.DynamicTexture("skyTex", { width: 1024, height: 256 }, scene, true);
+{
+  const g = skyTex.getContext();
+  const grad = g.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, "#06070d"); grad.addColorStop(0.75, "#121224"); grad.addColorStop(1, "#241a30");
+  g.fillStyle = grad; g.fillRect(0, 0, 1024, 256);
+  let x = 0;
+  while (x < 1024) { // silhouette towers with a few windows still on
+    const bw = 26 + Math.random() * 60, bh = 60 + Math.random() * 130;
+    g.fillStyle = "#0a0a14"; g.fillRect(x, 256 - bh, bw, bh);
+    for (let i = 0; i < bw * bh / 220; i++) {
+      if (Math.random() < 0.5) {
+        g.fillStyle = "rgba(255,205,130,0.7)";
+        g.fillRect(x + 3 + Math.random() * (bw - 8), 256 - bh + 4 + Math.random() * (bh - 10), 3, 4);
+      }
+    }
+    x += bw + 2 + Math.random() * 10;
+  }
+  skyTex.update(true);
+}
+const skyM = unlit("skyM", skyTex);
+const skyline = B.MeshBuilder.CreatePlane("skyline", { width: 260, height: 34 }, scene);
+skyline.position.set(0, 12, 120); skyline.material = skyM;
+skyline.applyFog = false;
+glow.addExcludedMesh(skyline);
+const moonM = new B.StandardMaterial("moonM", scene);
+moonM.emissiveColor = B.Color3.FromHexString("#e8ecff"); moonM.diffuseColor = B.Color3.Black(); moonM.disableLighting = true;
+const moonDisc = B.MeshBuilder.CreateDisc("moonDisc", { radius: 3.2, tessellation: 32 }, scene);
+moonDisc.position.set(22, 26, 118); moonDisc.material = moonM;
+moonDisc.applyFog = false;
+
+/* city bokeh: loose lights streaming by in the middle distance */
+const bokehTex = new B.DynamicTexture("bokehTex", { width: 64, height: 64 }, scene, false);
+{
+  const g = bokehTex.getContext();
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 30);
+  grad.addColorStop(0, "rgba(255,255,255,0.9)"); grad.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+  bokehTex.update(false); bokehTex.hasAlpha = true;
+}
+for (const side of [-1, 1]) {
+  const ps = new B.ParticleSystem("bokeh" + side, 90, scene);
+  ps.particleTexture = bokehTex;
+  ps.emitter = new B.Vector3(side * 24, 4, 95);
+  ps.minEmitBox = new B.Vector3(-8, -4, -10); ps.maxEmitBox = new B.Vector3(8, 8, 10);
+  ps.color1 = new B.Color4(1, 0.75, 0.45, 0.5); ps.color2 = new B.Color4(0.5, 0.7, 1, 0.4);
+  ps.colorDead = new B.Color4(0, 0, 0, 0);
+  ps.minSize = 0.25; ps.maxSize = 0.9;
+  ps.minLifeTime = 8; ps.maxLifeTime = 10;
+  ps.emitRate = 9;
+  ps.blendMode = B.ParticleSystem.BLENDMODE_ADD;
+  ps.direction1 = new B.Vector3(0, 0, -11); ps.direction2 = new B.Vector3(0, 0, -13);
+  ps.minEmitPower = 1; ps.maxEmitPower = 1;
+  ps.start();
+}
+
+/* traffic: a pair of taillights we never quite catch, and oncoming headlights that wash the cabin */
+const tailM = new B.StandardMaterial("tailM", scene);
+tailM.emissiveColor = B.Color3.FromHexString("#ff2a22"); tailM.diffuseColor = B.Color3.Black();
+const carAhead = new B.TransformNode("carAhead", scene);
+const aheadBody = B.MeshBuilder.CreateBox("aheadBody", { width: 1.7, height: 1.1, depth: 4 }, scene);
+aheadBody.parent = carAhead; aheadBody.position.y = 0.55 - 1.05; aheadBody.material = mat("aheadM", "#0c0d13", 0.2);
+for (const tx of [-0.6, 0.6]) {
+  const t = B.MeshBuilder.CreateDisc("tail" + tx, { radius: 0.09, tessellation: 16 }, scene);
+  t.parent = carAhead; t.position.set(tx, 0.05, -2.01); t.material = tailM;
+}
+carAhead.position.set(0.1, 0, 26);
+const oncoming = new B.TransformNode("oncoming", scene);
+const headM = new B.StandardMaterial("headM", scene);
+headM.emissiveColor = B.Color3.FromHexString("#fff3d6"); headM.diffuseColor = B.Color3.Black();
+const onBody = B.MeshBuilder.CreateBox("onBody", { width: 1.7, height: 1.1, depth: 4 }, scene);
+onBody.parent = oncoming; onBody.position.y = -0.5; onBody.material = aheadBody.material;
+for (const hx of [-0.6, 0.6]) {
+  const h = B.MeshBuilder.CreateDisc("hl" + hx, { radius: 0.11, tessellation: 16 }, scene);
+  h.parent = oncoming; h.position.set(hx, -0.15, -2.01); h.material = headM;
+}
+oncoming.position.set(-4.2, 0, 80);
+const headLight = new B.PointLight("headLight", new B.Vector3(-4.2, 0.5, 60), scene);
+headLight.diffuse = B.Color3.FromHexString("#e8ecff"); headLight.intensity = 0; headLight.range = 14;
+
+/* the sodium wash: one orange light rolling front-to-back, timed to the lamps overhead */
+const streetWash = new B.PointLight("streetWash", new B.Vector3(2.2, 2.6, 4), scene);
+streetWash.diffuse = B.Color3.FromHexString("#ff9c4a"); streetWash.intensity = 0; streetWash.range = 7;
+streetWash.includedOnlyMeshes = cabinLit;
+
+/* the show: neon that wakes up when the music does */
+const neonA = new B.PointLight("neonA", new B.Vector3(-0.6, -0.35, 0.7), scene);
+const neonB = new B.PointLight("neonB", new B.Vector3(0.4, 0.5, -1.8), scene);
+for (const l of [neonA, neonB]) { l.intensity = 0; l.range = 4.5; l.includedOnlyMeshes = cabinLit; }
+for (const m of [dashM, trimM, seatM, carpetM, doorM, roofM, wheelM]) m.maxSimultaneousLights = 8;
+
+/* the subwoofer on the rear shelf, waiting for its moment */
+const subBox = cabBox("subBox", 0.55, 0.5, 0.45, -0.65, 0.6, -2.0, mat("subM", "#111217", 0.08));
+const subCone = B.MeshBuilder.CreateCylinder("subCone", { diameter: 0.34, height: 0.04, tessellation: 28 }, scene);
+subCone.parent = cab; subCone.rotation.x = Math.PI / 2;
+subCone.position.set(-0.65, 0.6, -1.76); subCone.material = mat("subConeM", "#2a2b31", 0.14);
+
+/* ---- radio state + the screen ---- */
+let current = -1;          // station locked in
+let freq = freqOf(0);      // where the dial is pointing right now
+let lastStation = 0;
+let tuneDrag = null, volDrag = null;
+let screenDirty = true;
+let volAngle = (vol - 0.5) * 4;
+volKnob.rotation.z = volAngle;
+const artImgs = {};
+function artImg(w) {
+  if (artImgs[w.id]) return artImgs[w.id].complete ? artImgs[w.id] : null;
+  const img = new Image();
+  img.onload = () => { screenDirty = true; };
+  img.src = w.artLocal;
+  artImgs[w.id] = img;
+  return null;
+}
+function drawScreen(beat, kick) {
+  const g = screenTex.getContext();
+  g.fillStyle = "#05070b"; g.fillRect(0, 0, 512, 256);
+  const powered = current >= 0 || tuneDrag;
+  if (!powered) {
+    g.fillStyle = "rgba(200,206,220,0.16)";
+    g.font = "600 54px 'IBM Plex Mono', monospace"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText("METRO FM", 256, 106);
+    g.font = "600 22px 'IBM Plex Mono', monospace";
+    g.fillText("· tap to tune ·", 256, 168);
+    screenTex.update(true);
+    return;
+  }
+  if (tuneDrag) { // between stations: big numbers and honest static
+    g.fillStyle = "#e9edf6"; g.font = "600 92px 'IBM Plex Mono', monospace"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(freq.toFixed(1), 256, 92);
+    g.font = "600 26px 'IBM Plex Mono', monospace"; g.fillStyle = "#8a90a2";
+    g.fillText("FM", 256, 150);
+    const near = stationAt(freq);
+    if (Math.abs(freqOf(near) - freq) < 0.5) {
+      g.fillStyle = "rgba(255,51,102,0.85)";
+      g.fillText(WORKS[near].title.toUpperCase().slice(0, 26), 256, 190);
+    }
+    for (let i = 0; i < 60; i++) { // static
+      g.fillStyle = `rgba(255,255,255,${Math.random() * 0.14})`;
+      g.fillRect(Math.random() * 512, 212 + Math.random() * 40, 3 + Math.random() * 14, 2);
+    }
+    screenTex.update(true);
+    return;
+  }
+  const w = WORKS[current];
+  const img = artImg(w);
+  if (img) g.drawImage(img, 16, 58, 140, 140);
+  else { g.fillStyle = "#151722"; g.fillRect(16, 58, 140, 140); }
+  g.textAlign = "left"; g.textBaseline = "alphabetic";
+  g.fillStyle = "#ff3366"; g.font = "600 34px 'IBM Plex Mono', monospace";
+  g.fillText(freqOf(current).toFixed(1) + " FM", 16, 42);
+  g.fillStyle = "#8a90a2"; g.font = "600 20px 'IBM Plex Mono', monospace";
+  g.fillText(paused ? "◦ TUNED" : "● ON AIR", 380, 42);
+  /* marquee title: long names take a slow lap */
+  g.font = "600 40px 'IBM Plex Mono', monospace"; g.fillStyle = "#e9edf6";
+  const title = w.title.toUpperCase();
+  const tw = g.measureText(title).width, maxW = 320;
+  g.save(); g.beginPath(); g.rect(172, 66, maxW, 52); g.clip();
+  if (tw <= maxW) g.fillText(title, 172, 104);
+  else {
+    const off = (roomT * 55) % (tw + 90);
+    g.fillText(title, 172 - off, 104); g.fillText(title, 172 - off + tw + 90, 104);
+  }
+  g.restore();
+  g.fillStyle = "#6a7082"; g.font = "600 17px 'IBM Plex Mono', monospace";
+  g.fillText(w.credit.toUpperCase().slice(0, 34), 172, 142);
+  /* the spectrum: fake but faithful to the beat */
+  const bars = 16;
+  for (let i = 0; i < bars; i++) {
+    const h = paused ? 3 : 4 + 58 * Math.max(0.04,
+      Math.abs(Math.sin(beat * Math.PI + i * 0.85)) * (0.3 + 0.7 * kick) * (0.5 + 0.5 * Math.sin(i * 2.3 + beat * 2)));
+    g.fillStyle = i % 4 === 0 ? "#ff3366" : "#3a4460";
+    g.fillRect(172 + i * 21, 198 - h, 14, h);
+  }
+  screenTex.update(true);
+}
+
+/* ---- panel + station switching ---- */
+const npTitle = document.getElementById("np-title");
+const npCredit = document.getElementById("np-credit");
+const panel = document.getElementById("panel");
+const bplay = document.getElementById("bplay");
+
+function embedH(w) {
+  // full album embed (tracklist) only when there's room for it — short screens get spotify's compact player
+  return (w.kind === "album" && window.innerHeight > 540) ? 352 : 152;
+}
+window.addEventListener("resize", () => { // rotating the phone re-fits the player
+  if (current >= 0) document.getElementById("embed").style.height = embedH(WORKS[current]) + "px";
+});
+
+function chooseStation(i) {
+  i = ((i % N) + N) % N;
+  if (i === current) { if (paused && controller) try { controller.play(); } catch (e) {} return; }
+  const w = WORKS[i];
+  current = i; lastStation = i; freq = freqOf(i);
+  beatPos = 0; posAt = 0; // fresh beat grid for the new station
+  ensureController(w); // fresh player built inside the tap — play() rides its ready event
+  npTitle.textContent = w.title;
+  npCredit.textContent = w.credit;
+  document.getElementById("embed").style.height = embedH(w) + "px";
+  panel.classList.add("on"); panel.classList.remove("min");
+  progress = 0; screenDirty = true;
+  tuneKnob.rotation.z -= 0.9; // the knob remembers being turned
+  if (mode !== "radio") enterRadio();
+}
+function powerToggle() {
+  if (current < 0) { chooseStation(lastStation); return; }
+  if (controller) { if (wantPlay) controller.play(); else controller.togglePlay(); }
+}
+function powerOff() {
+  if (current < 0) return;
+  current = -1;
+  wantPlay = false; // switched off on purpose — don't resurrect it on the next touch
+  if (controller) try { controller.pause(); } catch (e) {}
+  paused = true; progress = 0;
+  bplay.textContent = "▶";
+  panel.classList.remove("on");
+  screenDirty = true;
+  toCabin();
+}
+document.getElementById("offb").addEventListener("click", powerOff);
+
+/* ---- camera moods ---- */
+let mode = "cabin";
+document.body.dataset.mode = "cabin";
+function viewCabin() {
+  return portrait()
+    ? { alpha: -Math.PI / 2, beta: 1.12, radius: 2.3, target: new B.Vector3(0, 0.42, 0.95), ox: 0, oy: 0.12 }
+    : { alpha: -Math.PI / 2, beta: 1.16, radius: 2.0, target: new B.Vector3(0, 0.42, 0.95), ox: 0, oy: 0 };
+}
+function viewRadio() {
+  return portrait()
+    ? { alpha: -Math.PI / 2, beta: 1.3, radius: 1.0, target: new B.Vector3(0, 0.32, 0.9), ox: 0, oy: 0.26 }
+    : { alpha: -Math.PI / 2, beta: 1.32, radius: 0.8, target: new B.Vector3(0, 0.31, 0.9), ox: 0.24, oy: 0 };
+}
+function enterRadio() {
+  mode = "radio";
+  document.body.dataset.mode = "radio";
+  cam.detachControl(); freeLimits();
+  panel.classList.remove("min");
+  camTo(viewRadio(), 0.85);
+}
+function toCabin() {
+  mode = "cabin";
+  document.body.dataset.mode = "cabin";
+  panel.classList.add("min");
+  cam.detachControl(); // no doubled-up inputs — reattach exactly once, when the camera gets home
+  camTo(viewCabin(), 0.85, true);
+}
+
+/* ---- picking: taps for buttons, drags for the knobs ---- */
+let bobbleKick = 0, hornFlash = 0;
+scene.onPointerObservable.add((pi) => {
+  const pick = pi.pickInfo;
+  if (pi.type === B.PointerEventTypes.POINTERDOWN) {
+    const ctl = pick?.hit && pick.pickedMesh?.metadata?.ctl;
+    if (ctl === "tuneknob") {
+      tuneDrag = { x: scene.pointerX, f0: freq, moved: false };
+      cam.detachControl(); audioUp();
+    }
+    if (ctl === "volknob") {
+      volDrag = { x: scene.pointerX, v0: vol, moved: false };
+      cam.detachControl();
+    }
+  }
+  if (pi.type === B.PointerEventTypes.POINTERMOVE) {
+    if (tuneDrag) {
+      const dx = scene.pointerX - tuneDrag.x;
+      if (Math.abs(dx) > 4) tuneDrag.moved = true;
+      if (tuneDrag.moved) {
+        freq = Math.max(FM_LO, Math.min(FM_HI, tuneDrag.f0 + dx * 0.012));
+        tuneKnob.rotation.z = -(freq - FM_LO) * 1.1;
+        setStatic(true);
+      }
+      return;
+    }
+    if (volDrag) {
+      const dx = scene.pointerX - volDrag.x;
+      if (Math.abs(dx) > 4) volDrag.moved = true;
+      if (volDrag.moved) {
+        vol = Math.max(0, Math.min(1, volDrag.v0 + dx * 0.004));
+        volKnob.rotation.z = (vol - 0.5) * 4;
+      }
+      return;
+    }
+  }
+  if (pi.type === B.PointerEventTypes.POINTERUP) {
+    if (tuneDrag) {
+      const moved = tuneDrag.moved;
+      tuneDrag = null; setStatic(false); screenDirty = true;
+      if (moved) chooseStation(stationAt(freq)); // let go of the dial — the nearest station grabs it
+      if (mode === "cabin") cam.attachControl(document.getElementById("scene"), true);
+    }
+    if (volDrag) {
+      volDrag = null;
+      if (mode === "cabin") cam.attachControl(document.getElementById("scene"), true);
+    }
+  }
+  if (pi.type === B.PointerEventTypes.POINTERTAP && pick?.hit && pick.pickedMesh?.metadata) {
+    const md = pick.pickedMesh.metadata;
+    if ((md.ctl === "radio" || md.ctl === "screen") && mode !== "radio") { enterRadio(); return; } // first tap leans you in
+    if (md.ctl === "screen") powerToggle(); // it's a touchscreen, after all
+    if (md.ctl === "radio" && current < 0) powerToggle(); // tap the dark unit = wake it up
+    if (md.ctl === "preset") chooseStation(PRESETS[md.k]);
+    if (md.ctl === "volknob") powerToggle();
+    if (md.ctl === "tuneknob") { if (current >= 0) chooseStation(current + 1); else chooseStation(stationAt(freq)); }
+    if (md.ctl === "horn") { honk(); bobbleKick = 2.4; hornFlash = 1; }
+  }
+});
+
+/* ---- browse bar + panel actions ---- */
+function step(dir) { chooseStation(current >= 0 ? current + dir : lastStation + dir); }
+document.getElementById("bprev").addEventListener("click", () => step(-1));
+document.getElementById("bnext").addEventListener("click", () => step(1));
+bplay.addEventListener("click", () => powerToggle());
+document.getElementById("skipb").addEventListener("click", () => step(-1));
+document.getElementById("skipf").addEventListener("click", () => step(1));
+document.getElementById("dialb").addEventListener("click", () => enterRadio()); // lean back into the radio
+document.getElementById("closeview").addEventListener("click", () => toCabin());
+document.getElementById("np-head").addEventListener("click", () => {
+  if (current < 0) return;
+  if (panel.classList.contains("min")) enterRadio(); // the mini bar reopens onto the radio
+  else toCabin();
+});
+window.addEventListener("keydown", (e) => {
+  if (e.key === " ") { e.preventDefault(); powerToggle(); }
+  if (e.key === "ArrowLeft") step(-1);
+  if (e.key === "ArrowRight") step(1);
+  if (e.key === "Escape") { if (mode === "radio") toCabin(); else powerOff(); }
+});
+const menuEl = document.getElementById("menu");
+document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
+document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));
+window.addEventListener("pointerdown", (e) => { if (!menuEl.contains(e.target)) menuEl.classList.remove("open"); }, true);
+
+/* ---- the loop: the road, the sway, the beat ---- */
+const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+let roomT = 0, partyAmt = 0, beatPos = 0;
+let bumpY = 0, bumpV = 0, nextBump = 1.6;
+let treeA = 0, treeV = 0, nod = 0, nodV = 0, lastBeatInt = -1;
+let washZ = 6, frameCount = 0;
+scene.onBeforeRenderObservable.add(() => {
+  const dt = Math.min(0.05, engine.getDeltaTime() / 1000);
+  roomT += dt; frameCount++;
+
+  // the camera glides between its moods
+  if (camAnim.on) {
+    camAnim.t += dt;
+    const k = ease(Math.min(1, camAnim.t / camAnim.dur));
+    const f = camAnim.from, v = camAnim.to;
+    cam.alpha = f.alpha + (v.alpha - f.alpha) * k;
+    cam.beta = f.beta + (v.beta - f.beta) * k;
+    cam.radius = f.radius + (v.radius - f.radius) * k;
+    cam.target.copyFrom(B.Vector3.Lerp(f.target, v.target, k)); // mutate in place — the target SETTER would recompute alpha/beta/radius and fight us
+    cam.targetScreenOffset.set(f.ox + (v.ox - f.ox) * k, f.oy + (v.oy - f.oy) * k);
+    if (camAnim.t >= camAnim.dur) {
+      camAnim.on = false;
+      if (camAnim.thenAttach) { cabinLimits(); cam.attachControl(document.getElementById("scene"), true); }
+    }
+  }
+
+  const playing = current >= 0 && !paused;
+
+  // the show eases in while a station plays, phase-locked to playback position
+  partyAmt += ((playing ? 1 : 0) - partyAmt) * Math.min(1, dt * 1.8);
+  if (playing) {
+    if (controller && posAt) beatPos = (posMs + performance.now() - posAt) / 1000;
+    else beatPos += dt; // plain-embed fallback free-runs the grid
+  }
+  const bpm = 120;
+  const beat = beatPos * bpm / 60;
+  const kick = Math.pow(Math.max(0, 1 - (beat % 1)), 2.4);        // hits on the beat, decays fast
+  const off = Math.pow(Math.max(0, 1 - ((beat + 0.5) % 1)), 2.4); // the offbeat answer
+  const bar = Math.floor(beat / 4);
+
+  // the drive: the world streams past; the music leans on the gas
+  const speed = 9 + 5 * partyAmt + Math.sin(roomT * 0.23) * 0.8;
+  roadM.diffuseTexture.vOffset -= speed * dt / 20; // 8 tiles over 160 m → one v per 20 m
+  for (const o of outside) {
+    o.node.position.z -= speed * dt;
+    if (o.node.position.z < o.min) o.node.position.z += o.span;
+  }
+  carAhead.position.z = 24 + Math.sin(roomT * 0.11) * 5;
+  carAhead.position.x = 0.1 + Math.sin(roomT * 0.4) * 0.15;
+  oncoming.position.z -= (speed + 13) * dt;
+  if (oncoming.position.z < -10) oncoming.position.z = 90 + ((bar * 7) % 3) * 45 + Math.random() * 30;
+  headLight.position.set(-4.2, 0.4, oncoming.position.z - 2);
+  headLight.intensity = 1.7 * Math.exp(-Math.pow((oncoming.position.z - 2) / 7, 2)); // brightest as it passes
+
+  // the sodium wash rolls through on the lamp rhythm
+  washZ -= speed * dt;
+  if (washZ < -5) washZ += 14;
+  streetWash.position.set(washZ > 0 ? 2.4 : -2.4, 2.7, washZ); // alternate sides like the lamps do
+  streetWash.intensity = 0.9 * Math.exp(-Math.pow(washZ / 4.5, 2));
+
+  // the road talks back: idle vibration + the occasional seam
+  nextBump -= dt;
+  if (nextBump <= 0) { bumpV -= 0.05 + Math.random() * 0.09; treeV += (Math.random() - 0.3) * 0.8; nextBump = 1.2 + Math.random() * 2.4; }
+  bumpV += (-60 * bumpY - 8 * bumpV) * dt;
+  bumpY += bumpV * dt;
+  cab.position.y = bumpY + Math.sin(roomT * 21) * 0.0022 + Math.sin(roomT * 34) * 0.0012;
+  cab.rotation.z = Math.sin(roomT * 0.6) * 0.006 + bumpV * 0.04;
+  cab.rotation.x = bumpV * 0.05;
+
+  // the tree swings on its string, feeling every seam
+  treeV += (-16 * treeA - 1.4 * treeV) * dt + Math.sin(roomT * 1.7) * 0.06 * dt * 60 * 0.02;
+  treeA += treeV * dt;
+  treeRoot.rotation.z = treeA + cab.rotation.z * 2;
+  treeRoot.rotation.x = Math.sin(roomT * 1.1) * 0.05;
+
+  // the bobblehead keeps time (and panics at the horn)
+  if (playing) { const bi = Math.floor(beat); if (bi !== lastBeatInt) { lastBeatInt = bi; nodV -= 1.1 + 0.6 * Math.random(); } }
+  if (bobbleKick > 0) { nodV -= bobbleKick; bobbleKick = 0; }
+  nodV += (-46 * nod - 4.5 * nodV) * dt;
+  nod += nodV * dt;
+  bobbleHead.rotation.x = nod * 0.35;
+  bobbleHead.rotation.z = nod * 0.12;
+  bobbleHead.position.y = 0.115 + Math.abs(nod) * 0.008;
+
+  // hands-free micro-steering, because somebody's driving
+  wheelRoot.rotation.y = Math.sin(roomT * 0.5) * 0.05 + bumpV * 0.15;
+
+  // needles: speed rides the drive, the tach rides the kick
+  speedNeedle.rotation.z = 2.1 - (speed / 22) * 2.6 + Math.sin(roomT * 9) * 0.015;
+  tachNeedle.rotation.z = 2.1 - (0.32 + 0.25 * partyAmt + 0.3 * kick * partyAmt) * 2.6;
+
+  // the light show, cabin edition
+  if (partyAmt > 0.01) {
+    neonA.diffuse = B.Color3.FromHSV((bar * 47) % 360, 0.85, 1);
+    neonB.diffuse = B.Color3.FromHSV((bar * 47 + 160) % 360, 0.85, 1);
+    neonA.intensity = partyAmt * vol * (0.1 + 0.9 * kick);
+    neonB.intensity = partyAmt * vol * (0.1 + 0.9 * off);
+    stripM.emissiveColor = ACCENT.scale(0.35 + 1.4 * kick * partyAmt);
+    glow.intensity = 0.55 + partyAmt * 0.4 * kick;
+    subCone.position.z = -1.76 + 0.03 * kick * partyAmt * vol;
+    subCone.scaling.setAll(1 + 0.1 * kick * partyAmt * vol);
+  } else {
+    neonA.intensity = 0; neonB.intensity = 0;
+    stripM.emissiveColor = ACCENT.scale(current >= 0 ? 0.4 : 0.12);
+    glow.intensity = 0.55;
+    subCone.position.z = -1.76; subCone.scaling.setAll(1);
+  }
+  if (hornFlash > 0) { hornFlash = Math.max(0, hornFlash - dt * 3); neonA.intensity = Math.max(neonA.intensity, hornFlash); neonA.diffuse = B.Color3.White(); }
+  dashGlow.intensity = 0.5 - 0.15 * partyAmt;
+
+  // the screen keeps up (every other frame is plenty)
+  if ((playing || tuneDrag || screenDirty) && frameCount % 2 === 0) {
+    drawScreen(beat, kick * partyAmt);
+    screenDirty = false;
+  }
+});
+engine.runRenderLoop(() => scene.render());
+function frameCamera() { // portrait keeps the vertical fov — reframe whatever we're looking at
+  if (mode === "cabin") {
+    const v = viewCabin();
+    cam.beta = v.beta; cam.radius = v.radius; cam.target.copyFrom(v.target); cam.targetScreenOffset.set(v.ox, v.oy);
+  } else if (mode === "radio") camTo(viewRadio(), 0.4);
+}
+frameCamera();
+window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
+
+/* debug hooks, same spirit as the deck */
+window.METRO_CAR = { scene, engine, cam, chooseStation, powerToggle, powerOff, step, enterRadio, toCabin, honk,
+  demo: (on) => { if (current < 0) current = 0; paused = !on; screenDirty = true; }, // pretend playback for testing the show without audio
+  get state() { return { current, freq, vol, paused, progress, mode, partyAmt }; } };
+</script>
+<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+</body>
+</html>
