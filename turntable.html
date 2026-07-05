@@ -106,19 +106,6 @@ body[data-mode="crate"] #closeview, body[data-mode="deck"] #closeview { display:
 @media (min-width: 721px) {
   body[data-mode="deck"] #closeview { right: 412px; } /* clear of the docked panel */
 }
-body[data-mode="deck"] #browse { display: none; }
-/* browse bar: flip through the crate without touching the 3d */
-#browse {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 6;
-  display: flex; gap: .5rem;
-}
-#browse button {
-  font: inherit; font-size: .85rem; line-height: 1; cursor: pointer;
-  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
-  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
-  border: 1px solid #333; border-radius: 999px; transition: all .2s;
-}
-#browse button:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 
 footer { position: relative; z-index: 3; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: .5rem 1rem .7rem; text-transform: uppercase; background: rgba(10,10,12,.85); }
 footer a { color: #8a8792; text-decoration: none; }
@@ -147,7 +134,6 @@ footer a:hover { color: var(--accent); }
   #panel.min #np-chevron { transform: rotate(180deg); }
   #np-chevron { display: block; }
   #np-title { font-size: 1.1rem; }
-  #panel.on ~ #browse { bottom: 76px; } /* a record is out — the mini bar owns the very bottom */
   #closeview { right: 10px; top: 82px; }
   header { padding: .9rem 62px .65rem 1.1rem; }
 }
@@ -173,17 +159,10 @@ footer a:hover { color: var(--accent); }
     </div>
     <div id="embed"></div>
     <div id="np-actions">
-      <button id="skipb" title="previous record">‹</button>
       <button id="putback" class="grow">put it back</button>
       <button id="digb" class="grow">the crates</button>
-      <button id="skipf" title="next record">›</button>
     </div>
   </aside>
-  <div id="browse">
-    <button id="bprev" title="previous record">‹</button>
-    <button id="bplay" title="play">▶</button>
-    <button id="bnext" title="next record">›</button>
-  </div>
   <button id="closeview" title="back to the room">✕</button>
   <div id="fail">this environment needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
@@ -464,7 +443,6 @@ function ensureController(w) {
     c.addListener("playback_update", (e) => {
       paused = !!e.data.isPaused;
       if (!paused) wantPlay = false; // it's actually playing — stand down, respect a manual pause from here
-      document.getElementById("bplay").textContent = paused ? "▶" : "❚❚";
       if (e.data.duration) progress = e.data.position / e.data.duration;
       posMs = e.data.position; posAt = performance.now(); // the light show phase-locks to this
     });
@@ -1049,7 +1027,6 @@ const npTitle = document.getElementById("np-title");
 const npCredit = document.getElementById("np-credit");
 const putbackBtn = document.getElementById("putback");
 const panel = document.getElementById("panel");
-const bplay = document.getElementById("bplay");
 
 function chooseRecord(i) {
   if (ritual || i === current) return;
@@ -1094,7 +1071,6 @@ function putBack(quick) {
   wantPlay = false; // shelved on purpose — don't resurrect it on the next touch
   if (controller) try { controller.pause(); } catch (e) {}
   paused = true;
-  bplay.textContent = "▶";
   if (!quick) { panel.classList.remove("on"); toRoom(); }
 }
 putbackBtn.addEventListener("click", () => putBack(false));
@@ -1211,7 +1187,7 @@ const digDone = (e) => { if (e.pointerId === digSwipe.id) digSwipe.id = -1; };
 sceneCvs.addEventListener("pointerup", digDone, true);
 sceneCvs.addEventListener("pointercancel", digDone, true);
 
-/* ---- browse bar + panel actions ---- */
+/* ---- panel actions (the crate itself is the transport) ---- */
 const N = WORKS.length;
 function setFocus(i) {
   focusIdx = ((i % N) + N) % N;
@@ -1225,15 +1201,6 @@ function step(dir) {
   if (current >= 0 && mode !== "crate") chooseRecord(((current + dir) % N + N) % N); // playing: skip straight to the next record
   else setFocus(focusIdx < 0 ? (dir > 0 ? 0 : N - 1) : focusIdx + dir);
 }
-document.getElementById("bprev").addEventListener("click", () => step(-1));
-document.getElementById("bnext").addEventListener("click", () => step(1));
-bplay.addEventListener("click", () => {
-  if (ritual) return;
-  if (current >= 0) { if (controller) { if (wantPlay) controller.play(); else controller.togglePlay(); } }
-  else chooseRecord(focusIdx < 0 ? 0 : focusIdx);
-});
-document.getElementById("skipb").addEventListener("click", () => { if (!ritual && current >= 0) chooseRecord(((current - 1) % N + N) % N); });
-document.getElementById("skipf").addEventListener("click", () => { if (!ritual && current >= 0) chooseRecord(((current + 1) % N + N) % N); });
 document.getElementById("digb").addEventListener("click", () => enterCrate(curCrate || crates[0])); // browse while it plays
 document.getElementById("closeview").addEventListener("click", () => toRoom());
 document.getElementById("np-head").addEventListener("click", () => {

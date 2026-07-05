@@ -102,19 +102,6 @@ body[data-mode="radio"] #closeview { display: flex; }
 @media (min-width: 721px) {
   body[data-mode="radio"] #closeview { right: 412px; } /* clear of the docked panel */
 }
-body[data-mode="radio"] #browse { display: none; }
-/* browse bar: surf the stations without touching the 3d */
-#browse {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 6;
-  display: flex; gap: .5rem;
-}
-#browse button {
-  font: inherit; font-size: .85rem; line-height: 1; cursor: pointer;
-  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
-  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
-  border: 1px solid #333; border-radius: 999px; transition: all .2s;
-}
-#browse button:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 
 footer { position: relative; z-index: 3; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: .5rem 1rem .7rem; text-transform: uppercase; background: rgba(10,10,12,.85); }
 footer a { color: #8a8792; text-decoration: none; }
@@ -143,7 +130,6 @@ footer a:hover { color: var(--accent); }
   #panel.min #np-chevron { transform: rotate(180deg); }
   #np-chevron { display: block; }
   #np-title { font-size: 1.1rem; }
-  #panel.on ~ #browse { bottom: 76px; } /* a station is on — the mini bar owns the very bottom */
   #closeview { right: 10px; top: 82px; }
   header { padding: .9rem 62px .65rem 1.1rem; }
 }
@@ -169,17 +155,10 @@ footer a:hover { color: var(--accent); }
     </div>
     <div id="embed"></div>
     <div id="np-actions">
-      <button id="skipb" title="previous station">‹</button>
       <button id="offb" class="grow">turn it off</button>
       <button id="dialb" class="grow">the dial</button>
-      <button id="skipf" title="next station">›</button>
     </div>
   </aside>
-  <div id="browse">
-    <button id="bprev" title="previous station">‹</button>
-    <button id="bplay" title="play">▶</button>
-    <button id="bnext" title="next station">›</button>
-  </div>
   <button id="closeview" title="back to the cabin">✕</button>
   <div id="fail">this environment needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
@@ -467,7 +446,6 @@ function ensureController(w) {
     c.addListener("playback_update", (e) => {
       paused = !!e.data.isPaused;
       if (!paused) wantPlay = false; // it's actually playing — stand down, respect a manual pause from here
-      document.getElementById("bplay").textContent = paused ? "▶" : "❚❚";
       if (e.data.duration) progress = e.data.position / e.data.duration;
       posMs = e.data.position; posAt = performance.now(); // the whole cabin phase-locks to this
       screenDirty = true;
@@ -1101,7 +1079,6 @@ function drawScreen(beat, kick) {
 const npTitle = document.getElementById("np-title");
 const npCredit = document.getElementById("np-credit");
 const panel = document.getElementById("panel");
-const bplay = document.getElementById("bplay");
 
 function embedH(w) {
   // full album embed (tracklist) only when there's room for it — short screens get spotify's compact player
@@ -1136,7 +1113,6 @@ function powerOff() {
   wantPlay = false; // switched off on purpose — don't resurrect it on the next touch
   if (controller) try { controller.pause(); } catch (e) {}
   paused = true; progress = 0;
-  bplay.textContent = "▶";
   panel.classList.remove("on");
   screenDirty = true;
   toCabin();
@@ -1231,13 +1207,8 @@ scene.onPointerObservable.add((pi) => {
   }
 });
 
-/* ---- browse bar + panel actions ---- */
+/* ---- panel actions (the radio itself is the transport) ---- */
 function step(dir) { chooseStation(current >= 0 ? current + dir : lastStation + dir); }
-document.getElementById("bprev").addEventListener("click", () => step(-1));
-document.getElementById("bnext").addEventListener("click", () => step(1));
-bplay.addEventListener("click", () => powerToggle());
-document.getElementById("skipb").addEventListener("click", () => step(-1));
-document.getElementById("skipf").addEventListener("click", () => step(1));
 document.getElementById("dialb").addEventListener("click", () => enterRadio()); // lean back into the radio
 document.getElementById("closeview").addEventListener("click", () => toCabin());
 document.getElementById("np-head").addEventListener("click", () => {
