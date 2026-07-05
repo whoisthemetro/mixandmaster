@@ -1003,13 +1003,13 @@ subCone.parent = subGrp; subCone.rotation.x = Math.PI / 2;
 subCone.position.set(0, 0, 0.24); subCone.material = mat("subConeM", "#2a2b31", 0.14);
 
 /* ---- arrange the cabin: grab a fitting and slide it where you like ---- */
-const DEFAULT_LAYOUT = { // the build positions — rearrange, copy layout, and this constant gets rebaked
-  "wheel":   { "x": -0.55, "y": 0.33, "z": 0.86 },
-  "cluster": { "x": -0.55, "y": 0.58, "z": 1.12 },
-  "shifter": { "x": 0,     "y": 0,    "z": 0.35 },
-  "bobble":  { "x": 0.62,  "y": 0.58, "z": 1.22 },
-  "mirror":  { "x": 0,     "y": 1.32, "z": 1.18 },
-  "sub":     { "x": -0.65, "y": 0.6,  "z": -2.0 }
+const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-05 — this IS the cabin now
+  "wheel":   { "x": -0.668, "y": 0.354, "z": 0.836 },
+  "cluster": { "x": -0.623, "y": 0.702, "z": 1.12 },
+  "shifter": { "x": 0.003,  "y": 0,     "z": 0.621 },
+  "bobble":  { "x": 0.62,   "y": 0.58,  "z": 1.22 },
+  "mirror":  { "x": 0,      "y": 1.32,  "z": 1.18 },
+  "sub":     { "x": -0.65,  "y": 0.6,   "z": -2.0 }
 };
 /* wall mode slides on the dash plane (x/y, z stays put); floor mode slides on its surface (x/z) —
    the wheel is floor mode so it telescopes toward/away from the driver, like a real column */
