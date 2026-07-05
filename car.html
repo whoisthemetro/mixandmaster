@@ -639,9 +639,9 @@ cabBox("console", 0.34, 0.34, 1.5, 0, -0.28, 0.45, trimM);
 const shiftGrp = new B.TransformNode("shiftGrp", scene);
 shiftGrp.parent = cab; shiftGrp.position.set(0, 0, 0.35);
 const shiftStick = B.MeshBuilder.CreateCylinder("shift", { diameter: 0.03, height: 0.22, tessellation: 10 }, scene);
-shiftStick.parent = shiftGrp; shiftStick.position.set(0, 0, 0); shiftStick.rotation.x = 0.25; shiftStick.material = chromeM;
+shiftStick.parent = shiftGrp; shiftStick.position.set(0, 0, 0); shiftStick.rotation.x = -0.25; shiftStick.material = chromeM;
 const shiftKnob = B.MeshBuilder.CreateSphere("shiftKnob", { diameter: 0.07, segments: 12 }, scene);
-shiftKnob.parent = shiftGrp; shiftKnob.position.set(0, 0.11, -0.03); shiftKnob.material = wheelM;
+shiftKnob.parent = shiftGrp; shiftKnob.position.set(0, 0.107, -0.027); shiftKnob.material = wheelM; // right on the stick's tip — it leans back at the driver
 
 /* glass: windshield + side windows, just present enough to catch the streetlight */
 const glassM = new B.StandardMaterial("glassM", scene);
@@ -661,7 +661,7 @@ rearGlass.parent = cab; rearGlass.position.set(0, 0.95, -2.25); rearGlass.rotati
 
 /* steering wheel + column, ready to micro-correct on its own — the whole assembly is movable */
 const wheelGrp = new B.TransformNode("wheelGrp", scene);
-wheelGrp.parent = cab; wheelGrp.position.set(-0.55, 0.33, 0.98);
+wheelGrp.parent = cab; wheelGrp.position.set(-0.55, 0.33, 0.86); // clear of the dash — the old 0.98 buried the rim's top in it
 const wheelRoot = new B.TransformNode("wheelRoot", scene);
 wheelRoot.parent = wheelGrp; wheelRoot.rotation.x = -1.05;
 const rim = B.MeshBuilder.CreateTorus("rim", { diameter: 0.42, thickness: 0.045, tessellation: 32 }, scene);
@@ -1004,16 +1004,17 @@ subCone.position.set(0, 0, 0.24); subCone.material = mat("subConeM", "#2a2b31", 
 
 /* ---- arrange the cabin: grab a fitting and slide it where you like ---- */
 const DEFAULT_LAYOUT = { // the build positions — rearrange, copy layout, and this constant gets rebaked
-  "wheel":   { "x": -0.55, "y": 0.33, "z": 0.98 },
+  "wheel":   { "x": -0.55, "y": 0.33, "z": 0.86 },
   "cluster": { "x": -0.55, "y": 0.58, "z": 1.12 },
   "shifter": { "x": 0,     "y": 0,    "z": 0.35 },
   "bobble":  { "x": 0.62,  "y": 0.58, "z": 1.22 },
   "mirror":  { "x": 0,     "y": 1.32, "z": 1.18 },
   "sub":     { "x": -0.65, "y": 0.6,  "z": -2.0 }
 };
-/* wall mode slides on the dash plane (x/y, z stays put); floor mode slides on its surface (x/z) */
+/* wall mode slides on the dash plane (x/y, z stays put); floor mode slides on its surface (x/z) —
+   the wheel is floor mode so it telescopes toward/away from the driver, like a real column */
 const DRAGS = {
-  wheel:   { node: wheelGrp,   mode: "wall",  lim: { x: [-1.02, 1.02], y: [0.12, 0.9] } },
+  wheel:   { node: wheelGrp,   mode: "floor", lim: { x: [-1.02, 1.02], z: [0.45, 0.9] } }, // 0.9 keeps the rim's top out of the dash
   cluster: { node: clusterGrp, mode: "wall",  lim: { x: [-1.05, 1.05], y: [0.28, 1.05] } },
   shifter: { node: shiftGrp,   mode: "floor", lim: { x: [-0.9, 0.9],   z: [-0.6, 0.85] } },
   bobble:  { node: bobbleRoot, mode: "floor", lim: { x: [-1.05, 1.05], z: [1.0, 1.5] } },
@@ -1030,8 +1031,10 @@ const LAYOUT_KEY = "metro-car-layout";
 let savedLayout = {};
 try { savedLayout = JSON.parse(localStorage.getItem(LAYOUT_KEY) || "{}"); } catch (e) {}
 for (const key in DRAGS) {
-  const sv = savedLayout[key] || DEFAULT_LAYOUT[key];
-  if (sv) DRAGS[key].node.position.set(sv.x, sv.y, sv.z);
+  const d = DRAGS[key], sv = savedLayout[key] || DEFAULT_LAYOUT[key];
+  if (!sv) continue;
+  const cl = (v, r) => r ? Math.max(r[0], Math.min(r[1], v)) : v; // old saves get pulled inside today's limits
+  d.node.position.set(cl(sv.x, d.lim.x), cl(sv.y, d.lim.y), cl(sv.z, d.lim.z));
 }
 function layoutSnapshot() {
   const out = {};
