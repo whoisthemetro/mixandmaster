@@ -41,7 +41,7 @@ body::before {
 header {
   position: relative; z-index: 2;
   display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
-  padding: 1.6rem 2rem 1.2rem;
+  padding: 1.6rem 66px 1.2rem 2rem; /* right side stays clear of the hamburger */
   border-bottom: 2px solid var(--accent);
 }
 h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.6rem, 4.5vw, 2.6rem); letter-spacing: .12em; line-height: 1; font-weight: 400; }
@@ -50,9 +50,23 @@ h1 em { font-style: normal; color: var(--accent); }
 .modes a { color: var(--gray); text-decoration: none; border-bottom: 1px dotted #444; }
 .modes a:hover { color: var(--accent); }
 .modes b { color: var(--white); font-weight: 600; }
-.ig { font-size: .66rem; letter-spacing: .14em; color: var(--white); text-decoration: none;
-  border: 1px solid #333; border-radius: 999px; padding: .5rem 1rem; white-space: nowrap; transition: all .2s; }
-.ig:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
+/* the hamburger: one quiet door to contact + environment, instead of pills all over the screen */
+#menu { position: fixed; top: 10px; right: 12px; z-index: 8; }
+#menubtn {
+  width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+  font: inherit; font-size: 1.05rem; line-height: 1; cursor: pointer;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; transition: all .2s;
+}
+#menubtn:hover, #menu.open #menubtn { border-color: var(--accent); color: var(--accent); }
+#menudrop { display: none; position: absolute; right: 0; top: 50px; flex-direction: column; gap: .45rem; white-space: nowrap; }
+#menu.open #menudrop { display: flex; }
+#menudrop a, #menudrop button {
+  font: inherit; font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer; text-align: center;
+  color: var(--white); background: rgba(12,12,15,.85); backdrop-filter: blur(6px); text-decoration: none;
+  border: 1px solid #333; border-radius: 999px; padding: .55rem 1.05rem; transition: all .2s;
+}
+#menudrop a:hover, #menudrop button:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 
 /* ------ the rail of plaques ------ */
 main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
@@ -187,13 +201,6 @@ nav button:hover { border-color: var(--accent); color: var(--accent); }
 #play.live { background: rgba(255,51,102,.12); border-color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 #counter { font-size: .66rem; letter-spacing: .3em; color: var(--gray); text-align: center; padding: .5rem 0 .9rem; }
 #counter b { color: var(--white); font-weight: 600; }
-#envbtn {
-  position: fixed; left: 16px; bottom: 14px; z-index: 6;
-  font: inherit; font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;
-  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
-  border: 1px solid #333; border-radius: 999px; padding: .55rem 1.05rem; transition: all .2s;
-}
-#envbtn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 footer { position: relative; z-index: 2; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: 0 1rem 1rem; text-transform: uppercase; }
 footer a { color: #8a8792; text-decoration: none; }
 footer a:hover { color: var(--accent); }
@@ -202,7 +209,7 @@ footer a:hover { color: var(--accent); }
   .plaque { transition: none; }
   #rail { scroll-behavior: auto !important; }
 }
-@media (max-height: 600px) { .disc { margin-top: 5%; } header { padding: 1rem 1.2rem .8rem; } }
+@media (max-height: 600px) { .disc { margin-top: 5%; } header { padding: 1rem 62px .8rem 1.2rem; } }
 @media (max-width: 480px) {
   .plaque { width: min(88vw, 420px, 50vh); }              /* phones: the plaque fills more of the wall */
   #rail { padding: 3vh calc(50vw - min(44vw, 210px, 25vh)); } /* keep centering in sync with the wider plaque */
@@ -217,10 +224,15 @@ footer a:hover { color: var(--accent); }
   <div>
     <h1>METRO <em>MIXING &amp; MASTERING</em></h1>
   </div>
-  <a class="ig" href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
 </header>
 
-<button id="envbtn" title="step into the listening room">⟲ change environment</button>
+<div id="menu">
+  <button id="menubtn" aria-label="menu" title="menu">☰</button>
+  <div id="menudrop">
+    <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
+    <button id="envbtn" title="step into the listening room">⟲ change environment</button>
+  </div>
+</div>
 
 <main>
   <div id="rail" aria-label="records wall"></div>
@@ -605,6 +617,10 @@ document.getElementById("envbtn").addEventListener("click", () => {
   // the wall is always home base — the turntable is a room you walk into, not a place that claims you
   location.href = "turntable.html";
 });
+const menuEl = document.getElementById("menu");
+document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
+document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));
+window.addEventListener("pointerdown", (e) => { if (!menuEl.contains(e.target)) menuEl.classList.remove("open"); }, true);
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>

@@ -31,7 +31,7 @@ body {
 header {
   position: relative; z-index: 3;
   display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
-  padding: 1.1rem 2rem .8rem;
+  padding: 1.1rem 66px .8rem 2rem; /* right side stays clear of the hamburger */
   border-bottom: 2px solid var(--accent);
   background: rgba(10,10,12,.85);
 }
@@ -41,9 +41,23 @@ h1 em { font-style: normal; color: var(--accent); }
 .modes a { color: var(--gray); text-decoration: none; border-bottom: 1px dotted #444; }
 .modes a:hover { color: var(--accent); }
 .modes b { color: var(--white); font-weight: 600; }
-.ig { font-size: .66rem; letter-spacing: .14em; color: var(--white); text-decoration: none;
-  border: 1px solid #333; border-radius: 999px; padding: .5rem 1rem; white-space: nowrap; transition: all .2s; }
-.ig:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
+/* the hamburger: one quiet door to contact + environment, instead of pills all over the screen */
+#menu { position: fixed; top: 10px; right: 12px; z-index: 8; }
+#menubtn {
+  width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+  font: inherit; font-size: 1.05rem; line-height: 1; cursor: pointer;
+  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
+  border: 1px solid #333; border-radius: 999px; transition: all .2s;
+}
+#menubtn:hover, #menu.open #menubtn { border-color: var(--accent); color: var(--accent); }
+#menudrop { display: none; position: absolute; right: 0; top: 50px; flex-direction: column; gap: .45rem; white-space: nowrap; }
+#menu.open #menudrop { display: flex; }
+#menudrop a, #menudrop button {
+  font: inherit; font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer; text-align: center;
+  color: var(--white); background: rgba(12,12,15,.85); backdrop-filter: blur(6px); text-decoration: none;
+  border: 1px solid #333; border-radius: 999px; padding: .55rem 1.05rem; transition: all .2s;
+}
+#menudrop a:hover, #menudrop button:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
 
 main { position: relative; z-index: 4; flex: 1; min-height: 0; } /* above the footer, so the bottom sheet paints (and clicks) over it */
 #scene { width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
@@ -51,6 +65,7 @@ main { position: relative; z-index: 4; flex: 1; min-height: 0; } /* above the fo
 /* now-playing panel: right dock on desktop, bottom sheet on phones */
 #panel {
   position: absolute; right: 16px; top: 14px; z-index: 5; width: 380px;
+  max-height: calc(100% - 28px); overflow-y: auto; /* never taller than the room it floats in */
   display: none; flex-direction: column; gap: .55rem;
   background: rgba(12,12,15,.82); backdrop-filter: blur(8px);
   border: 1px solid #26262e; border-radius: 14px; padding: .9rem;
@@ -83,7 +98,6 @@ body[data-mode="crate"] #closeview, body[data-mode="deck"] #closeview { display:
 @media (min-width: 721px) {
   body[data-mode="deck"] #closeview { right: 412px; } /* clear of the docked panel */
 }
-body[data-mode="crate"] #envbtn, body[data-mode="deck"] #envbtn { display: none; }
 body[data-mode="deck"] #browse { display: none; }
 /* browse bar: flip through the crate without touching the 3d */
 #browse {
@@ -106,15 +120,12 @@ footer a:hover { color: var(--accent); }
   font-size: .7rem; letter-spacing: .12em; line-height: 2; color: var(--gray); padding: 2rem; }
 #fail a { color: var(--accent); }
 
-#envbtn {
-  position: fixed; left: 16px; bottom: 14px; z-index: 6;
-  font: inherit; font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;
-  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
-  border: 1px solid #333; border-radius: 999px; padding: .55rem 1.05rem; transition: all .2s;
-}
-#envbtn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
-@media (max-width: 720px) {
-  #envbtn { bottom: auto; top: 82px; left: 10px; } /* the panel owns the bottom on phones */
+/* landscape phones are wide enough to read as "desktop" — size the dock by height too,
+   or the full album embed marches straight off the bottom of the screen */
+@media (min-width: 721px) and (max-height: 540px) {
+  #panel { width: 300px; top: 10px; right: 10px; max-height: calc(100% - 20px); padding: .7rem; gap: .45rem; }
+  #np-title { font-size: 1.05rem; }
+  body[data-mode="deck"] #closeview { right: 322px; } /* clear of the slimmer dock */
 }
 
 @media (max-width: 720px) {
@@ -130,7 +141,7 @@ footer a:hover { color: var(--accent); }
   #np-title { font-size: 1.1rem; }
   #panel.on ~ #browse { bottom: 76px; } /* a record is out — the mini bar owns the very bottom */
   #closeview { right: 10px; top: 82px; }
-  header { padding: .9rem 1.1rem .65rem; }
+  header { padding: .9rem 62px .65rem 1.1rem; }
 }
 </style>
 </head>
@@ -140,7 +151,6 @@ footer a:hover { color: var(--accent); }
   <div>
     <h1>METRO <em>MIXING &amp; MASTERING</em></h1>
   </div>
-  <a class="ig" href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
 </header>
 
 <main>
@@ -170,7 +180,13 @@ footer a:hover { color: var(--accent); }
   <div id="fail">this environment needs webgl —<br><a href="./">head back to the wall</a></div>
 </main>
 
-<button id="envbtn" title="back out to the wall">⟲ change environment</button>
+<div id="menu">
+  <button id="menubtn" aria-label="menu" title="menu">☰</button>
+  <div id="menudrop">
+    <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
+    <button id="envbtn" title="back out to the wall">⟲ change environment</button>
+  </div>
+</div>
 
 <footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
 
@@ -1014,6 +1030,10 @@ placeAsset("ctlPitch", grpPitch);
 document.getElementById("envbtn").addEventListener("click", () => {
   location.href = "./";
 });
+const menuEl = document.getElementById("menu");
+document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
+document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));
+window.addEventListener("pointerdown", (e) => { if (!menuEl.contains(e.target)) menuEl.classList.remove("open"); }, true);
 
 /* ---- state ---- */
 let current = -1;          // record on the platter
@@ -1047,11 +1067,18 @@ function landRecord(i) {
   sleeves.forEach((s, j) => { s.visibility = j === i ? 0.28 : 1; });
   npTitle.textContent = w.title;
   npCredit.textContent = w.credit;
-  document.getElementById("embed").style.height = (w.kind === "album" ? 352 : 152) + "px"; // albums show the whole tracklist
+  document.getElementById("embed").style.height = embedH(w) + "px";
   panel.classList.add("on"); panel.classList.remove("min");
   if (wantPlay && controller) try { controller.play(); } catch (e) {} // the record just hit the platter — needle drops now
   progress = 0; armTarget = YAW_IN;
 }
+function embedH(w) {
+  // full album embed (tracklist) only when there's room for it — short screens get spotify's compact player
+  return (w.kind === "album" && window.innerHeight > 540) ? 352 : 152;
+}
+window.addEventListener("resize", () => { // rotating the phone re-fits the player
+  if (current >= 0) document.getElementById("embed").style.height = embedH(WORKS[current]) + "px";
+});
 function putBack(quick) {
   if (current < 0) return;
   sleeves[current].visibility = 1;
