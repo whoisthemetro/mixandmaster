@@ -190,8 +190,6 @@ footer a:hover { color: var(--accent); }
     <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
     <a href="./" title="back out to the wall">⟲ the wall</a>
     <a href="turntable.html" title="the listening room">⟲ the turntable</a>
-    <button id="copylayout" title="copy the arrangement to paste back for baking">⧉ copy layout</button>
-    <button id="resetlayout" title="put every fitting back where it started">⟲ reset the cabin</button>
   </div>
 </div>
 
@@ -1002,8 +1000,10 @@ const subCone = B.MeshBuilder.CreateCylinder("subCone", { diameter: 0.34, height
 subCone.parent = subGrp; subCone.rotation.x = Math.PI / 2;
 subCone.position.set(0, 0, 0.24); subCone.material = mat("subConeM", "#2a2b31", 0.14);
 
-/* ---- arrange the cabin: grab a fitting and slide it where you like ---- */
-const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-05 — this IS the cabin now
+/* ---- the cabin is set: the metro arranged it by hand on 2026-07-05, nothing moves anymore.
+   the drag/copy-layout machinery lives in git history at commit fa4e227 (car.html) — restore
+   from there if the cabin ever needs rearranging, don't rewrite it ---- */
+const DEFAULT_LAYOUT = {
   "wheel":   { "x": -0.668, "y": 0.354, "z": 0.836 },
   "cluster": { "x": -0.623, "y": 0.702, "z": 1.12 },
   "shifter": { "x": 0.003,  "y": 0,     "z": 0.621 },
@@ -1011,46 +1011,17 @@ const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-
   "mirror":  { "x": 0,      "y": 1.32,  "z": 1.18 },
   "sub":     { "x": -0.65,  "y": 0.6,   "z": -2.0 }
 };
-/* wall mode slides on the dash plane (x/y, z stays put); floor mode slides on its surface (x/z) —
-   the wheel is floor mode so it telescopes toward/away from the driver, like a real column */
-const DRAGS = {
-  wheel:   { node: wheelGrp,   mode: "floor", lim: { x: [-1.02, 1.02], z: [0.45, 0.9] } }, // 0.9 keeps the rim's top out of the dash
-  cluster: { node: clusterGrp, mode: "wall",  lim: { x: [-1.05, 1.05], y: [0.28, 1.05] } },
-  shifter: { node: shiftGrp,   mode: "floor", lim: { x: [-0.9, 0.9],   z: [-0.6, 0.85] } },
-  bobble:  { node: bobbleRoot, mode: "floor", lim: { x: [-1.05, 1.05], z: [1.0, 1.5] } },
-  mirror:  { node: mirrorGrp,  mode: "wall",  lim: { x: [-0.95, 0.95], y: [0.8, 1.45] } },
-  sub:     { node: subGrp,     mode: "floor", lim: { x: [-0.85, 0.85], z: [-2.12, -1.8] } }
-};
-for (const key in DRAGS) {
-  DRAGS[key].node.getChildMeshes().forEach((m) => {
-    m.metadata = m.metadata || {};
-    if (!m.metadata.ctl) m.metadata.drag = key; // controls stay controls — the horn still honks
-  });
+const FITTINGS = { wheel: wheelGrp, cluster: clusterGrp, shifter: shiftGrp, bobble: bobbleRoot, mirror: mirrorGrp, sub: subGrp };
+for (const key in FITTINGS) {
+  const sv = DEFAULT_LAYOUT[key];
+  FITTINGS[key].position.set(sv.x, sv.y, sv.z);
 }
-const LAYOUT_KEY = "metro-car-layout";
-let savedLayout = {};
-try { savedLayout = JSON.parse(localStorage.getItem(LAYOUT_KEY) || "{}"); } catch (e) {}
-for (const key in DRAGS) {
-  const d = DRAGS[key], sv = savedLayout[key] || DEFAULT_LAYOUT[key];
-  if (!sv) continue;
-  const cl = (v, r) => r ? Math.max(r[0], Math.min(r[1], v)) : v; // old saves get pulled inside today's limits
-  d.node.position.set(cl(sv.x, d.lim.x), cl(sv.y, d.lim.y), cl(sv.z, d.lim.z));
-}
-function layoutSnapshot() {
-  const out = {};
-  for (const key in DRAGS) {
-    const p = DRAGS[key].node.position;
-    out[key] = { x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3) };
-  }
-  return out;
-}
-function saveLayout() { try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(layoutSnapshot())); } catch (e) {} }
 
 /* ---- radio state + the screen ---- */
 let current = -1;          // station locked in
 let freq = freqOf(0);      // where the dial is pointing right now
 let lastStation = 0;
-let tuneDrag = null, volDrag = null, itemDrag = null;
+let tuneDrag = null, volDrag = null;
 let screenDirty = true;
 let volAngle = (vol - 0.5) * 4;
 volKnob.rotation.z = volAngle;
@@ -1214,35 +1185,8 @@ scene.onPointerObservable.add((pi) => {
       volDrag = { x: scene.pointerX, v0: vol, moved: false };
       cam.detachControl();
     }
-    if (!ctl && pick?.hit && pick.pickedMesh?.metadata?.drag) { // grab a fitting
-      itemDrag = DRAGS[pick.pickedMesh.metadata.drag];
-      cam.detachControl();
-    }
   }
   if (pi.type === B.PointerEventTypes.POINTERMOVE) {
-    if (itemDrag) { // slide the fitting along its plane
-      const clampTo = (v, r) => Math.max(r[0], Math.min(r[1], v));
-      const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
-      const n = itemDrag.node, lim = itemDrag.lim;
-      if (itemDrag.mode === "wall") {
-        if (Math.abs(ray.direction.z) > 1e-4) {
-          const t = (n.position.z - ray.origin.z) / ray.direction.z;
-          if (t > 0) {
-            n.position.x = clampTo(ray.origin.x + ray.direction.x * t, lim.x);
-            n.position.y = clampTo(ray.origin.y + ray.direction.y * t, lim.y);
-          }
-        }
-      } else {
-        if (Math.abs(ray.direction.y) > 1e-4) {
-          const t = (n.position.y - ray.origin.y) / ray.direction.y;
-          if (t > 0) {
-            n.position.x = clampTo(ray.origin.x + ray.direction.x * t, lim.x);
-            n.position.z = clampTo(ray.origin.z + ray.direction.z * t, lim.z);
-          }
-        }
-      }
-      return;
-    }
     if (tuneDrag) {
       const dx = scene.pointerX - tuneDrag.x;
       if (Math.abs(dx) > 4) tuneDrag.moved = true;
@@ -1264,11 +1208,6 @@ scene.onPointerObservable.add((pi) => {
     }
   }
   if (pi.type === B.PointerEventTypes.POINTERUP) {
-    if (itemDrag) {
-      itemDrag = null;
-      saveLayout(); // the arrangement survives the reload
-      if (mode === "cabin") cam.attachControl(document.getElementById("scene"), true);
-    }
     if (tuneDrag) {
       const moved = tuneDrag.moved;
       tuneDrag = null; setStatic(false); screenDirty = true;
@@ -1314,17 +1253,8 @@ window.addEventListener("keydown", (e) => {
 });
 const menuEl = document.getElementById("menu");
 document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
-document.getElementById("menudrop").addEventListener("click", (e) => { if (e.target.id !== "copylayout") menuEl.classList.remove("open"); });
+document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));
 window.addEventListener("pointerdown", (e) => { if (!menuEl.contains(e.target)) menuEl.classList.remove("open"); }, true);
-document.getElementById("resetlayout").addEventListener("click", () => {
-  try { localStorage.removeItem(LAYOUT_KEY); } catch (e) {}
-  location.reload();
-});
-document.getElementById("copylayout").addEventListener("click", (e) => {
-  const done = () => { e.target.textContent = "copied ✓"; setTimeout(() => { e.target.textContent = "⧉ copy layout"; }, 1400); };
-  const txt = JSON.stringify(layoutSnapshot(), null, 1);
-  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(txt).then(done, done); else done();
-});
 
 /* ---- the loop: the road, the sway, the beat ---- */
 const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -1454,7 +1384,7 @@ window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
 /* debug hooks, same spirit as the deck */
 window.METRO_CAR = { scene, engine, cam, chooseStation, powerToggle, powerOff, step, enterRadio, toCabin, honk,
-  DRAGS, layoutSnapshot,
+  FITTINGS,
   demo: (on) => { if (current < 0) current = 0; paused = !on; screenDirty = true; }, // pretend playback for testing the show without audio
   get state() { return { current, freq, vol, paused, progress, mode, partyAmt }; } };
 </script>
