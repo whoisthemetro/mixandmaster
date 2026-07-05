@@ -190,6 +190,8 @@ footer a:hover { color: var(--accent); }
     <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
     <a href="./" title="back out to the wall">⟲ the wall</a>
     <a href="turntable.html" title="the listening room">⟲ the turntable</a>
+    <button id="copylayout" title="copy the arrangement to paste back for baking">⧉ copy layout</button>
+    <button id="resetlayout" title="put every fitting back where it started">⟲ reset the cabin</button>
   </div>
 </div>
 
@@ -632,12 +634,14 @@ function seat(x) {
   cabBox("seatH" + x, 0.3, 0.2, 0.14, x, 0.68, -0.72, seatM);
 }
 seat(-0.55); seat(0.55);
-/* center console + shifter */
+/* center console + shifter (the shifter rides its own sled so you can move it) */
 cabBox("console", 0.34, 0.34, 1.5, 0, -0.28, 0.45, trimM);
+const shiftGrp = new B.TransformNode("shiftGrp", scene);
+shiftGrp.parent = cab; shiftGrp.position.set(0, 0, 0.35);
 const shiftStick = B.MeshBuilder.CreateCylinder("shift", { diameter: 0.03, height: 0.22, tessellation: 10 }, scene);
-shiftStick.parent = cab; shiftStick.position.set(0, 0.0, 0.35); shiftStick.rotation.x = 0.25; shiftStick.material = chromeM;
+shiftStick.parent = shiftGrp; shiftStick.position.set(0, 0, 0); shiftStick.rotation.x = 0.25; shiftStick.material = chromeM;
 const shiftKnob = B.MeshBuilder.CreateSphere("shiftKnob", { diameter: 0.07, segments: 12 }, scene);
-shiftKnob.parent = cab; shiftKnob.position.set(0, 0.11, 0.32); shiftKnob.material = wheelM;
+shiftKnob.parent = shiftGrp; shiftKnob.position.set(0, 0.11, -0.03); shiftKnob.material = wheelM;
 
 /* glass: windshield + side windows, just present enough to catch the streetlight */
 const glassM = new B.StandardMaterial("glassM", scene);
@@ -655,9 +659,11 @@ for (const gx of [-1.15, 1.15]) {
 const rearGlass = B.MeshBuilder.CreatePlane("rearGlass", { width: 2.2, height: 0.85 }, scene);
 rearGlass.parent = cab; rearGlass.position.set(0, 0.95, -2.25); rearGlass.rotation.x = 0.35; rearGlass.material = glassM;
 
-/* steering wheel + column, ready to micro-correct on its own */
+/* steering wheel + column, ready to micro-correct on its own — the whole assembly is movable */
+const wheelGrp = new B.TransformNode("wheelGrp", scene);
+wheelGrp.parent = cab; wheelGrp.position.set(-0.55, 0.33, 0.98);
 const wheelRoot = new B.TransformNode("wheelRoot", scene);
-wheelRoot.parent = cab; wheelRoot.position.set(-0.55, 0.33, 0.98); wheelRoot.rotation.x = -1.05;
+wheelRoot.parent = wheelGrp; wheelRoot.rotation.x = -1.05;
 const rim = B.MeshBuilder.CreateTorus("rim", { diameter: 0.42, thickness: 0.045, tessellation: 32 }, scene);
 rim.parent = wheelRoot; rim.material = wheelM; cabinLit.push(rim);
 for (const sa of [0, 2.1, -2.1]) {
@@ -670,7 +676,7 @@ const hornPad = B.MeshBuilder.CreateCylinder("hornPad", { diameter: 0.13, height
 hornPad.parent = wheelRoot; hornPad.material = trimM;
 hornPad.metadata = { ctl: "horn" };
 const column = B.MeshBuilder.CreateCylinder("column", { diameter: 0.07, height: 0.35, tessellation: 12 }, scene);
-column.parent = cab; column.position.set(-0.55, 0.28, 1.12); column.rotation.x = 0.5; column.material = trimM;
+column.parent = wheelGrp; column.position.set(0, -0.05, 0.14); column.rotation.x = 0.5; column.material = trimM;
 
 /* instrument cluster: painted dials, real needles */
 const clusterTex = new B.DynamicTexture("clusterTex", { width: 512, height: 256 }, scene, true);
@@ -695,24 +701,28 @@ const clusterTex = new B.DynamicTexture("clusterTex", { width: 512, height: 256 
   clusterTex.update(true);
 }
 const clusterM = unlit("clusterM", clusterTex, new B.Color3(0.7, 0.75, 0.9));
+const clusterGrp = new B.TransformNode("clusterGrp", scene); // dials + needles move as one gauge pod
+clusterGrp.parent = cab; clusterGrp.position.set(-0.55, 0.58, 1.12);
 const cluster = B.MeshBuilder.CreatePlane("cluster", { width: 0.44, height: 0.22 }, scene);
-cluster.parent = cab; cluster.position.set(-0.55, 0.58, 1.12); cluster.rotation.x = -0.22;
+cluster.parent = clusterGrp; cluster.rotation.x = -0.22;
 cluster.material = clusterM;
 glow.addExcludedMesh(cluster); // unlit surfaces carry a white emissive multiplier — keep the bloom off them
 const needleM = new B.StandardMaterial("needleM", scene);
 needleM.emissiveColor = ACCENT; needleM.diffuseColor = B.Color3.Black();
 function needle(dx) { // pivot at the dial centre; rotation.z sweeps it
   const root = new B.TransformNode("needleRoot" + dx, scene);
-  root.parent = cab; root.position.set(-0.55 + dx, 0.575, 1.115); root.rotation.x = -0.22;
+  root.parent = clusterGrp; root.position.set(dx, -0.005, -0.005); root.rotation.x = -0.22;
   const n = B.MeshBuilder.CreateBox("needle" + dx, { width: 0.012, height: 0.07, depth: 0.004 }, scene);
   n.parent = root; n.position.y = 0.035; n.material = needleM;
   return root;
 }
 const speedNeedle = needle(-0.11), tachNeedle = needle(0.11);
 
-/* rearview mirror + the little tree that never stops swinging */
-const mirror = cabBox("mirror", 0.36, 0.1, 0.04, 0, 1.32, 1.18, trimM);
-mirror.rotation.x = -0.12;
+/* rearview mirror + the little tree that never stops swinging — one movable hang */
+const mirrorGrp = new B.TransformNode("mirrorGrp", scene);
+mirrorGrp.parent = cab; mirrorGrp.position.set(0, 1.32, 1.18);
+const mirror = cabBox("mirror", 0.36, 0.1, 0.04, 0, 0, 0, trimM);
+mirror.parent = mirrorGrp; mirror.rotation.x = -0.12;
 const mirrorGlassM = mat("mirrorGlassM", "#232b3c", 0.6); mirrorGlassM.specularPower = 90;
 const mirrorGlass = B.MeshBuilder.CreatePlane("mirrorGlass", { width: 0.32, height: 0.07 }, scene);
 mirrorGlass.parent = mirror; mirrorGlass.position.z = -0.021; mirrorGlass.material = mirrorGlassM;
@@ -727,7 +737,7 @@ const treeTex = new B.DynamicTexture("treeTex", { width: 128, height: 128 }, sce
   treeTex.update(true); treeTex.hasAlpha = true;
 }
 const treeRoot = new B.TransformNode("treeRoot", scene); // pivot up at the mirror stem
-treeRoot.parent = cab; treeRoot.position.set(0.06, 1.27, 1.2);
+treeRoot.parent = mirrorGrp; treeRoot.position.set(0.06, -0.05, 0.02);
 const treeString = B.MeshBuilder.CreateBox("treeString", { width: 0.004, height: 0.16, depth: 0.004 }, scene);
 treeString.parent = treeRoot; treeString.position.y = -0.08; treeString.material = chromeM;
 const treeM = new B.StandardMaterial("treeM", scene);
@@ -984,16 +994,60 @@ for (const l of [neonA, neonB]) { l.intensity = 0; l.range = 4.5; l.includedOnly
 for (const m of [dashM, trimM, seatM, carpetM, doorM, roofM, wheelM]) m.maxSimultaneousLights = 8;
 
 /* the subwoofer on the rear shelf, waiting for its moment */
-const subBox = cabBox("subBox", 0.55, 0.5, 0.45, -0.65, 0.6, -2.0, mat("subM", "#111217", 0.08));
+const subGrp = new B.TransformNode("subGrp", scene);
+subGrp.parent = cab; subGrp.position.set(-0.65, 0.6, -2.0);
+const subBox = cabBox("subBox", 0.55, 0.5, 0.45, 0, 0, 0, mat("subM", "#111217", 0.08));
+subBox.parent = subGrp;
 const subCone = B.MeshBuilder.CreateCylinder("subCone", { diameter: 0.34, height: 0.04, tessellation: 28 }, scene);
-subCone.parent = cab; subCone.rotation.x = Math.PI / 2;
-subCone.position.set(-0.65, 0.6, -1.76); subCone.material = mat("subConeM", "#2a2b31", 0.14);
+subCone.parent = subGrp; subCone.rotation.x = Math.PI / 2;
+subCone.position.set(0, 0, 0.24); subCone.material = mat("subConeM", "#2a2b31", 0.14);
+
+/* ---- arrange the cabin: grab a fitting and slide it where you like ---- */
+const DEFAULT_LAYOUT = { // the build positions — rearrange, copy layout, and this constant gets rebaked
+  "wheel":   { "x": -0.55, "y": 0.33, "z": 0.98 },
+  "cluster": { "x": -0.55, "y": 0.58, "z": 1.12 },
+  "shifter": { "x": 0,     "y": 0,    "z": 0.35 },
+  "bobble":  { "x": 0.62,  "y": 0.58, "z": 1.22 },
+  "mirror":  { "x": 0,     "y": 1.32, "z": 1.18 },
+  "sub":     { "x": -0.65, "y": 0.6,  "z": -2.0 }
+};
+/* wall mode slides on the dash plane (x/y, z stays put); floor mode slides on its surface (x/z) */
+const DRAGS = {
+  wheel:   { node: wheelGrp,   mode: "wall",  lim: { x: [-1.02, 1.02], y: [0.12, 0.9] } },
+  cluster: { node: clusterGrp, mode: "wall",  lim: { x: [-1.05, 1.05], y: [0.28, 1.05] } },
+  shifter: { node: shiftGrp,   mode: "floor", lim: { x: [-0.9, 0.9],   z: [-0.6, 0.85] } },
+  bobble:  { node: bobbleRoot, mode: "floor", lim: { x: [-1.05, 1.05], z: [1.0, 1.5] } },
+  mirror:  { node: mirrorGrp,  mode: "wall",  lim: { x: [-0.95, 0.95], y: [0.8, 1.45] } },
+  sub:     { node: subGrp,     mode: "floor", lim: { x: [-0.85, 0.85], z: [-2.12, -1.8] } }
+};
+for (const key in DRAGS) {
+  DRAGS[key].node.getChildMeshes().forEach((m) => {
+    m.metadata = m.metadata || {};
+    if (!m.metadata.ctl) m.metadata.drag = key; // controls stay controls — the horn still honks
+  });
+}
+const LAYOUT_KEY = "metro-car-layout";
+let savedLayout = {};
+try { savedLayout = JSON.parse(localStorage.getItem(LAYOUT_KEY) || "{}"); } catch (e) {}
+for (const key in DRAGS) {
+  const sv = savedLayout[key] || DEFAULT_LAYOUT[key];
+  if (sv) DRAGS[key].node.position.set(sv.x, sv.y, sv.z);
+}
+function layoutSnapshot() {
+  const out = {};
+  for (const key in DRAGS) {
+    const p = DRAGS[key].node.position;
+    out[key] = { x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3) };
+  }
+  return out;
+}
+function saveLayout() { try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(layoutSnapshot())); } catch (e) {} }
 
 /* ---- radio state + the screen ---- */
 let current = -1;          // station locked in
 let freq = freqOf(0);      // where the dial is pointing right now
 let lastStation = 0;
-let tuneDrag = null, volDrag = null;
+let tuneDrag = null, volDrag = null, itemDrag = null;
 let screenDirty = true;
 let volAngle = (vol - 0.5) * 4;
 volKnob.rotation.z = volAngle;
@@ -1157,8 +1211,35 @@ scene.onPointerObservable.add((pi) => {
       volDrag = { x: scene.pointerX, v0: vol, moved: false };
       cam.detachControl();
     }
+    if (!ctl && pick?.hit && pick.pickedMesh?.metadata?.drag) { // grab a fitting
+      itemDrag = DRAGS[pick.pickedMesh.metadata.drag];
+      cam.detachControl();
+    }
   }
   if (pi.type === B.PointerEventTypes.POINTERMOVE) {
+    if (itemDrag) { // slide the fitting along its plane
+      const clampTo = (v, r) => Math.max(r[0], Math.min(r[1], v));
+      const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, B.Matrix.Identity(), cam);
+      const n = itemDrag.node, lim = itemDrag.lim;
+      if (itemDrag.mode === "wall") {
+        if (Math.abs(ray.direction.z) > 1e-4) {
+          const t = (n.position.z - ray.origin.z) / ray.direction.z;
+          if (t > 0) {
+            n.position.x = clampTo(ray.origin.x + ray.direction.x * t, lim.x);
+            n.position.y = clampTo(ray.origin.y + ray.direction.y * t, lim.y);
+          }
+        }
+      } else {
+        if (Math.abs(ray.direction.y) > 1e-4) {
+          const t = (n.position.y - ray.origin.y) / ray.direction.y;
+          if (t > 0) {
+            n.position.x = clampTo(ray.origin.x + ray.direction.x * t, lim.x);
+            n.position.z = clampTo(ray.origin.z + ray.direction.z * t, lim.z);
+          }
+        }
+      }
+      return;
+    }
     if (tuneDrag) {
       const dx = scene.pointerX - tuneDrag.x;
       if (Math.abs(dx) > 4) tuneDrag.moved = true;
@@ -1180,6 +1261,11 @@ scene.onPointerObservable.add((pi) => {
     }
   }
   if (pi.type === B.PointerEventTypes.POINTERUP) {
+    if (itemDrag) {
+      itemDrag = null;
+      saveLayout(); // the arrangement survives the reload
+      if (mode === "cabin") cam.attachControl(document.getElementById("scene"), true);
+    }
     if (tuneDrag) {
       const moved = tuneDrag.moved;
       tuneDrag = null; setStatic(false); screenDirty = true;
@@ -1225,8 +1311,17 @@ window.addEventListener("keydown", (e) => {
 });
 const menuEl = document.getElementById("menu");
 document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
-document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));
+document.getElementById("menudrop").addEventListener("click", (e) => { if (e.target.id !== "copylayout") menuEl.classList.remove("open"); });
 window.addEventListener("pointerdown", (e) => { if (!menuEl.contains(e.target)) menuEl.classList.remove("open"); }, true);
+document.getElementById("resetlayout").addEventListener("click", () => {
+  try { localStorage.removeItem(LAYOUT_KEY); } catch (e) {}
+  location.reload();
+});
+document.getElementById("copylayout").addEventListener("click", (e) => {
+  const done = () => { e.target.textContent = "copied ✓"; setTimeout(() => { e.target.textContent = "⧉ copy layout"; }, 1400); };
+  const txt = JSON.stringify(layoutSnapshot(), null, 1);
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(txt).then(done, done); else done();
+});
 
 /* ---- the loop: the road, the sway, the beat ---- */
 const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -1327,13 +1422,13 @@ scene.onBeforeRenderObservable.add(() => {
     neonB.intensity = partyAmt * vol * (0.1 + 0.9 * off);
     stripM.emissiveColor = ACCENT.scale(0.35 + 1.4 * kick * partyAmt);
     glow.intensity = 0.55 + partyAmt * 0.4 * kick;
-    subCone.position.z = -1.76 + 0.03 * kick * partyAmt * vol;
+    subCone.position.z = 0.24 + 0.03 * kick * partyAmt * vol;
     subCone.scaling.setAll(1 + 0.1 * kick * partyAmt * vol);
   } else {
     neonA.intensity = 0; neonB.intensity = 0;
     stripM.emissiveColor = ACCENT.scale(current >= 0 ? 0.4 : 0.12);
     glow.intensity = 0.55;
-    subCone.position.z = -1.76; subCone.scaling.setAll(1);
+    subCone.position.z = 0.24; subCone.scaling.setAll(1);
   }
   if (hornFlash > 0) { hornFlash = Math.max(0, hornFlash - dt * 3); neonA.intensity = Math.max(neonA.intensity, hornFlash); neonA.diffuse = B.Color3.White(); }
   dashGlow.intensity = 0.5 - 0.15 * partyAmt;
@@ -1356,6 +1451,7 @@ window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
 /* debug hooks, same spirit as the deck */
 window.METRO_CAR = { scene, engine, cam, chooseStation, powerToggle, powerOff, step, enterRadio, toCabin, honk,
+  DRAGS, layoutSnapshot,
   demo: (on) => { if (current < 0) current = 0; paused = !on; screenDirty = true; }, // pretend playback for testing the show without audio
   get state() { return { current, freq, vol, paused, progress, mode, partyAmt }; } };
 </script>
