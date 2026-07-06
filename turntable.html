@@ -84,15 +84,29 @@ main { position: relative; z-index: 4; flex: 1; min-height: 0; } /* above the fo
 #np-credit { font-size: .52rem; letter-spacing: .16em; color: var(--gray); text-transform: uppercase; margin-top: .15rem; }
 #np-chevron { display: none; color: var(--gray); font-size: .8rem; transition: transform .35s; padding: .3rem; }
 /* the deck screen: the spotify player rides the glass bezel on the plinth —
-   js re-fits this transform to the projected 3d glass every frame, so keep
-   the layout size fixed and let scale() do all the sizing */
+   js solves a matrix3d from the projected 3d glass every frame, so keep the
+   layout size fixed (300x152) and let the transform do everything */
 #deckscreen {
   position: absolute; left: 0; top: 0; z-index: 2;
   width: 300px; height: 152px;
-  transform-origin: 50% 50%;
+  transform-origin: 0 0;
   display: none;
 }
 body[data-screen="on"] #deckscreen { display: block; }
+/* the fitting room: temporary sliders that pose the deck screen by hand —
+   copy the json, hand it to claude, it gets baked in and this panel retires */
+#tune { position: fixed; left: 12px; bottom: 12px; z-index: 9; display: none; flex-direction: column; gap: .3rem;
+  width: 240px; background: rgba(12,12,15,.88); backdrop-filter: blur(6px);
+  border: 1px solid #333; border-radius: 12px; padding: .7rem .8rem; }
+body.tune #tune { display: flex; }
+#tune .trow { display: flex; align-items: center; gap: .5rem; font-size: .55rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gray); }
+#tune .trow .lbl { width: 44px; }
+#tune .trow input { flex: 1; accent-color: var(--accent); min-width: 0; }
+#tune .trow .val { width: 44px; text-align: right; color: var(--white); }
+#tune .tbtns { display: flex; gap: .4rem; margin-top: .25rem; }
+#tune .tbtns button { flex: 1; font: inherit; font-size: .52rem; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+  color: var(--white); background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: .4rem .5rem; transition: all .2s; }
+#tune .tbtns button:hover { border-color: var(--accent); color: var(--accent); }
 #embed { width: 100%; height: 100%; border-radius: 6px; overflow: hidden; }
 #embed:empty { display: none; }
 #embed iframe { display: block; width: 100%; height: 100%; border: 0; }
@@ -183,8 +197,10 @@ footer a:hover { color: var(--accent); }
     <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
     <a href="./" title="back out to the wall">⟲ the wall</a>
     <a href="car.html" title="slide into the car">⟲ the car</a>
+    <button id="tunebtn" title="pose the deck screen">⚙ tune the screen</button>
   </div>
 </div>
+<div id="tune"></div>
 
 <footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
 
@@ -486,15 +502,16 @@ cam.panningSensibility = 0; // no panning — the deck is the world
 function roomLimits() {
   cam.lowerAlphaLimit = -Math.PI / 2 - 0.6; cam.upperAlphaLimit = -Math.PI / 2 + 0.6;
   cam.lowerBetaLimit = 0.72; cam.upperBetaLimit = 1.32;
-  cam.lowerRadiusLimit = 2.6; cam.upperRadiusLimit = 9.5;
+  cam.lowerRadiusLimit = 2.6;
+  cam.upperRadiusLimit = Math.max(9.5, viewRoom().radius + 0.5); // narrow windows need the longer stand-back
 }
 function freeLimits() {
   cam.lowerAlphaLimit = null; cam.upperAlphaLimit = null;
   cam.lowerBetaLimit = 0.05; cam.upperBetaLimit = 1.5;
   cam.lowerRadiusLimit = 1.2; cam.upperRadiusLimit = 14;
 }
-roomLimits();
 const portrait = () => engine.getRenderWidth() / engine.getRenderHeight() < 0.8;
+roomLimits();
 const camAnim = { on: false, t: 0, dur: 0.9, from: null, to: null, thenAttach: false };
 function camTo(v, dur, thenAttach) {
   camAnim.on = true; camAnim.t = 0; camAnim.dur = dur || 0.9; camAnim.thenAttach = !!thenAttach;
@@ -1017,8 +1034,7 @@ const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-
   "ctlStart": { "x": -1.296, "y": 0, "z": -0.787 },
   "ctl33": { "x": -1.027, "y": 0, "z": -0.79 },
   "ctl45": { "x": -0.826, "y": 0, "z": -0.796 },
-  "ctlPitch": { "x": 1.137, "y": 0, "z": -0.094 },
-  "ctlScreen": { "x": 0.62, "y": 0, "z": -0.56 }
+  "ctlPitch": { "x": 1.137, "y": 0, "z": -0.094 }
 };
 /* the room is set — the metro arranged it by hand; nothing moves anymore */
 function placeAsset(key, node, mode) {
@@ -1046,7 +1062,6 @@ placeAsset("ctlStart", grpStart);
 placeAsset("ctl33", grp33);
 placeAsset("ctl45", grp45);
 placeAsset("ctlPitch", grpPitch);
-placeAsset("ctlScreen", grpScreen);
 const menuEl = document.getElementById("menu");
 document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
 document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));
@@ -1106,9 +1121,13 @@ putbackBtn.addEventListener("click", () => putBack(false));
 let mode = "room", curCrate = null;
 document.body.dataset.mode = "room";
 function viewRoom() {
+  // the room breathes with the window: however it's shaped, the deck stays
+  // centered and whole — narrow windows just stand further back to fit it
+  const aspect = Math.max(0.3, engine.getRenderWidth() / engine.getRenderHeight());
+  const radius = Math.min(15, Math.max(6.0, 2.05 / (Math.tan(cam.fov / 2) * aspect)));
   return portrait()
-    ? { alpha: -Math.PI / 2, beta: 1.0, radius: 8.6, target: new B.Vector3(0, -0.1, 0.1), ox: 0, oy: 0 }
-    : { alpha: -Math.PI / 2, beta: 1.0, radius: 6.0, target: new B.Vector3(0, 0.12, 0.2), ox: 0, oy: 0 };
+    ? { alpha: -Math.PI / 2, beta: 1.0, radius, target: new B.Vector3(0, -0.1, 0.1), ox: 0, oy: 0 }
+    : { alpha: -Math.PI / 2, beta: 1.0, radius, target: new B.Vector3(0, 0.12, 0.2), ox: 0, oy: 0 };
 }
 function viewCrate(c) {
   const p = c.root.position;
@@ -1363,12 +1382,33 @@ scene.onBeforeRenderObservable.add(() => {
     }
   }
 });
-/* the spotify iframe saddles the 3d glass: project its four corners into
-   canvas space after each render and fit the DOM overlay with a plain
-   translate+scale (the deck camera is face-on, so no skew needed) */
+/* the spotify iframe is BOLTED to the glass: project its four corners and
+   solve the css matrix3d that maps the fixed 300x152 layout onto that exact
+   quad — true perspective, so the screen foreshortens with the deck as the
+   camera moves instead of billboarding at the viewer */
 const screenEl = document.getElementById("deckscreen");
-const SCREEN_W = 300, SCREEN_H = 152;   // fixed iframe layout size — scale() does the sizing
+const SCREEN_W = 300, SCREEN_H = 152;   // fixed iframe layout size — the matrix does the sizing
 const GLASS_HX = 0.37, GLASS_HY = 0.1875;
+function adj3(m) { // adjugate of a 3x3
+  return [
+    m[4] * m[8] - m[5] * m[7], m[2] * m[7] - m[1] * m[8], m[1] * m[5] - m[2] * m[4],
+    m[5] * m[6] - m[3] * m[8], m[0] * m[8] - m[2] * m[6], m[2] * m[3] - m[0] * m[5],
+    m[3] * m[7] - m[4] * m[6], m[1] * m[6] - m[0] * m[7], m[0] * m[4] - m[1] * m[3],
+  ];
+}
+function mul33(a, b) {
+  const c = new Array(9);
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++)
+    c[3 * i + j] = a[3 * i] * b[j] + a[3 * i + 1] * b[3 + j] + a[3 * i + 2] * b[6 + j];
+  return c;
+}
+function basis3(x1, y1, x2, y2, x3, y3, x4, y4) { // 4-point homography basis
+  const m = [x1, x2, x3, y1, y2, y3, 1, 1, 1];
+  const a = adj3(m);
+  const v = [a[0] * x4 + a[1] * y4 + a[2], a[3] * x4 + a[4] * y4 + a[5], a[6] * x4 + a[7] * y4 + a[8]];
+  return mul33(m, [v[0], 0, 0, 0, v[1], 0, 0, 0, v[2]]);
+}
+const srcBasisInv = adj3(basis3(0, 0, SCREEN_W, 0, 0, SCREEN_H, SCREEN_W, SCREEN_H)); // layout rect never changes
 scene.onAfterRenderObservable.add(() => {
   if (document.body.dataset.screen !== "on") return;
   const rect = engine.getRenderingCanvasClientRect();
@@ -1379,18 +1419,23 @@ scene.onAfterRenderObservable.add(() => {
   const P = (x, y) => B.Vector3.Project(new B.Vector3(x, y, -0.007), wm, tm, vp);
   const tl = P(-GLASS_HX, GLASS_HY), tr = P(GLASS_HX, GLASS_HY);
   const bl = P(-GLASS_HX, -GLASS_HY), br = P(GLASS_HX, -GLASS_HY);
-  if (tl.z > 1 || br.z > 1) { screenEl.style.visibility = "hidden"; return; } // behind the camera
+  // hide when behind the camera or seen from the back of the glass
+  const facing = (tr.x - tl.x) * (bl.y - tl.y) - (tr.y - tl.y) * (bl.x - tl.x);
+  if (facing <= 0 || [tl, tr, bl, br].some(p => p.z < 0 || p.z > 1)) {
+    screenEl.style.visibility = "hidden";
+    return;
+  }
   screenEl.style.visibility = "visible";
-  const cx = (tl.x + tr.x + bl.x + br.x) / 4, cy = (tl.y + tr.y + bl.y + br.y) / 4;
-  const w = (Math.hypot(tr.x - tl.x, tr.y - tl.y) + Math.hypot(br.x - bl.x, br.y - bl.y)) / 2;
-  const h = (Math.hypot(bl.x - tl.x, bl.y - tl.y) + Math.hypot(br.x - tr.x, br.y - tr.y)) / 2;
+  const t = mul33(basis3(tl.x, tl.y, tr.x, tr.y, bl.x, bl.y, br.x, br.y), srcBasisInv);
+  for (let i = 0; i < 9; i++) t[i] /= t[8];
   screenEl.style.transform =
-    `translate(${(cx - SCREEN_W / 2).toFixed(1)}px, ${(cy - SCREEN_H / 2).toFixed(1)}px) scale(${(w / SCREEN_W).toFixed(4)}, ${(h / SCREEN_H).toFixed(4)})`;
+    `matrix3d(${t[0]},${t[3]},0,${t[6]},${t[1]},${t[4]},0,${t[7]},0,0,1,0,${t[2]},${t[5]},0,1)`;
 });
 engine.runRenderLoop(() => scene.render());
 function frameCamera() { // portrait keeps the vertical fov — reframe whatever we're looking at
   if (mode === "room") {
     const v = viewRoom();
+    cam.upperRadiusLimit = Math.max(9.5, v.radius + 0.5); // never let the old limit clamp the fit-out
     cam.radius = v.radius; cam.target.copyFrom(v.target); cam.targetScreenOffset.set(0, 0);
   } else if (mode === "crate" && curCrate) camTo(viewCrate(curCrate), 0.4);
   else if (mode === "deck") camTo(viewDeck(), 0.4);
@@ -1398,9 +1443,63 @@ function frameCamera() { // portrait keeps the vertical fov — reframe whatever
 frameCamera();
 window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
+/* ---- the fitting room: pose the deck screen by hand ----
+   temporary machinery (same lifecycle as the old arrange modes): sliders in
+   ☰ → "tune the screen" drive the bezel live on every axis, localStorage
+   keeps the pose between reloads, ⧉ copies the json — paste it to claude
+   and it gets baked into SCREEN_POSE and this panel retires */
+const SCREEN_POSE = { x: 0.62, y: 0.22, z: -0.56, rx: 0.62, ry: 0, rz: 0, s: 1 };
+const POSE_DEFAULT = { ...SCREEN_POSE };
+try { Object.assign(SCREEN_POSE, JSON.parse(localStorage.getItem("metro-tt-screen") || "{}")); } catch (e) {}
+function applyScreenPose() {
+  grpScreen.position.x = SCREEN_POSE.x; grpScreen.position.z = SCREEN_POSE.z;
+  screenTilt.position.y = SCREEN_POSE.y;
+  screenTilt.rotation.set(SCREEN_POSE.rx, SCREEN_POSE.ry, SCREEN_POSE.rz);
+  screenTilt.scaling.setAll(SCREEN_POSE.s);
+}
+applyScreenPose();
+{
+  const tuneEl = document.getElementById("tune");
+  const DEFS = [ // key, label, min, max, step
+    ["x", "x", -1.5, 1.5, 0.005], ["z", "z", -0.92, 0.92, 0.005], ["y", "height", 0, 0.7, 0.005],
+    ["rx", "tilt", -1.6, 1.6, 0.01], ["ry", "turn", -3.2, 3.2, 0.01], ["rz", "roll", -3.2, 3.2, 0.01],
+    ["s", "size", 0.5, 1.6, 0.01],
+  ];
+  const rows = {};
+  for (const [k, name, lo, hi, st] of DEFS) {
+    const row = document.createElement("div"); row.className = "trow";
+    row.innerHTML = `<span class="lbl">${name}</span><input type="range" min="${lo}" max="${hi}" step="${st}"><span class="val"></span>`;
+    const inp = row.querySelector("input"), val = row.querySelector(".val");
+    inp.value = SCREEN_POSE[k]; val.textContent = (+SCREEN_POSE[k]).toFixed(2);
+    inp.addEventListener("input", () => {
+      SCREEN_POSE[k] = +inp.value; val.textContent = (+inp.value).toFixed(2);
+      applyScreenPose();
+      localStorage.setItem("metro-tt-screen", JSON.stringify(SCREEN_POSE));
+    });
+    rows[k] = { inp, val };
+    tuneEl.appendChild(row);
+  }
+  const btns = document.createElement("div"); btns.className = "tbtns";
+  btns.innerHTML = `<button id="tn-copy">⧉ copy pose</button><button id="tn-reset">reset</button>`;
+  tuneEl.appendChild(btns);
+  const copyBtn = document.getElementById("tn-copy");
+  copyBtn.addEventListener("click", () => {
+    navigator.clipboard?.writeText(JSON.stringify(SCREEN_POSE));
+    copyBtn.textContent = "copied ✓";
+    setTimeout(() => { copyBtn.textContent = "⧉ copy pose"; }, 1200);
+  });
+  document.getElementById("tn-reset").addEventListener("click", () => {
+    Object.assign(SCREEN_POSE, POSE_DEFAULT);
+    localStorage.removeItem("metro-tt-screen");
+    for (const k in rows) { rows[k].inp.value = SCREEN_POSE[k]; rows[k].val.textContent = (+SCREEN_POSE[k]).toFixed(2); }
+    applyScreenPose();
+  });
+  document.getElementById("tunebtn").addEventListener("click", () => document.body.classList.toggle("tune"));
+}
+
 /* debug hooks, same spirit as the bedroom */
 window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot, setFocus, step,
-  enterCrate, enterDeck, toRoom, grpScreen, screenTilt, glass, bezel,
+  enterCrate, enterDeck, toRoom, grpScreen, screenTilt, glass, bezel, SCREEN_POSE, applyScreenPose,
   demo: (on) => { paused = !on; }, // pretend playback for testing the show without audio
   get state() { return { current, rpm, pitch, paused, progress, armCur, mode, YAW_IN, YAW_OUT, YAW_REST }; } };
 </script>
