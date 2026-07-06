@@ -93,6 +93,9 @@ main { position: relative; z-index: 4; flex: 1; min-height: 0; } /* above the fo
   display: none;
 }
 body[data-screen="on"] #deckscreen { display: block; }
+/* on phones the player docks in the bottom sheet like it used to — the deck's
+   3d glass is too small under a thumb; desktop keeps the deck screen */
+#embed-dock { display: none; height: 152px; border-radius: 10px; overflow: hidden; }
 /* the fitting room: temporary sliders that pose the deck screen by hand —
    copy the json, hand it to claude, it gets baked in and this panel retires */
 #tune { position: fixed; left: 12px; bottom: 12px; z-index: 9; display: none; flex-direction: column; gap: .3rem;
@@ -148,6 +151,9 @@ footer a:hover { color: var(--accent); }
 }
 
 @media (max-width: 720px) {
+  #deckscreen { display: none !important; }   /* the sheet owns the player here */
+  #embed-dock { display: block; }
+  #embed-dock:empty { display: none; }
   #panel {
     position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto;
     border-radius: 16px 16px 0 0; border-left: none; border-right: none; border-bottom: none;
@@ -182,6 +188,7 @@ footer a:hover { color: var(--accent); }
       </div>
       <div id="np-chevron">▼</div>
     </div>
+    <div id="embed-dock"></div>
     <div id="np-actions">
       <button id="putback" class="grow">put it back</button>
       <button id="digb" class="grow">the crates</button>
@@ -449,11 +456,16 @@ const ACCENT = new B.Color3(1, 0.2, 0.4);
    created inside the tap; play() rides the embed's ready event */
 let IFA = null, controller = null, wantPlay = false;
 let paused = true, progress = 0, posMs = 0, posAt = 0;
+const MQ_SHEET = window.matchMedia("(max-width: 720px)"); // same breakpoint as the bottom-sheet css
 window.onSpotifyIframeApiReady = (api) => { IFA = api; };
 function ensureController(w) {
   const embed = document.getElementById("embed");
   if (controller) { try { controller.destroy(); } catch (e) {} controller = null; }
   embed.innerHTML = "";
+  // phones dock the player in the bottom sheet; desktop bolts it to the deck.
+  // moving a live iframe reloads it — but we just destroyed it, so now is safe
+  const home = document.getElementById(MQ_SHEET.matches ? "embed-dock" : "deckscreen");
+  if (embed.parentElement !== home) home.appendChild(embed);
   if (!IFA) { // api blocked — plain embed; the deck still spins to its own start/stop
     embed.innerHTML =
       `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
@@ -1142,7 +1154,7 @@ function viewDeck() {
   const aspect = Math.max(0.3, engine.getRenderWidth() / engine.getRenderHeight());
   const fit = Math.min(8, Math.max(3.6, 1.85 / (Math.tan(cam.fov / 2) * aspect)));
   return portrait()
-    ? { alpha: -Math.PI / 2, beta: 0.52, radius: 5.0, target: new B.Vector3(p.x, 0.1, p.z), ox: -0.42, oy: 0.72 } // ox pulls the deck's screen corner into the frame
+    ? { alpha: -Math.PI / 2, beta: 0.52, radius: 5.0, target: new B.Vector3(p.x, 0.1, p.z), ox: 0, oy: 0.72 } // centered — the sheet owns the player on phones now
     : { alpha: -Math.PI / 2, beta: 0.58, radius: fit, target: new B.Vector3(p.x, 0.1, p.z), ox: 0, oy: 0 };
 }
 function enterCrate(c) {
@@ -1415,7 +1427,7 @@ function basis3(x1, y1, x2, y2, x3, y3, x4, y4) { // 4-point homography basis
 }
 const srcBasisInv = adj3(basis3(0, 0, SCREEN_W, 0, 0, SCREEN_H, SCREEN_W, SCREEN_H)); // layout rect never changes
 scene.onAfterRenderObservable.add(() => {
-  if (document.body.dataset.screen !== "on") return;
+  if (document.body.dataset.screen !== "on" || MQ_SHEET.matches) return; // sheet mode: the dock owns the player
   const rect = engine.getRenderingCanvasClientRect();
   if (!rect) return;
   const wm = glass.getWorldMatrix();
