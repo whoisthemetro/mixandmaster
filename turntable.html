@@ -1136,9 +1136,14 @@ function viewCrate(c) {
 }
 function viewDeck() {
   const p = deckRoot.position;
+  // dead-center on the deck: the ox shove that cleared the old embed dock is
+  // gone (the player lives ON the deck now), and the radius breathes with the
+  // window shape so the whole plinth stays framed
+  const aspect = Math.max(0.3, engine.getRenderWidth() / engine.getRenderHeight());
+  const fit = Math.min(8, Math.max(3.6, 1.85 / (Math.tan(cam.fov / 2) * aspect)));
   return portrait()
     ? { alpha: -Math.PI / 2, beta: 0.52, radius: 5.0, target: new B.Vector3(p.x, 0.1, p.z), ox: -0.42, oy: 0.72 } // ox pulls the deck's screen corner into the frame
-    : { alpha: -Math.PI / 2, beta: 0.58, radius: 3.6, target: new B.Vector3(p.x, 0.1, p.z), ox: 0.9, oy: 0 };
+    : { alpha: -Math.PI / 2, beta: 0.58, radius: fit, target: new B.Vector3(p.x, 0.1, p.z), ox: 0, oy: 0 };
 }
 function enterCrate(c) {
   mode = "crate"; curCrate = c;
