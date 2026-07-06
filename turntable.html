@@ -83,7 +83,17 @@ main { position: relative; z-index: 4; flex: 1; min-height: 0; } /* above the fo
 #np-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem; letter-spacing: .1em; line-height: 1.05; min-height: 1.2rem; }
 #np-credit { font-size: .52rem; letter-spacing: .16em; color: var(--gray); text-transform: uppercase; margin-top: .15rem; }
 #np-chevron { display: none; color: var(--gray); font-size: .8rem; transition: transform .35s; padding: .3rem; }
-#embed { width: 100%; height: 152px; border-radius: 10px; overflow: hidden; transition: height .3s; }
+/* the deck screen: the spotify player rides the glass bezel on the plinth —
+   js re-fits this transform to the projected 3d glass every frame, so keep
+   the layout size fixed and let scale() do all the sizing */
+#deckscreen {
+  position: absolute; left: 0; top: 0; z-index: 2;
+  width: 300px; height: 152px;
+  transform-origin: 50% 50%;
+  display: none;
+}
+body[data-screen="on"] #deckscreen { display: block; }
+#embed { width: 100%; height: 100%; border-radius: 6px; overflow: hidden; }
 #embed:empty { display: none; }
 #embed iframe { display: block; width: 100%; height: 100%; border: 0; }
 #np-actions { display: flex; gap: .45rem; align-items: stretch; }
@@ -149,6 +159,7 @@ footer a:hover { color: var(--accent); }
 
 <main>
   <canvas id="scene"></canvas>
+  <div id="deckscreen"><div id="embed"></div></div>
   <aside id="panel">
     <div id="np-head">
       <div>
@@ -157,7 +168,6 @@ footer a:hover { color: var(--accent); }
       </div>
       <div id="np-chevron">▼</div>
     </div>
-    <div id="embed"></div>
     <div id="np-actions">
       <button id="putback" class="grow">put it back</button>
       <button id="digb" class="grow">the crates</button>
@@ -902,6 +912,27 @@ knob.metadata = { ctl: "pitch" };
 const lPitch = labelPlane("PITCH", 0.16, 0.08, 48); lPitch.parent = grpPitch; lPitch.position.set(0, 0.2715, 0.47);
 const PITCH_HALF = 0.33;
 
+/* ---- the deck screen: a leaned-back bezel on the plinth's empty front-right
+   corner. the spotify player itself is DOM (#deckscreen) — every frame it
+   saddles this glass, so the deck reads like it has a built-in display ---- */
+const grpScreen = ctlGroup("grpScreen", 0.62, -0.56);
+const screenTilt = new B.TransformNode("screenTilt", scene);
+screenTilt.parent = grpScreen;
+screenTilt.position.set(0, 0.22, 0);      // hinged on the plinth top
+screenTilt.rotation.x = 0.62;             // leaned back like a cdj screen
+const bezel = B.MeshBuilder.CreateBox("bezel", { width: 0.84, height: 0.46, depth: 0.05 }, scene);
+bezel.parent = screenTilt;
+bezel.position.set(0, 0.21, 0);           // stands on its bottom edge
+bezel.material = plasticM;
+const glassM = new B.StandardMaterial("glassM", scene);
+glassM.diffuseColor = B.Color3.FromHexString("#07080c");
+glassM.emissiveColor = B.Color3.FromHexString("#0a0d16");
+glassM.specularColor = new B.Color3(0.2, 0.2, 0.24); glassM.specularPower = 64;
+const glass = B.MeshBuilder.CreateBox("glass", { width: 0.74, height: 0.375, depth: 0.012 }, scene);
+glass.parent = screenTilt;
+glass.position.set(0, 0.21, -0.026);      // proud of the bezel face, toward the room
+glass.material = glassM;
+
 /* rpm state marked on the buttons */
 let baseRPM = 100 / 3, pitch = 0;
 function setRPM(v) {
@@ -986,7 +1017,8 @@ const DEFAULT_LAYOUT = { // the metro's own arrangement, set by hand on 2026-07-
   "ctlStart": { "x": -1.296, "y": 0, "z": -0.787 },
   "ctl33": { "x": -1.027, "y": 0, "z": -0.79 },
   "ctl45": { "x": -0.826, "y": 0, "z": -0.796 },
-  "ctlPitch": { "x": 1.137, "y": 0, "z": -0.094 }
+  "ctlPitch": { "x": 1.137, "y": 0, "z": -0.094 },
+  "ctlScreen": { "x": 0.62, "y": 0, "z": -0.56 }
 };
 /* the room is set — the metro arranged it by hand; nothing moves anymore */
 function placeAsset(key, node, mode) {
@@ -1014,6 +1046,7 @@ placeAsset("ctlStart", grpStart);
 placeAsset("ctl33", grp33);
 placeAsset("ctl45", grp45);
 placeAsset("ctlPitch", grpPitch);
+placeAsset("ctlScreen", grpScreen);
 const menuEl = document.getElementById("menu");
 document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
 document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));
@@ -1050,22 +1083,16 @@ function landRecord(i) {
   sleeves.forEach((s, j) => { s.visibility = j === i ? 0.28 : 1; });
   npTitle.textContent = w.title;
   npCredit.textContent = w.credit;
-  document.getElementById("embed").style.height = embedH(w) + "px";
+  document.body.dataset.screen = "on"; // the deck's display lights up with the record
   panel.classList.add("on"); panel.classList.remove("min");
   if (wantPlay && controller) try { controller.play(); } catch (e) {} // the record just hit the platter — needle drops now
   progress = 0; armTarget = YAW_IN;
 }
-function embedH(w) {
-  // full album embed (tracklist) only when there's room for it — short screens get spotify's compact player
-  return (w.kind === "album" && window.innerHeight > 540) ? 352 : 152;
-}
-window.addEventListener("resize", () => { // rotating the phone re-fits the player
-  if (current >= 0) document.getElementById("embed").style.height = embedH(WORKS[current]) + "px";
-});
 function putBack(quick) {
   if (current < 0) return;
   sleeves[current].visibility = 1;
   current = -1;
+  document.body.dataset.screen = "off"; // display goes dark with no record out
   vinyl.setEnabled(false); label.setEnabled(false);
   armTarget = YAW_REST; progress = 0;
   wantPlay = false; // shelved on purpose — don't resurrect it on the next touch
@@ -1091,7 +1118,7 @@ function viewCrate(c) {
 function viewDeck() {
   const p = deckRoot.position;
   return portrait()
-    ? { alpha: -Math.PI / 2, beta: 0.52, radius: 5.0, target: new B.Vector3(p.x, 0.1, p.z), ox: 0, oy: 0.72 }
+    ? { alpha: -Math.PI / 2, beta: 0.52, radius: 5.0, target: new B.Vector3(p.x, 0.1, p.z), ox: -0.42, oy: 0.72 } // ox pulls the deck's screen corner into the frame
     : { alpha: -Math.PI / 2, beta: 0.58, radius: 3.6, target: new B.Vector3(p.x, 0.1, p.z), ox: 0.9, oy: 0 };
 }
 function enterCrate(c) {
@@ -1336,6 +1363,30 @@ scene.onBeforeRenderObservable.add(() => {
     }
   }
 });
+/* the spotify iframe saddles the 3d glass: project its four corners into
+   canvas space after each render and fit the DOM overlay with a plain
+   translate+scale (the deck camera is face-on, so no skew needed) */
+const screenEl = document.getElementById("deckscreen");
+const SCREEN_W = 300, SCREEN_H = 152;   // fixed iframe layout size — scale() does the sizing
+const GLASS_HX = 0.37, GLASS_HY = 0.1875;
+scene.onAfterRenderObservable.add(() => {
+  if (document.body.dataset.screen !== "on") return;
+  const rect = engine.getRenderingCanvasClientRect();
+  if (!rect) return;
+  const wm = glass.getWorldMatrix();
+  const tm = scene.getTransformMatrix();
+  const vp = new B.Viewport(0, 0, rect.width, rect.height);
+  const P = (x, y) => B.Vector3.Project(new B.Vector3(x, y, -0.007), wm, tm, vp);
+  const tl = P(-GLASS_HX, GLASS_HY), tr = P(GLASS_HX, GLASS_HY);
+  const bl = P(-GLASS_HX, -GLASS_HY), br = P(GLASS_HX, -GLASS_HY);
+  if (tl.z > 1 || br.z > 1) { screenEl.style.visibility = "hidden"; return; } // behind the camera
+  screenEl.style.visibility = "visible";
+  const cx = (tl.x + tr.x + bl.x + br.x) / 4, cy = (tl.y + tr.y + bl.y + br.y) / 4;
+  const w = (Math.hypot(tr.x - tl.x, tr.y - tl.y) + Math.hypot(br.x - bl.x, br.y - bl.y)) / 2;
+  const h = (Math.hypot(bl.x - tl.x, bl.y - tl.y) + Math.hypot(br.x - tr.x, br.y - tr.y)) / 2;
+  screenEl.style.transform =
+    `translate(${(cx - SCREEN_W / 2).toFixed(1)}px, ${(cy - SCREEN_H / 2).toFixed(1)}px) scale(${(w / SCREEN_W).toFixed(4)}, ${(h / SCREEN_H).toFixed(4)})`;
+});
 engine.runRenderLoop(() => scene.render());
 function frameCamera() { // portrait keeps the vertical fov — reframe whatever we're looking at
   if (mode === "room") {
@@ -1349,7 +1400,7 @@ window.addEventListener("resize", () => { engine.resize(); frameCamera(); });
 
 /* debug hooks, same spirit as the bedroom */
 window.METRO_TT = { scene, engine, cam, chooseRecord, putBack, setRPM, crates, deckRoot, setFocus, step,
-  enterCrate, enterDeck, toRoom,
+  enterCrate, enterDeck, toRoom, grpScreen, screenTilt, glass, bezel,
   demo: (on) => { paused = !on; }, // pretend playback for testing the show without audio
   get state() { return { current, rpm, pitch, paused, progress, armCur, mode, YAW_IN, YAW_OUT, YAW_REST }; } };
 </script>
