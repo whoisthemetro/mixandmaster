@@ -1,604 +1,334 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Metro Mixing & Mastering | The Wall</title>
-<meta name="description" content="Albums and singles mixed & mastered by THE METRO — swipe the wall, flip a plaque, press play.">
-<meta property="og:title" content="Metro Mixing & Mastering">
-<meta property="og:description" content="The wall of records — every plaque plays.">
-<meta property="og:url" content="https://whoisthemetro.com/mixandmaster/">
-<meta property="og:image" content="https://whoisthemetro.com/mixandmaster/art/og.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://whoisthemetro.com/mixandmaster/art/og.jpg">
-<link rel="icon" type="image/png" href="art/favicon.png">
-<link rel="apple-touch-icon" href="art/apple-touch.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --black: #0a0a0c;
-  --white: #fafafa;
-  --accent: #ff3366;
-  --gray: #888;
-  --plat-hi: #e8ecf2; --plat-lo: #9aa2ae;
-  --gold-hi: #f0d98a; --gold-lo: #a97e2f;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  font-family: 'IBM Plex Mono', monospace;
-  background: var(--black);
-  color: var(--white);
-  overflow: hidden;
-  display: flex; flex-direction: column;
-  -webkit-tap-highlight-color: transparent;
-}
-/* the wall: dark plaster + a soft gallery spotlight + faint scanlines (the old page's texture) */
-body::before {
-  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background:
-    radial-gradient(120% 90% at 50% -20%, rgba(255,255,255,.085) 0%, transparent 60%),
-    radial-gradient(80% 60% at 50% 110%, rgba(255,51,102,.05) 0%, transparent 60%),
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(250,250,250,.012) 2px, rgba(250,250,250,.012) 4px);
-}
-header {
-  position: relative; z-index: 2;
-  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
-  padding: 1.6rem 66px 1.2rem 2rem; /* right side stays clear of the hamburger */
-  border-bottom: 2px solid var(--accent);
-}
-h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.6rem, 4.5vw, 2.6rem); letter-spacing: .12em; line-height: 1; font-weight: 400; }
-h1 em { font-style: normal; color: var(--accent); }
-.modes { margin-top: .35rem; font-size: .56rem; letter-spacing: .24em; color: var(--gray); text-transform: uppercase; }
-.modes a { color: var(--gray); text-decoration: none; border-bottom: 1px dotted #444; }
-.modes a:hover { color: var(--accent); }
-.modes b { color: var(--white); font-weight: 600; }
-/* the hamburger: one quiet door to contact + environment, instead of pills all over the screen */
-#menu { position: fixed; top: 10px; right: 12px; z-index: 8; }
-#menubtn {
-  width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
-  font: inherit; font-size: 1.05rem; line-height: 1; cursor: pointer;
-  color: var(--white); background: rgba(12,12,15,.72); backdrop-filter: blur(4px);
-  border: 1px solid #333; border-radius: 999px; transition: all .2s;
-}
-#menubtn:hover, #menu.open #menubtn { border-color: var(--accent); color: var(--accent); }
-#menudrop { display: none; position: absolute; right: 0; top: 50px; flex-direction: column; gap: .45rem; white-space: nowrap; }
-#menu.open #menudrop { display: flex; }
-#menudrop a, #menudrop button {
-  font: inherit; font-size: .56rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer; text-align: center;
-  color: var(--white); background: rgba(12,12,15,.85); backdrop-filter: blur(6px); text-decoration: none;
-  border: 1px solid #333; border-radius: 999px; padding: .55rem 1.05rem; transition: all .2s;
-}
-#menudrop a:hover, #menudrop button:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(255,51,102,.25); }
-
-/* ------ the rail of plaques ------ */
-main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
-#rail {
-  display: flex; align-items: center; gap: clamp(1.2rem, 4vw, 3rem);
-  overflow-x: auto; overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  padding: 3vh calc(50vw - min(39vw, 210px, 25vh));  /* half a plaque, so first & last can center */
-  scrollbar-width: none; -ms-overflow-style: none;
-  cursor: grab;
-}
-#rail::-webkit-scrollbar { display: none; }
-#rail.dragging { scroll-snap-type: none; cursor: grabbing; }
-.slot { scroll-snap-align: center; flex: 0 0 auto; perspective: 1400px; }
-
-/* ------ one plaque ------ */
-.plaque {
-  position: relative;
-  width: min(78vw, 420px, 50vh);  /* 50vh*13/10 = 65vh tall — clears header+nav on short screens */
-  aspect-ratio: 10 / 13;
-  transform-style: preserve-3d;
-  transition: transform .7s cubic-bezier(.4,.1,.2,1);
-}
-.slot:nth-child(odd)  .plaque { rotate: .5deg; }
-.slot:nth-child(even) .plaque { rotate: -.5deg; }
-.slot.flipped .plaque { transform: rotateY(180deg); rotate: 0deg; }
-.face {
-  position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  border-radius: 6px;
-  /* the wooden frame */
-  border: 12px solid transparent;
-  background:
-    linear-gradient(155deg, #191a1f 0%, #101014 55%, #1c1d23 100%) padding-box,
-    linear-gradient(155deg, #4a4a52 0%, #232329 30%, #101013 60%, #3a3a42 100%) border-box;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.06),
-    0 18px 40px rgba(0,0,0,.65),
-    0 4px 10px rgba(0,0,0,.5);
-  display: flex; flex-direction: column; align-items: center;
-  overflow: hidden;
-}
-/* ios safari ignores backface-visibility on a face's CHILDREN (the disc floats over the
-   player mid-flip) — so swap face visibility at the halfway point, while the plaque is edge-on */
-.face.front { visibility: visible; transition: visibility 0s .35s; }
-.face.back  { visibility: hidden;  transition: visibility 0s .35s; }
-.slot.flipped .face.front { visibility: hidden; }
-.slot.flipped .face.back  { visibility: visible; }
-/* glass over the front */
-.face.front::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(115deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.03) 28%, transparent 42%, transparent 75%, rgba(255,255,255,.05) 100%);
-}
-.face.back { transform: rotateY(180deg); justify-content: center; padding: 1.1rem; gap: .7rem; }
-
-/* the record */
-.disc {
-  position: relative;
-  width: 68%; aspect-ratio: 1; border-radius: 50%;
-  margin-top: 9%;
-  box-shadow: 0 10px 26px rgba(0,0,0,.6), 0 0 0 1px rgba(0,0,0,.55);
-}
-.disc::before { /* metal + grooves */
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background:
-    repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.16) 0 1px, transparent 1px 4px),
-    conic-gradient(from 210deg, var(--hi) 0%, var(--lo) 12%, var(--hi) 26%, var(--lo) 40%, #fdfdfd 50%, var(--lo) 62%, var(--hi) 76%, var(--lo) 90%, var(--hi) 100%);
-}
-.disc::after { /* soft dome light */
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.35) 0%, transparent 45%);
-  mix-blend-mode: soft-light;
-}
-.plaque .platinum { --hi: var(--plat-hi); --lo: var(--plat-lo); }
-.plaque .gold     { --hi: var(--gold-hi); --lo: var(--gold-lo); }
-.label {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
-  width: 42%; aspect-ratio: 1; border-radius: 50%;
-  background-size: cover; background-position: center;
-  box-shadow: 0 0 0 3px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.5);
-  z-index: 1;
-}
-.label::after { /* spindle hole */
-  content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
-  width: 7%; aspect-ratio: 1; border-radius: 50%;
-  background: #0a0a0c; box-shadow: 0 0 0 2px rgba(255,255,255,.25);
-}
-
-/* the engraved plate */
-.plate {
-  margin-top: auto; margin-bottom: 7%;
-  width: 78%;
-  padding: .6rem .8rem .55rem;
-  text-align: center; border-radius: 3px;
-  background: linear-gradient(170deg, var(--hi) 0%, var(--lo) 70%, var(--hi) 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.5);
-  color: #1c1a14;
-}
-.plate .title {
-  font-family: 'Bebas Neue', sans-serif; font-size: clamp(.85rem, 2.6vw, 1.08rem); letter-spacing: .1em; line-height: 1.1;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  text-shadow: 0 1px 0 rgba(255,255,255,.35);
-}
-.plate .cert {
-  margin-top: .28rem; font-size: .5rem; letter-spacing: .22em; text-transform: uppercase; opacity: .78;
-  text-shadow: 0 1px 0 rgba(255,255,255,.3);
-}
-.plate .by { margin-top: .18rem; font-size: .48rem; letter-spacing: .18em; text-transform: uppercase; opacity: .62; }
-
-/* back face: the player */
-.back .hint { font-size: .56rem; letter-spacing: .2em; color: var(--gray); text-transform: uppercase; }
-.back .player { width: 100%; flex: 0 1 352px; min-height: 140px; border-radius: 12px; overflow: hidden; } /* 352 = spotify's full album embed; shrinks on short plaques, never stretches into dead space */
-.back iframe { display: block; width: 100%; height: 100%; border: 0; }
-.back .close {
-  font: inherit; font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; cursor: pointer;
-  color: var(--white); background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: .5rem 1.1rem; transition: all .2s;
-}
-.back .close:hover { border-color: var(--accent); color: var(--accent); }
-
-#counter { font-size: .66rem; letter-spacing: .3em; color: var(--gray); text-align: center; padding: .5rem 0 .9rem; }
-#counter b { color: var(--white); font-weight: 600; }
-footer { position: relative; z-index: 2; text-align: center; font-size: .52rem; letter-spacing: .22em; color: #55525c; padding: 0 1rem 1rem; text-transform: uppercase; }
-footer a { color: #8a8792; text-decoration: none; }
-footer a:hover { color: var(--accent); }
-
-@media (prefers-reduced-motion: reduce) {
-  .plaque { transition: none; }
-  #rail { scroll-behavior: auto !important; }
-}
-@media (max-height: 600px) { .disc { margin-top: 5%; } header { padding: 1rem 62px .8rem 1.2rem; } }
-@media (max-width: 480px) {
-  .plaque { width: min(88vw, 420px, 50vh); }              /* phones: the plaque fills more of the wall */
-  #rail { padding: 3vh calc(50vw - min(44vw, 210px, 25vh)); } /* keep centering in sync with the wider plaque */
-  .face.back { padding: .9rem .55rem; }                    /* spotify's embed needs ~260px to lay out right */
-  .back .player { flex: 0 0 152px; min-height: 152px; }    /* narrow embeds render spotify's 152px compact layout — don't leave dead iframe below it */
-}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
 </head>
 <body>
+<x-dc>
+<helmet>
+<title>METRO | Mixing &amp; Mastering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=IBM+Plex+Mono:wght@300;400;600&amp;family=Nanum+Pen+Script&amp;display=swap" rel="stylesheet">
+<style>
+html, body { margin: 0; padding: 0; background: #0a0a0c; }
+* { box-sizing: border-box; }
+a { color: #D7E2EA; text-decoration: none; }
+a:hover { color: #ff3366; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="background: #0a0a0c; font-family: 'IBM Plex Mono', monospace; color: #D7E2EA; overflow-x: clip; min-height: 100vh">
 
-<header>
-  <div>
-    <h1>METRO <em>MIXING &amp; MASTERING</em></h1>
-  </div>
-</header>
+  <!-- 1. HERO -->
+  <section data-screen-label="Hero" style="height: 100vh; display: flex; flex-direction: column; position: relative; overflow: clip">
+    <nav data-fade="0,0,-20" style="display: flex; justify-content: space-between; align-items: center; padding: clamp(24px, 3vw, 32px) clamp(24px, 4vw, 40px) 0; position: relative; z-index: 20">
+      <a href="#about" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">About</a>
+      <a href="#services" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">Services</a>
+      <a href="#projects" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">Projects</a>
+      <a href="contact.html" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">Book</a>
+    </nav>
+    <div data-fade="0.15,0,40" style="overflow: hidden; width: 100%; text-align: center; margin-top: clamp(8px, 2vh, 28px)">
+      <h1 style="font-family: 'Nanum Pen Script', cursive; font-weight: 400; text-transform: uppercase; line-height: 0.78; margin: 0; white-space: nowrap">
+        <span style="display: block; font-size: clamp(7rem, 30vw, 30rem); letter-spacing: 0.01em; background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent">METRO</span>
+        <span style="display: block; font-size: clamp(2.4rem, 9.6vw, 9.8rem); letter-spacing: 0.03em; background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent">MIXING <span style="-webkit-text-fill-color: #ff3366; color: #ff3366">&amp;</span> MASTERING</span>
+      </h1>
+    </div>
+    <div data-fade="0.6,0,30" ref="{{ magnetRef }}" style="position: absolute; left: 50%; bottom: 4vh; transform: translateX(-50%); z-index: 10; will-change: transform; transition: transform 0.6s ease-in-out">
+      <div style="position: relative; width: clamp(240px, 34vw, 480px); aspect-ratio: 1; border-radius: 50%; box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.55); animation: spin 14s linear infinite; background: repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.16) 0 1px, transparent 1px 4px), conic-gradient(from 210deg, #e8ecf2 0%, #9aa2ae 12%, #e8ecf2 26%, #9aa2ae 40%, #fdfdfd 50%, #9aa2ae 62%, #e8ecf2 76%, #9aa2ae 90%, #e8ecf2 100%)" style-after="content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.35) 0%, transparent 45%); mix-blend-mode: soft-light">
+        <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 42%; aspect-ratio: 1; border-radius: 50%; background-image: url('art/1oUPauDyhV2zoX5DQ0AimS.jpg'); background-size: cover; background-position: center; box-shadow: 0 0 0 3px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5)" style-after="content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 7%; aspect-ratio: 1; border-radius: 50%; background: #0a0a0c; box-shadow: 0 0 0 2px rgba(255,255,255,0.25)"></div>
+      </div>
+    </div>
+    <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 clamp(24px, 4vw, 40px) clamp(28px, 4vh, 44px); position: relative; z-index: 15">
+      <span></span>
+      <span data-fade="0.5,0,20">
+        
+      </span>
+    </div>
+  </section>
 
-<div id="menu">
-  <button id="menubtn" aria-label="menu" title="menu">☰</button>
-  <div id="menudrop">
-    <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">contact me ↗</a>
-    <a href="turntable.html" title="step into the listening room">⟲ the turntable</a>
-    <a href="car.html" title="slide into the car">⟲ the car</a>
-  </div>
-</div>
+  <!-- 2. MARQUEE -->
+  <section data-screen-label="Marquee" ref="{{ marqRef }}" style="background: #0a0a0c; padding: clamp(96px, 12vw, 160px) 0 40px; display: flex; flex-direction: column; gap: 12px; overflow: clip">
+    <div ref="{{ row1Ref }}" style="display: flex; gap: 12px; width: max-content; will-change: transform">
+      <sc-for list="{{ row1 }}" as="t" hint-placeholder-count="6">
+        <img src="{{ t.art }}" alt="{{ t.title }}" title="{{ t.title }}" onClick="{{ t.play }}" loading="lazy" style="width: clamp(180px, 22vw, 270px); height: clamp(180px, 22vw, 270px); object-fit: cover; border-radius: 16px; cursor: pointer; flex-shrink: 0">
+      </sc-for>
+    </div>
+    <div ref="{{ row2Ref }}" style="display: flex; gap: 12px; width: max-content; will-change: transform">
+      <sc-for list="{{ row2 }}" as="t" hint-placeholder-count="6">
+        <img src="{{ t.art }}" alt="{{ t.title }}" title="{{ t.title }}" onClick="{{ t.play }}" loading="lazy" style="width: clamp(180px, 22vw, 270px); height: clamp(180px, 22vw, 270px); object-fit: cover; border-radius: 16px; cursor: pointer; flex-shrink: 0">
+      </sc-for>
+    </div>
+    <p style="text-align: center; margin: 18px 0 0; font-size: clamp(0.6rem, 0.9vw, 0.8rem); letter-spacing: 0.3em; text-transform: uppercase; color: #888">every cover plays. click one</p>
+  </section>
 
-<main>
-  <div id="rail" aria-label="records wall"></div>
-</main>
+  <!-- 3. ABOUT -->
+  <section id="about" data-screen-label="About" style="min-height: 100vh; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px clamp(20px, 4vw, 40px); gap: clamp(40px, 6vw, 64px)">
+    <div data-fade="0.1,-80,0" style="position: absolute; top: 6%; left: clamp(1%, 3vw, 4%); animation: spin 22s linear infinite; width: clamp(90px, 13vw, 180px); aspect-ratio: 1; border-radius: 50%; box-shadow: 0 12px 30px rgba(0,0,0,0.6); background: repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px), conic-gradient(from 210deg, #f0d98a 0%, #a97e2f 12%, #f0d98a 26%, #a97e2f 40%, #fdfdfd 50%, #a97e2f 62%, #f0d98a 76%, #a97e2f 90%, #f0d98a 100%)"><div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 42%; aspect-ratio: 1; border-radius: 50%; background: url('art/19k3Zv8uK4WvLEdUgBPCqg.jpg') center/cover; box-shadow: 0 0 0 2px rgba(0,0,0,0.7)"></div></div>
+    <div data-fade="0.25,-80,0" style="position: absolute; bottom: 8%; left: clamp(3%, 7vw, 10%); animation: spin 26s linear infinite; width: clamp(70px, 10vw, 150px); aspect-ratio: 1; border-radius: 50%; box-shadow: 0 12px 30px rgba(0,0,0,0.6); background: repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px), conic-gradient(from 210deg, #e8ecf2 0%, #9aa2ae 12%, #e8ecf2 26%, #9aa2ae 40%, #fdfdfd 50%, #9aa2ae 62%, #e8ecf2 76%, #9aa2ae 90%, #e8ecf2 100%)"><div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 42%; aspect-ratio: 1; border-radius: 50%; background: url('art/5rUQ3tQHfBz3bLQz5n4yu4.jpg') center/cover; box-shadow: 0 0 0 2px rgba(0,0,0,0.7)"></div></div>
+    <div data-fade="0.15,80,0" style="position: absolute; top: 6%; right: clamp(1%, 3vw, 4%); animation: spin 24s linear infinite; width: clamp(90px, 13vw, 180px); aspect-ratio: 1; border-radius: 50%; box-shadow: 0 12px 30px rgba(0,0,0,0.6); background: repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px), conic-gradient(from 210deg, #e8ecf2 0%, #9aa2ae 12%, #e8ecf2 26%, #9aa2ae 40%, #fdfdfd 50%, #9aa2ae 62%, #e8ecf2 76%, #9aa2ae 90%, #e8ecf2 100%)"><div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 42%; aspect-ratio: 1; border-radius: 50%; background: url('art/2ImN6RSke4EZUMOrMjCL6T.jpg') center/cover; box-shadow: 0 0 0 2px rgba(0,0,0,0.7)"></div></div>
+    <div data-fade="0.3,80,0" style="position: absolute; bottom: 8%; right: clamp(3%, 7vw, 10%); animation: spin 20s linear infinite; width: clamp(80px, 11vw, 160px); aspect-ratio: 1; border-radius: 50%; box-shadow: 0 12px 30px rgba(0,0,0,0.6); background: repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px), conic-gradient(from 210deg, #f0d98a 0%, #a97e2f 12%, #f0d98a 26%, #a97e2f 40%, #fdfdfd 50%, #a97e2f 62%, #f0d98a 76%, #a97e2f 90%, #f0d98a 100%)"><div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 42%; aspect-ratio: 1; border-radius: 50%; background: url('art/5yhDlVe0io5FVgF6MeuQHj.jpg') center/cover; box-shadow: 0 0 0 2px rgba(0,0,0,0.7)"></div></div>
+    <h2 data-fade="0,0,40" style="font-family: 'Bebas Neue', sans-serif; font-weight: 400; text-transform: uppercase; line-height: 0.9; letter-spacing: 0.02em; text-align: center; margin: 0; font-size: clamp(3rem, 12vw, 10rem); background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent">About Me</h2>
+    <p ref="{{ aboutRef }}" style="color: #D7E2EA; font-weight: 400; text-align: center; line-height: 1.8; max-width: 560px; margin: 0; font-size: clamp(0.95rem, 1.8vw, 1.25rem)">I'm <span style="font-family: 'Nanum Pen Script', cursive; font-size: 1.7em; line-height: 1; font-weight: 700; vertical-align: -0.12em">Metro</span>, a musician and engineer who has spent most of my life exploring how music is written, performed, and shaped through sound. I'm meticulous about sonic fidelity, and artists trust my ears and creative instincts to push their music toward its fullest, most powerful version.</p>
+    <div style="margin-top: clamp(16px, 4vw, 40px)">
+      <a href="contact.html" style="display: inline-block; border-radius: 999px; background: linear-gradient(123deg, #1a0110 7%, #ff3366 37%, #b0216f 72%, #be4c00 100%); box-shadow: 0px 4px 4px rgba(255, 51, 102, 0.25), 4px 4px 12px rgba(176, 33, 111, 0.9) inset; outline: 2px solid #fafafa; outline-offset: -3px; color: #fff; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2em; padding: clamp(12px, 1.4vw, 17px) clamp(32px, 3.4vw, 48px); font-size: clamp(0.7rem, 1vw, 1rem)" style-hover="color: #fff; filter: brightness(1.15)">Book a Session</a>
+    </div>
+  </section>
 
-<div id="counter"><b>01</b> / 00</div>
+  <!-- 4. SERVICES -->
+  <section id="services" data-screen-label="Services" style="background: #fafafa; color: #0a0a0c; border-radius: clamp(40px, 5vw, 60px) clamp(40px, 5vw, 60px) 0 0; padding: clamp(80px, 10vw, 128px) clamp(20px, 4vw, 40px) clamp(120px, 14vw, 180px); position: relative">
+    <h2 style="font-family: 'Bebas Neue', sans-serif; font-weight: 400; text-transform: uppercase; text-align: center; line-height: 0.9; margin: 0 0 clamp(64px, 8vw, 112px); font-size: clamp(3rem, 12vw, 10rem); color: #0a0a0c">Services</h2>
+    <div style="max-width: 1024px; margin: 0 auto; display: flex; flex-direction: column">
+      <sc-for list="{{ services }}" as="s" hint-placeholder-count="5">
+        <div data-fade="{{ s.fade }}" style="display: flex; gap: clamp(20px, 4vw, 56px); align-items: flex-start; padding: clamp(32px, 4.5vw, 48px) 0; border-bottom: 1px solid rgba(12, 12, 12, 0.15)">
+          <span style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 10vw, 8.75rem); line-height: 0.85; color: #0a0a0c; min-width: clamp(70px, 11vw, 160px)">{{ s.num }}</span>
+          <div style="display: flex; flex-direction: column; gap: 10px; padding-top: clamp(2px, 1vw, 14px)">
+            <span style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: clamp(1rem, 2.2vw, 2rem)">{{ s.name }}</span>
+            <span style="font-weight: 300; line-height: 1.7; max-width: 42rem; font-size: clamp(0.85rem, 1.5vw, 1.2rem); opacity: 0.6">{{ s.desc }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
 
-<footer>mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener">@whoisthemetro</a></footer>
-
-<script>
-const WORKS = [
-{
-"kind": "album",
-"id": "1oUPauDyhV2zoX5DQ0AimS",
-"title": "Born To Be",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0248c09fd32d15017a3a183290",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "2bwq4RXItbm9SKAwCWMqj4",
-"title": "BLK.FERRYMEN",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02677f0639cf77e16be17a0a1b",
-"credit": "mastered by the metro"
-},
-{
-"kind": "album",
-"id": "19k3Zv8uK4WvLEdUgBPCqg",
-"title": "Signs",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e021538074c3ea2fb25ad9f5bc0",
-"credit": "written, produced, mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "2KPkkPDpArz9G2i6102wjV",
-"title": "Acid Incantation",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e021ebfceaa78a91e8041266058",
-"credit": "mastered by the metro"
-},
-{
-"kind": "track",
-"id": "6jrRvrqAFFgXdXnFkfzJ0D",
-"title": "You're Not The Same",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020b34dd7ea794fe5e0e123181",
-"credit": "engineered, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "0iOez7zPHcJs3kvhsWSCdS",
-"title": "Grey",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029f1c3abd82bdd630c29cc3c9",
-"credit": "engineered, mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "2ImN6RSke4EZUMOrMjCL6T",
-"title": "Artistic Suicide",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02f2e8d6fafe52c40bc7178b75",
-"credit": "written, produced, mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "5rUQ3tQHfBz3bLQz5n4yu4",
-"title": "Beat Therapy",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029f1d9b0ffb008ca6552e9bcc",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "3a1EKFGccKVWpBmxTcuO8N",
-"title": "Wet Brain",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02eb7e9d2648debfe4dbe2787c",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "5EgHF6oEa1wyRcUYNueIOP",
-"title": "Cut to the Chase",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020027545ed926383edc532925",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "6W8iHlH2wTJJHiA5elND2R",
-"title": "What Do You Want From Me?",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0231b6d317b6977e359a4004d9",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "3bvrwYJtKxqP6zGv2SjTnP",
-"title": "Nvm",
-"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a2d70fff65667b0e3acfe253",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "33UKlSszMN2l6FTvsL5AWv",
-"title": "Nothing Basic",
-"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0238ab79ff0f025040f973c6bd",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "3mWvJ3SQFBo7FaLIPRDzzv",
-"title": "Cloud Nine",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0234d5da1320d7906ca562cb2b",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "7BfgsTLCP60202M1g2031F",
-"title": "Vivid Sunset",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02845d57cad1d995ff9a8701da",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "7JyRapE8D0m1RqE2kc6948",
-"title": "Horsetooth",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0296cef987cd249cc9708eae86",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "2PpTNa5qSjUIa7D0jXeeSx",
-"title": "here & there",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0250f80fb18305e08da364a682",
-"credit": "produced, mixed & mastered by the metro"
-},
-{
-"kind": "track",
-"id": "5S9mdx3QjG4GukxEH6pB9I",
-"title": "Are Dreams Even Real?",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022f8b28871fac2a2a6edf974e",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "7CNJjJtg3tJP2EbeC5lhiZ",
-"title": "DingoDongo",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e027199cca9c381342f2b27396a",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "3niYu8wOVqTDGkAY760coY",
-"title": "Girls Girls Girls",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0208bf886637fc78c1df8766cb",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "5fXV5c6MRKM9caB2Oj94Vx",
-"title": "Baby Baby Boy!",
-"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02989ba9aa6428447c6bccbdbb",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "5m9DyvhiWXwUwj0oDZLrUJ",
-"title": "In Your Arms Tonight (I don't want to be)",
-"art": "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0237a0a5443444a49f1a16bf3c",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "08LF3pj1xX7JXuUmwVlPqg",
-"title": "Kiss Me Kiss Me Say Goodbye",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0285cdff1b875daafcee45ea69",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "45fu5JdOhsGQi34dvzMifY",
-"title": "Mercy",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02b2bfc6a1a71f2a2a3dea6f69",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "63jW7RX8zyh8y8XfzWRwCD",
-"title": "D_evil",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022c0c9e68779290d99db31998",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "5yhDlVe0io5FVgF6MeuQHj",
-"title": "Memories (Will Get More Golden Over Time)",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ce8e1eccd67730a496b87168",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "3J8NSCs7MF8fTY6FzxiGDJ",
-"title": "Stained Dress",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0203e82caaa11384402d2af930",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "32zoosDllsJNqP2z43eM4S",
-"title": "Dont Want To See You Again!",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0240f8a083c7981b325216dc49",
-"credit": "mixed & mastered by the metro"
-},
-{
-"kind": "album",
-"id": "37FEHxsrq96yYRs2bC9sXx",
-"title": "My OnlyFans (RIP)",
-"art": "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e020f815a7e7173ff1d9a0d9dc1",
-"credit": "mixed & mastered by the metro"
-}
-];
-
-/* ---- build the wall ---- */
-const rail = document.getElementById("rail");
-WORKS.forEach((w, i) => {
-  const finish = w.kind === "album" ? "platinum" : "gold";
-  const cert = w.kind === "album" ? "certified platinum · lp" : "certified gold · single";
-  const slot = document.createElement("div");
-  slot.className = "slot"; slot.dataset.i = i;
-  slot.innerHTML = `
-    <div class="plaque">
-      <div class="face front">
-        <div class="disc ${finish}"><div class="label" style="background-image:url('${w.art}')"></div></div>
-        <div class="plate ${finish}">
-          <div class="title">${w.title.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
-          <div class="cert">${cert}</div>
-          <div class="by">${w.credit.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
+  <!-- 5. PROJECTS -->
+  <section id="projects" data-screen-label="Projects" ref="{{ projRef }}" style="background: #0a0a0c; border-radius: clamp(40px, 5vw, 60px) clamp(40px, 5vw, 60px) 0 0; margin-top: clamp(-56px, -4vw, -40px); position: relative; z-index: 10; padding: clamp(80px, 10vw, 128px) clamp(20px, 4vw, 40px) clamp(60px, 8vw, 120px)">
+    <h2 style="font-family: 'Bebas Neue', sans-serif; font-weight: 400; text-transform: uppercase; text-align: center; line-height: 0.9; margin: 0 0 clamp(48px, 6vw, 96px); font-size: clamp(3rem, 12vw, 10rem); background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent">Projects</h2>
+    <sc-for list="{{ projects }}" as="p" hint-placeholder-count="3">
+      <div data-cardwrap="{{ p.idx }}">
+        <div data-card="{{ p.idx }}" style="position: sticky; top: clamp(96px, 10vh, 128px); border-radius: clamp(40px, 5vw, 60px); border: 2px solid #D7E2EA; background: #0a0a0c; padding: clamp(20px, 3vw, 40px); max-width: 1200px; margin: 0 auto; will-change: transform; transform-origin: center top">
+          <div style="display: flex; align-items: center; gap: clamp(14px, 2.5vw, 32px); flex-wrap: wrap; padding: 0 clamp(8px, 1.5vw, 20px) clamp(20px, 2.5vw, 32px)">
+            <span style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 9vw, 8rem); line-height: 0.85; background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent">{{ p.num }}</span>
+            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px">
+              <span style="font-size: clamp(0.6rem, 0.9vw, 0.8rem); letter-spacing: 0.3em; text-transform: uppercase; color: #888">{{ p.count }}</span>
+              <span style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.5rem, 3.2vw, 3rem); line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; color: #D7E2EA">{{ p.name }}</span>
+            </div>
+            <span style="font-size: clamp(0.6rem, 0.9vw, 0.8rem); letter-spacing: 0.3em; text-transform: uppercase; color: #888">click to play</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(96px, 11vw, 150px), 1fr)); gap: clamp(10px, 1.2vw, 16px); padding: 0 clamp(8px, 1.5vw, 20px) clamp(8px, 1.5vw, 20px)">
+            <sc-for list="{{ p.works }}" as="w" hint-placeholder-count="6">
+              <img src="{{ w.art }}" alt="{{ w.title }}" title="{{ w.title }}" onClick="{{ w.play }}" loading="lazy" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: clamp(14px, 1.6vw, 22px); cursor: pointer; transition: transform 0.25s ease" style-hover="transform: scale(1.04)">
+            </sc-for>
+          </div>
         </div>
       </div>
-      <div class="face back">
-        <div class="hint">now spinning</div>
-        <div class="player"></div>
-        <button class="close">put it back</button>
+    </sc-for>
+  </section>
+
+  <!-- CONTACT / FOOTER -->
+  <section id="contact" data-screen-label="Contact" style="padding: clamp(60px, 8vw, 120px) clamp(20px, 4vw, 40px) clamp(40px, 5vw, 64px); display: flex; flex-direction: column; align-items: center; gap: clamp(32px, 5vw, 56px); text-align: center">
+    <h2 data-fade="0,0,40" style="font-family: 'Bebas Neue', sans-serif; font-weight: 400; text-transform: uppercase; line-height: 0.9; margin: 0; font-size: clamp(3rem, 12vw, 10rem); background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent">Let's Make<br>A Record</h2>
+    <a href="contact.html" style="display: inline-block; border-radius: 999px; background: linear-gradient(123deg, #1a0110 7%, #ff3366 37%, #b0216f 72%, #be4c00 100%); box-shadow: 0px 4px 4px rgba(255, 51, 102, 0.25), 4px 4px 12px rgba(176, 33, 111, 0.9) inset; outline: 2px solid #fafafa; outline-offset: -3px; color: #fff; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2em; padding: clamp(14px, 1.6vw, 20px) clamp(36px, 4vw, 56px); font-size: clamp(0.8rem, 1.1vw, 1.1rem)" style-hover="color: #fff; filter: brightness(1.15)">Book a Session</a>
+    <p style="font-size: clamp(0.55rem, 0.8vw, 0.7rem); letter-spacing: 0.22em; text-transform: uppercase; color: #55525c; margin: 0">mixed &amp; mastered by the metro · <a href="https://www.instagram.com/whoisthemetro/" target="_blank" rel="noopener" style="color: #8a8792">@whoisthemetro</a></p>
+  </section>
+
+  <!-- SPOTIFY PLAYER OVERLAY -->
+  <sc-if value="{{ playing }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closePlayer }}" style="position: fixed; inset: 0; z-index: 100; background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px">
+      <div onClick="{{ stopClick }}" style="width: min(92vw, 560px); background: linear-gradient(155deg, #191a1f 0%, #101014 55%, #1c1d23 100%); border: 1px solid #3a3a42; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 30px 80px rgba(0,0,0,0.8)">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+          <span style="font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: #888">now spinning</span>
+          <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.08em; color: #D7E2EA; text-align: right">{{ playingTitle }}</span>
+        </div>
+        <iframe src="{{ playerSrc }}" title="{{ playingTitle }}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="display: block; width: 100%; height: 352px; border: 0; border-radius: 12px"></iframe>
+        <button onClick="{{ closePlayer }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; color: #fafafa; background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: 9px 22px; align-self: center; transition: all 0.2s" style-hover="border-color: #ff3366; color: #ff3366">close</button>
       </div>
-    </div>`;
-  rail.appendChild(slot);
-});
-const slots = [...rail.children];
-document.querySelector("#counter").innerHTML = `<b>01</b> / ${String(WORKS.length).padStart(2,"0")}`;
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;magnetStrength&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 3, &quot;min&quot;: 1, &quot;max&quot;: 10, &quot;step&quot;: 0.5, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Motion&quot;}, &quot;marqueeSpeed&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 0.3, &quot;min&quot;: 0.05, &quot;max&quot;: 0.8, &quot;step&quot;: 0.05, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Motion&quot;}}">
+// cat: pmm = produced+mixed+mastered, mm = mixed & mastered (incl. engineered), m = mastered only (from the old site's credits)
+const WORKS = [
+  {kind:"album",id:"1oUPauDyhV2zoX5DQ0AimS",title:"Born To Be",cat:"pmm"},
+  {kind:"album",id:"2bwq4RXItbm9SKAwCWMqj4",title:"BLK.FERRYMEN",cat:"m"},
+  {kind:"album",id:"19k3Zv8uK4WvLEdUgBPCqg",title:"Signs",cat:"pmm"},
+  {kind:"album",id:"2KPkkPDpArz9G2i6102wjV",title:"Acid Incantation",cat:"m"},
+  {kind:"track",id:"6jrRvrqAFFgXdXnFkfzJ0D",title:"You're Not The Same",cat:"mm"},
+  {kind:"track",id:"0iOez7zPHcJs3kvhsWSCdS",title:"Grey",cat:"mm"},
+  {kind:"album",id:"2ImN6RSke4EZUMOrMjCL6T",title:"Artistic Suicide",cat:"pmm"},
+  {kind:"album",id:"5rUQ3tQHfBz3bLQz5n4yu4",title:"Beat Therapy",cat:"pmm"},
+  {kind:"track",id:"3a1EKFGccKVWpBmxTcuO8N",title:"Wet Brain",cat:"pmm"},
+  {kind:"track",id:"5EgHF6oEa1wyRcUYNueIOP",title:"Cut to the Chase",cat:"pmm"},
+  {kind:"track",id:"6W8iHlH2wTJJHiA5elND2R",title:"What Do You Want From Me?",cat:"pmm"},
+  {kind:"track",id:"3bvrwYJtKxqP6zGv2SjTnP",title:"Nvm",cat:"pmm"},
+  {kind:"track",id:"33UKlSszMN2l6FTvsL5AWv",title:"Nothing Basic",cat:"pmm"},
+  {kind:"track",id:"3mWvJ3SQFBo7FaLIPRDzzv",title:"Cloud Nine",cat:"pmm"},
+  {kind:"track",id:"7BfgsTLCP60202M1g2031F",title:"Vivid Sunset",cat:"pmm"},
+  {kind:"track",id:"7JyRapE8D0m1RqE2kc6948",title:"Horsetooth",cat:"pmm"},
+  {kind:"track",id:"2PpTNa5qSjUIa7D0jXeeSx",title:"here & there",cat:"pmm"},
+  {kind:"track",id:"5S9mdx3QjG4GukxEH6pB9I",title:"Are Dreams Even Real?",cat:"mm"},
+  {kind:"album",id:"7CNJjJtg3tJP2EbeC5lhiZ",title:"DingoDongo",cat:"mm"},
+  {kind:"album",id:"3niYu8wOVqTDGkAY760coY",title:"Girls Girls Girls",cat:"mm"},
+  {kind:"album",id:"5fXV5c6MRKM9caB2Oj94Vx",title:"Baby Baby Boy!",cat:"mm"},
+  {kind:"album",id:"5m9DyvhiWXwUwj0oDZLrUJ",title:"In Your Arms Tonight (I don't want to be)",cat:"mm"},
+  {kind:"album",id:"08LF3pj1xX7JXuUmwVlPqg",title:"Kiss Me Kiss Me Say Goodbye",cat:"mm"},
+  {kind:"album",id:"45fu5JdOhsGQi34dvzMifY",title:"Mercy",cat:"mm"},
+  {kind:"album",id:"63jW7RX8zyh8y8XfzWRwCD",title:"D_evil",cat:"mm"},
+  {kind:"album",id:"5yhDlVe0io5FVgF6MeuQHj",title:"Memories (Will Get More Golden Over Time)",cat:"mm"},
+  {kind:"album",id:"3J8NSCs7MF8fTY6FzxiGDJ",title:"Stained Dress",cat:"mm"},
+  {kind:"album",id:"32zoosDllsJNqP2z43eM4S",title:"Dont Want To See You Again!",cat:"mm"},
+  {kind:"album",id:"37FEHxsrq96yYRs2bC9sXx",title:"My OnlyFans (RIP)",cat:"mm"},
+  {kind:"album",id:"31LfASzLxf7MaQBYEVoynx",title:"Lazy Dog",cat:"mm",art:"https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028e30754b8b4b93d17322d739"},
+  {kind:"album",id:"6rUsvUuL7y1e38vt8ha8wX",title:"Home",cat:"mm",art:"https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02313730fbeaf9a6cf3db2bb1c"}
+];
+const CATS = [
+  {idx:0,num:"01",cat:"m",name:"Mastered"},
+  {idx:1,num:"02",cat:"mm",name:"Mixed & Mastered"},
+  {idx:2,num:"03",cat:"pmm",name:"Produced, Mixed & Mastered"}
+];
+const SERVICES = [
+  {num:"01",name:"Engineering",desc:"Recording and vocal engineering with clean takes, tight comps, and sessions that stay organized from tracking to print."},
+  {num:"02",name:"Songwriting",desc:"Toplines, hooks, and structure. Writing that serves the record and gets it finished."},
+  {num:"03",name:"Production",desc:"Beats and full productions built from scratch or around your idea, from first sketch to release-ready."},
+  {num:"04",name:"Mixing",desc:"Balancing, shaping, and gluing your record until every element sits exactly where it should: punchy low end, clear vocals, and space for everything."},
+  {num:"05",name:"Mastering",desc:"The final polish: loudness, tone, and translation, so the record hits on club systems, car stereos, and earbuds alike."}
+];
 
-/* ---- spotify's iframe api: one controller we can actually drive ---- */
-let IFA = null, controller = null, paused = true;
-window.onSpotifyIframeApiReady = (api) => { IFA = api; };
-
-/* ---- flip to play (one player at a time, so audio never overlaps) ---- */
-let open = null;
-function unflip() {
-  if (!open) return;
-  const s = open; open = null;
-  s.classList.remove("flipped");
-  if (controller) { try { controller.destroy(); } catch (e) {} controller = null; }
-  paused = true;
-  setTimeout(() => { s.querySelector(".player").innerHTML = ""; }, 700); // let the flip finish, then clear the leftovers
-}
-function flip(slot, autoplay) {
-  if (open === slot) return unflip();
-  unflip();
-  const w = WORKS[slot.dataset.i];
-  const player = slot.querySelector(".player");
-  player.innerHTML = "";
-  if (IFA) {
-    const host = document.createElement("div");
-    player.appendChild(host);
-    IFA.createController(host, { uri: `spotify:${w.kind}:${w.id}`, width: "100%", height: "100%" }, (c) => {
-      controller = c;
-      c.addListener("playback_update", (e) => { paused = !!e.data.isPaused; });
-      if (autoplay) c.addListener("ready", () => c.play());
+class Component extends DCLogic {
+  state = { playing: null };
+  componentDidMount() {
+    const root = this.root;
+    if (!root) return;
+    // FadeIn: data-fade="delay,x,y"
+    this.faded = [...root.querySelectorAll('[data-fade]')];
+    this.faded.forEach(el => {
+      const [d, x, y] = el.dataset.fade.split(',').map(Number);
+      el.style.opacity = '0';
+      el.style.transform = (el.style.transform || '') + ` translate(${x}px, ${y}px)`;
+      el.dataset.fadeDelay = d;
     });
-  } else {
-    // api script blocked? fall back to the plain embed — tap its own play
-    player.innerHTML =
-      `<iframe src="https://open.spotify.com/embed/${w.kind}/${w.id}?theme=0" loading="lazy"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" title="${w.title.replace(/"/g,"")}"></iframe>`;
+    this.io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const el = en.target;
+        this.io.unobserve(el);
+        setTimeout(() => {
+          el.style.transition = 'opacity 0.8s cubic-bezier(0.25,0.1,0.25,1), transform 0.8s cubic-bezier(0.25,0.1,0.25,1)';
+          el.style.opacity = '1';
+          el.style.transform = el.style.transform.replace(/ translate\([^)]*\)$/, ' translate(0px, 0px)');
+        }, el.dataset.fadeDelay * 1000);
+      });
+    }, { rootMargin: '50px' });
+    this.faded.forEach(el => this.io.observe(el));
+    // character spans for about paragraph
+    if (this.aboutEl && !this.aboutEl.dataset.split) {
+      this.aboutEl.dataset.split = '1';
+      this.chars = [];
+      const splitNode = (node) => {
+        [...node.childNodes].forEach(child => {
+          if (child.nodeType === Node.TEXT_NODE) {
+            const frag = document.createDocumentFragment();
+            [...child.textContent].forEach(ch => {
+              const s = document.createElement('span');
+              s.textContent = ch;
+              s.style.opacity = '0.2';
+              frag.appendChild(s);
+              this.chars.push(s);
+            });
+            node.replaceChild(frag, child);
+          } else if (child.nodeType === Node.ELEMENT_NODE) {
+            splitNode(child); // keep styled spans (e.g. the Metro wordmark) intact
+          }
+        });
+      };
+      splitNode(this.aboutEl);
+    }
+    this.onScroll = () => { if (!this.raf) this.raf = requestAnimationFrame(() => { this.raf = null; this.update(); }); };
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    // magnet effect on hero disc
+    this.onMouse = (e) => {
+      const el = this.magnetEl;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const pad = 150, str = this.props.magnetStrength ?? 3;
+      const inside = e.clientX > r.left - pad && e.clientX < r.right + pad && e.clientY > r.top - pad && e.clientY < r.bottom + pad;
+      if (inside) {
+        const dx = (e.clientX - (r.left + r.width / 2)) / str;
+        const dy = (e.clientY - (r.top + r.height / 2)) / str;
+        el.style.transition = 'transform 0.3s ease-out';
+        el.style.transform = `translateX(-50%) translate3d(${dx}px, ${dy}px, 0)`;
+      } else if (el.style.transform !== 'translateX(-50%)') {
+        el.style.transition = 'transform 0.6s ease-in-out';
+        el.style.transform = 'translateX(-50%)';
+      }
+    };
+    window.addEventListener('mousemove', this.onMouse, { passive: true });
+    this.update();
   }
-  slot.classList.add("flipped");
-  open = slot;
-  center(+slot.dataset.i, true);
-}
-rail.addEventListener("click", (e) => {
-  const slot = e.target.closest(".slot"); if (!slot || dragged) return;
-  if (e.target.closest(".close")) return unflip();
-  if (e.target.closest("iframe, .player")) return;
-  flip(slot, true); // the art IS the play button — flip it over and start it spinning
-});
-
-/* ---- the wall moves as a whole: native swipe (snap) + desktop drag + wheel + keys ---- */
-let dragged = false;
-let drag = null;
-rail.addEventListener("pointerdown", (e) => {
-  if (e.pointerType !== "mouse" || e.target.closest("iframe")) return; // touch gets native momentum scrolling
-  drag = { x: e.clientX, left: rail.scrollLeft, id: e.pointerId }; dragged = false;
-});
-rail.addEventListener("pointermove", (e) => {
-  if (!drag) return;
-  const dx = e.clientX - drag.x;
-  if (!dragged && Math.abs(dx) > 8) {
-    dragged = true;
-    rail.classList.add("dragging");
-    rail.setPointerCapture(drag.id); // capture only once it's a real drag — a captured click retargets to the rail and eats the plaque tap
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.onScroll);
+    window.removeEventListener('mousemove', this.onMouse);
+    if (this.io) this.io.disconnect();
   }
-  if (dragged) rail.scrollLeft = drag.left - dx;
-});
-function endDrag() {
-  if (!drag) return;
-  drag = null; rail.classList.remove("dragging");
-  center(nearest(), true);                         // settle onto a plaque
-  setTimeout(() => { dragged = false; }, 50);      // swallow the click that follows a drag
-}
-rail.addEventListener("pointerup", endDrag);
-rail.addEventListener("pointercancel", endDrag);
-rail.addEventListener("wheel", (e) => {
-  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // trackpad horizontal swipes scroll natively
-  e.preventDefault(); rail.scrollLeft += e.deltaY;
-}, { passive: false });
-
-function nearest() {
-  const mid = rail.scrollLeft + rail.clientWidth / 2;
-  let best = 0, dist = Infinity;
-  slots.forEach((s, i) => {
-    const c = s.offsetLeft + s.offsetWidth / 2;
-    if (Math.abs(c - mid) < dist) { dist = Math.abs(c - mid); best = i; }
-  });
-  return best;
-}
-function center(i, smooth) {
-  i = Math.max(0, Math.min(WORKS.length - 1, i));
-  const s = slots[i];
-  rail.scrollTo({ left: s.offsetLeft + s.offsetWidth / 2 - rail.clientWidth / 2, behavior: smooth ? "smooth" : "auto" });
-}
-/* ---- skipping: while a record spins, moving the wall hands the needle to the next plaque ---- */
-function inPlayMode() { return !!(open && controller && !paused); }
-function skip(dir) {
-  const target = Math.max(0, Math.min(WORKS.length - 1, nearest() + dir));
-  if (inPlayMode()) {
-    if (slots[target] !== open) flip(slots[target], true); // stop the old one, flip + play the new one
-  } else {
-    unflip(); center(target, true);                        // just browsing
+  update() {
+    const vh = window.innerHeight;
+    // marquee
+    if (this.marqEl) {
+      const top = this.marqEl.getBoundingClientRect().top + window.scrollY;
+      const speed = this.props.marqueeSpeed ?? 0.3;
+      const off = (window.scrollY - top + vh) * speed;
+      if (this.row1El) this.row1El.style.transform = `translateX(${off - 200}px)`;
+      if (this.row2El) this.row2El.style.transform = `translateX(${-(off - 200)}px)`;
+    }
+    // project card stacking scale
+    if (this.projEl) {
+      const cards = this.projEl.querySelectorAll('[data-card]');
+      const total = cards.length;
+      cards.forEach(card => {
+        const i = +card.dataset.card;
+        // wrapper height = card height + a fixed scroll allowance, so the gap between cards is identical no matter how tall each card is
+        card.parentElement.style.minHeight = (card.offsetHeight + vh * 0.35) + 'px';
+        const r = card.parentElement.getBoundingClientRect();
+        const prog = Math.max(0, Math.min(1, (vh * 0.2 - r.top) / r.height));
+        const target = 1 - (total - 1 - i) * 0.04;
+        const scale = 1 - prog * (1 - target);
+        card.style.transform = `scale(${scale.toFixed(4)})`;
+        card.style.top = `calc(clamp(96px, 10vh, 128px) + ${i * 28}px)`;
+      });
+    }
+    // about char reveal: offset ['start 0.8', 'end 0.2']
+    if (this.chars && this.aboutEl) {
+      const r = this.aboutEl.getBoundingClientRect();
+      const start = vh * 0.8, end = vh * 0.2;
+      const p = Math.max(0, Math.min(1, (start - r.top) / (start - end + r.height)));
+      const n = this.chars.length;
+      this.chars.forEach((s, i) => {
+        const o = Math.max(0.2, Math.min(1, (p * n - i) * 0.6 + 0.2));
+        s.style.opacity = o.toFixed(2);
+      });
+    }
+  }
+  renderVals() {
+    const mk = w => ({ title: w.title, art: w.art || `art/${w.id}.jpg`, play: () => this.setState({ playing: w }) });
+    const tiles = WORKS.map(mk);
+    const r1 = tiles.slice(0, 15), r2 = tiles.slice(15);
+    const p = this.state.playing;
+    return {
+      rootRef: el => { this.root = el; },
+      magnetRef: el => { this.magnetEl = el; },
+      marqRef: el => { this.marqEl = el; },
+      row1Ref: el => { this.row1El = el; },
+      row2Ref: el => { this.row2El = el; },
+      aboutRef: el => { this.aboutEl = el; },
+      projRef: el => { this.projEl = el; },
+      projects: CATS.map(c => {
+        const ws = WORKS.filter(w => w.cat === c.cat).map(mk);
+        return { ...c, works: ws, count: `${ws.length} record${ws.length === 1 ? '' : 's'}` };
+      }),
+      row1: [...r1, ...r1, ...r1],
+      row2: [...r2, ...r2, ...r2],
+      services: SERVICES.map((s, i) => ({ ...s, fade: `${i * 0.1},0,30` })),
+      playing: !!p,
+      playingTitle: p ? p.title : '',
+      playerSrc: p ? `https://open.spotify.com/embed/${p.kind}/${p.id}?theme=0` : '',
+      closePlayer: () => this.setState({ playing: null }),
+      stopClick: e => e.stopPropagation()
+    };
   }
 }
-window.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft")  skip(-1);
-  if (e.key === "ArrowRight") skip(1);
-  if (e.key === " ") { // space still plays the plaque that's front and center
-    e.preventDefault();
-    const slot = slots[nearest()];
-    if (open === slot && controller) controller.togglePlay();
-    else flip(slot, true);
-  }
-  if (e.key === "Escape") unflip();
-});
-let tick = null, settleT = null;
-rail.addEventListener("scroll", () => {
-  if (!tick) tick = requestAnimationFrame(() => {
-    tick = null;
-    document.querySelector("#counter b").textContent = String(nearest() + 1).padStart(2, "0");
-  });
-  // swipes count as skips too: when the wall settles on a new plaque mid-song, it takes over
-  clearTimeout(settleT);
-  settleT = setTimeout(() => {
-    if (drag) return; // still holding the wall — wait for the hand to let go
-    if (inPlayMode() && +open.dataset.i !== nearest()) flip(slots[nearest()], true);
-  }, 180);
-});
-const menuEl = document.getElementById("menu");
-document.getElementById("menubtn").addEventListener("click", () => menuEl.classList.toggle("open"));
-document.getElementById("menudrop").addEventListener("click", () => menuEl.classList.remove("open"));
-window.addEventListener("pointerdown", (e) => { if (!menuEl.contains(e.target)) menuEl.classList.remove("open"); }, true);
 </script>
-<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
 </html>

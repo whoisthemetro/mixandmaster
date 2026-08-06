@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Contact | METRO Mixing &amp; Mastering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=IBM+Plex+Mono:wght@300;400;600&amp;family=Nanum+Pen+Script&amp;display=swap" rel="stylesheet">
+<style>
+html, body { margin: 0; padding: 0; background: #0a0a0c; }
+* { box-sizing: border-box; }
+a { color: #D7E2EA; text-decoration: none; }
+a:hover { color: #ff3366; }
+</style>
+</helmet>
+<div style="background: #0a0a0c; font-family: 'IBM Plex Mono', monospace; color: #D7E2EA; min-height: 100vh; overflow-x: clip">
+  <nav style="display: flex; justify-content: space-between; align-items: center; padding: clamp(24px, 3vw, 32px) clamp(24px, 4vw, 40px)">
+    <a href="./" style="font-size: clamp(0.8rem, 1.1vw, 1rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">← Back</a>
+    <span style="font-family: 'Nanum Pen Script', cursive; font-size: clamp(1.6rem, 2.6vw, 2.4rem); line-height: 1">METRO <span style="color: #ff3366">&amp;</span></span>
+  </nav>
+  <h1 style="font-family: 'Bebas Neue', sans-serif; font-weight: 400; text-transform: uppercase; text-align: center; line-height: 0.9; margin: clamp(8px, 2vw, 24px) 0 clamp(12px, 2vw, 24px); font-size: clamp(3rem, 11vw, 9rem); background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent">Let's Work</h1>
+  <p style="text-align: center; margin: 0 auto clamp(40px, 6vw, 72px); max-width: 520px; padding: 0 24px; font-weight: 300; font-size: clamp(0.8rem, 1.2vw, 1rem); line-height: 1.7; color: #888">Build your order below. The price updates as you go, so you know exactly what you're getting before you send anything.</p>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); gap: clamp(20px, 3vw, 40px); max-width: 1100px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px) clamp(60px, 8vw, 100px); align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: clamp(28px, 3.5vw, 44px)">
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">01 · What do you need?</span>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{ serviceOpts }}" as="o" hint-placeholder-count="3">
+            <button onClick="{{ o.pick }}" style="{{ o.style }}">
+              <span style="display: flex; align-items: center; gap: 14px">
+                <span style="{{ o.dotStyle }}"></span>
+                <span style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+                  <span style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.85rem">{{ o.label }}</span>
+                  <span style="font-weight: 300; font-size: 0.62rem; color: #888; text-align: left">{{ o.sub }}</span>
+                </span>
+              </span>
+              <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; white-space: nowrap">{{ o.price }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">02 · How many songs?</span>
+        <div style="display: flex; align-items: center; gap: 18px">
+          <button onClick="{{ songsDown }}" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a3a42; background: none; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; cursor: pointer" style-hover="border-color: #ff3366; color: #ff3366">−</button>
+          <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; min-width: 64px; text-align: center">{{ songs }}</span>
+          <button onClick="{{ songsUp }}" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a3a42; background: none; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; cursor: pointer" style-hover="border-color: #ff3366; color: #ff3366">+</button>
+        </div>
+      </div>
+
+      <sc-if value="{{ needsSource }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">03 · Sending a session or individual tracks?</span>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <button onClick="{{ pickSession }}" style="{{ sessionStyle }}">Full session file</button>
+            <button onClick="{{ pickTracks }}" style="{{ tracksStyle }}">Individual tracks</button>
+          </div>
+          <sc-if value="{{ needsSource }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 10px; border: 1px solid #26262c; border-radius: 16px; padding: 18px 20px">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+                <span style="font-size: 0.75rem; font-weight: 300">Tracks per song (roughly)</span>
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: #ff3366">{{ tracks }}</span>
+              </div>
+              <input type="range" min="1" max="150" value="{{ tracks }}" onChange="{{ setTracks }}" style="width: 100%; accent-color: #ff3366; cursor: pointer" />
+              <span style="font-size: 0.65rem; color: #888; font-weight: 300; line-height: 1.6">{{ trackNote }}</span>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">{{ stepInfo }} · Your info</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+          <input placeholder="name *" value="{{ name }}" onChange="{{ setName }}" style="{{ nameStyle }}" />
+          <input placeholder="artist name" value="{{ artist }}" onChange="{{ setArtist }}" style="background: none; border: 1px solid #3a3a42; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem" />
+          <input placeholder="email *" type="email" value="{{ email }}" onChange="{{ setEmail }}" style="{{ emailStyle }}" />
+          <textarea placeholder="anything I should know? references, deadlines, the vibe…" value="{{ notes }}" onChange="{{ setNotes }}" rows="4" style="grid-column: 1 / -1; background: none; border: 1px solid #3a3a42; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; resize: vertical"></textarea>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">{{ stepFiles }} · Send your files</span>
+        <sc-if value="{{ hasArtist }}" hint-placeholder-val="{{ false }}">
+          <a href="https://www.dropbox.com/request/8cbwljtq67lxwweg1k4q" target="_blank" rel="noopener" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #ff3366; border-radius: 16px; padding: 32px 20px; cursor: pointer; text-align: center; text-decoration: none; color: #D7E2EA; background: rgba(255,51,102,0.04)" style-hover="background: rgba(255,51,102,0.1)">
+            <span style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em">Upload to my Dropbox</span>
+            <span style="font-size: 0.65rem; color: #888; font-weight: 300">wav / aiff / zip · opens a Dropbox file request, no account needed</span>
+          </a>
+          <div style="display: flex; flex-direction: column; gap: 6px; border: 1px solid #26262c; border-radius: 12px; padding: 14px 16px">
+            <span style="font-size: 0.62rem; color: #888; font-weight: 300; line-height: 1.7">So I know whose files these are:</span>
+            <span style="font-size: 0.68rem; font-weight: 300; line-height: 1.7">Name your zip or folder <span style="color: #ff3366; font-weight: 600">your artist name - song or project name</span> before you upload</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noArtist }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #3a3a42; border-radius: 16px; padding: 32px 20px; text-align: center; color: #55525c">
+            <span style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em">Upload to my Dropbox</span>
+            <span style="font-size: 0.65rem; font-weight: 300">enter your artist name above first, so I know whose files these are</span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="position: sticky; top: 24px; border: 2px solid #D7E2EA; border-radius: 28px; padding: clamp(20px, 2.5vw, 32px); display: flex; flex-direction: column; gap: 16px; background: linear-gradient(155deg, #191a1f 0%, #101014 55%, #1c1d23 100%)">
+      <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">Your order</span>
+      <sc-for list="{{ lineItems }}" as="li" hint-placeholder-count="2">
+        <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 0.75rem; font-weight: 300; line-height: 1.5">
+          <span>{{ li.label }}</span>
+          <span style="white-space: nowrap">{{ li.amount }}</span>
+        </div>
+      </sc-for>
+      <div style="border-top: 1px solid #3a3a42; padding-top: 14px; display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em">Total</span>
+        <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2.6rem; color: #ff3366">{{ total }}</span>
+      </div>
+      <button onClick="{{ submit }}" style="border: none; cursor: pointer; border-radius: 999px; background: linear-gradient(123deg, #1a0110 7%, #ff3366 37%, #b0216f 72%, #be4c00 100%); box-shadow: 0px 4px 4px rgba(255, 51, 102, 0.25), 4px 4px 12px rgba(176, 33, 111, 0.9) inset; outline: 2px solid #fafafa; outline-offset: -3px; color: #fff; font-family: 'IBM Plex Mono', monospace; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2em; padding: 16px 32px; font-size: 0.8rem" style-hover="filter: brightness(1.15)">Send Request</button>
+      <sc-if value="{{ showMissing }}" hint-placeholder-val="{{ false }}">
+        <span style="font-size: 0.62rem; color: #ff3366; font-weight: 300; line-height: 1.6; text-align: center">{{ missingMsg }}</span>
+      </sc-if>
+      <span style="font-size: 0.6rem; color: #888; font-weight: 300; line-height: 1.6; text-align: center">No payment now. This sends me your order and I'll confirm before anything is charged.</span>
+    </div>
+  </div>
+
+  <sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeConfirm }}" style="position: fixed; inset: 0; z-index: 100; background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px">
+      <div onClick="{{ stopClick }}" style="width: min(92vw, 480px); background: linear-gradient(155deg, #191a1f 0%, #101014 55%, #1c1d23 100%); border: 1px solid #3a3a42; border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; flex-direction: column; gap: 4px; text-align: center">
+          <span style="font-family: 'Nanum Pen Script', cursive; font-size: 2.4rem; line-height: 1; color: #ff3366">Got it.</span>
+          <span style="font-size: 0.65rem; color: #888; font-weight: 300; letter-spacing: 0.2em; text-transform: uppercase">your request</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; border: 1px solid #26262c; border-radius: 14px; padding: 18px 20px">
+          <sc-for list="{{ recapRows }}" as="row" hint-placeholder-count="3">
+            <div style="display: flex; justify-content: space-between; gap: 16px; font-size: 0.72rem; line-height: 1.5">
+              <span style="color: #888; font-weight: 300; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap">{{ row.k }}</span>
+              <span style="text-align: right; font-weight: 400">{{ row.v }}</span>
+            </div>
+          </sc-for>
+          <div style="border-top: 1px solid #26262c; padding-top: 10px; display: flex; justify-content: space-between; align-items: baseline">
+            <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.2em; color: #888">Total</span>
+            <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: #ff3366">{{ total }}</span>
+          </div>
+        </div>
+        <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+          <p style="margin: 0; font-size: 0.68rem; color: #888; font-weight: 300; line-height: 1.7; text-align: center">Hit send and this goes straight to me. No email app, nothing else to do.</p>
+          <div style="display: flex; gap: 10px; justify-content: center">
+            <button onClick="{{ closeConfirm }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; color: #fafafa; background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: 12px 24px" style-hover="border-color: #ff3366; color: #ff3366">back</button>
+            <button onClick="{{ sendNow }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; border: none; color: #fff; border-radius: 999px; padding: 12px 28px; background: linear-gradient(123deg, #1a0110 7%, #ff3366 37%, #b0216f 72%, #be4c00 100%); box-shadow: 0px 4px 4px rgba(255, 51, 102, 0.25), 4px 4px 12px rgba(176, 33, 111, 0.9) inset; outline: 2px solid #fafafa; outline-offset: -3px; font-weight: 600" style-hover="filter: brightness(1.15)">{{ sendLabel }}</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ sentOk }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 0.75rem; font-weight: 300; line-height: 1.7; text-align: center; color: #D7E2EA">Sent. I'll get back to you at <span style="color: #ff3366">{{ email }}</span> to lock it in. Don't forget to upload your files above.</p>
+          <button onClick="{{ closeConfirm }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; color: #fafafa; background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: 12px 24px; align-self: center" style-hover="border-color: #ff3366; color: #ff3366">done</button>
+        </sc-if>
+        <sc-if value="{{ previewBlocked }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 0.68rem; color: #888; font-weight: 300; line-height: 1.7; text-align: center">Direct sending only works on the live site, not in this preview. For now, <a href="{{ mailtoHref }}" style="color: #ff3366; text-decoration: underline">email me the request</a> instead.</p>
+          <button onClick="{{ closeConfirm }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; color: #fafafa; background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: 12px 24px; align-self: center" style-hover="border-color: #ff3366; color: #ff3366">close</button>
+        </sc-if>
+        <sc-if value="{{ sentFail }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 0.68rem; color: #ff3366; font-weight: 300; line-height: 1.7; text-align: center">Something glitched sending that. Try again, or email me directly at <a href="{{ mailtoHref }}" style="text-decoration: underline">whoisthemetro@gmail.com</a>.</p>
+          <button onClick="{{ sendNow }}" style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; color: #fafafa; background: none; border: 1px solid #3a3a42; border-radius: 999px; padding: 12px 24px; align-self: center" style-hover="border-color: #ff3366; color: #ff3366">try again</button>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;masterRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 75, &quot;min&quot;: 10, &quot;max&quot;: 500, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mixUpTo20Tracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 250, &quot;min&quot;: 50, &quot;max&quot;: 2000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mixAbove20Tracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 500, &quot;min&quot;: 50, &quot;max&quot;: 3000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mix50PlusTracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 1000, &quot;min&quot;: 50, &quot;max&quot;: 5000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}}">
+class Component extends DCLogic {
+  state = { service: 'master', songs: 1, source: 'tracks', tracks: 20, name: '', artist: '', email: '', notes: '', submitted: false, tried: false, sendStatus: 'idle' };
+  rates() {
+    return {
+      master: this.props.masterRate ?? 75,
+      mixTier1: this.props.mixUpTo20Tracks ?? 250,
+      mixTier2: this.props.mixAbove20Tracks ?? 500,
+      mixTier3: this.props.mix50PlusTracks ?? 1000
+    };
+  }
+  mixTier(tracks) {
+    const r = this.rates();
+    if (tracks >= 50) return { rate: r.mixTier3, label: '50+ tracks' };
+    if (tracks > 20) return { rate: r.mixTier2, label: '21–49 tracks' };
+    return { rate: r.mixTier1, label: 'up to 20 tracks' };
+  }
+  calc() {
+    const r = this.rates();
+    const { service, songs, tracks } = this.state;
+    const ss = `${songs} song${songs > 1 ? 's' : ''}`;
+    const items = [];
+    if (service === 'master') {
+      items.push({ label: `Mastering · ${ss} ($${r.master}/song)`, amount: `$${r.master * songs}` });
+    } else {
+      const t = this.mixTier(tracks);
+      items.push({ label: `Mixing · ${ss} · ${t.label} ($${t.rate}/song)`, amount: `$${t.rate * songs}` });
+      if (service === 'mixmaster') items.push({ label: `Mastering · ${ss} ($${r.master}/song)`, amount: `$${r.master * songs}` });
+    }
+    return { items, total: items.reduce((sum, i) => sum + +i.amount.replace(/[$,]/g, ''), 0) };
+  }
+  serviceName() {
+    return { master: 'Mastering', mix: 'Mixing', mixmaster: 'Mix & Master' }[this.state.service];
+  }
+  recap(items, total) {
+    const s = this.state;
+    const rows = [
+      { k: 'Service', v: this.serviceName() },
+      { k: 'Songs', v: `${s.songs}` }
+    ];
+    if (s.service !== 'master') {
+      rows.push({ k: 'Sending', v: s.source === 'session' ? 'Full session file' : 'Individual tracks' });
+      rows.push({ k: 'Tracks / song', v: `~${s.tracks} (${this.mixTier(s.tracks).label})` });
+    }
+    if (s.name.trim()) rows.push({ k: 'Name', v: s.name.trim() });
+    if (s.artist.trim()) rows.push({ k: 'Artist', v: s.artist.trim() });
+    if (s.email.trim()) rows.push({ k: 'Email', v: s.email.trim() });
+    return rows;
+  }
+  mailto(items, total) {
+    const s = this.state;
+    const subject = `Booking request: ${this.serviceName()} · ${s.artist.trim() || s.name.trim() || 'new client'}`;
+    const lines = [
+      `Service: ${this.serviceName()}`,
+      `Songs: ${s.songs}`,
+      ...(s.service !== 'master' ? [
+        `Sending: ${s.source === 'session' ? 'Full session file' : 'Individual tracks'}`,
+        `Tracks per song: ~${s.tracks} (${this.mixTier(s.tracks).label})`
+      ] : []),
+      '',
+      ...items.map(i => `${i.label}: ${i.amount}`),
+      `Total: $${total}`,
+      '',
+      `Name: ${s.name.trim() || '-'}`,
+      `Artist: ${s.artist.trim() || '-'}`,
+      `Email: ${s.email.trim() || '-'}`,
+      ...(s.notes.trim() ? ['', `Notes: ${s.notes.trim()}`] : [])
+    ];
+    return `mailto:whoisthemetro@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
+  }
+  async sendForm(items, total) {
+    if (this.state.sendStatus === 'sending') return;
+    this.setState({ sendStatus: 'sending' });
+    const s = this.state;
+    try {
+      const res = await fetch('https://formsubmit.co/ajax/whoisthemetro@gmail.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          _subject: `Booking request: ${this.serviceName()} · ${s.artist.trim() || s.name.trim()}`,
+          name: s.name.trim(),
+          artist: s.artist.trim() || '-',
+          email: s.email.trim(),
+          service: this.serviceName(),
+          songs: `${s.songs}`,
+          ...(s.service !== 'master' ? {
+            sending: s.source === 'session' ? 'Full session file' : 'Individual tracks',
+            tracks_per_song: `~${s.tracks} (${this.mixTier(s.tracks).label})`
+          } : {}),
+          order: items.map(i => `${i.label}: ${i.amount}`).join(' | '),
+          total: `$${total}`,
+          notes: s.notes.trim() || '-'
+        })
+      });
+      const data = await res.json();
+      const ok = res.ok && data.success !== 'false' && data.success !== false;
+      this.setState({ sendStatus: ok ? 'sent' : ((data.message || '').includes('web server') ? 'preview' : 'error') });
+    } catch (err) {
+      this.setState({ sendStatus: 'error' });
+    }
+  }
+  renderVals() {
+    const s = this.state;
+    const r = this.rates();
+    const { items, total } = this.calc();
+    const btn = on => `border-radius: 999px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; padding: 13px 22px; transition: all 0.2s; ` +
+      (on ? 'border: 2px solid #ff3366; color: #ff3366; background: rgba(255,51,102,0.08)' : 'border: 2px solid #3a3a42; color: #D7E2EA; background: none');
+    const card = on => `display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; border-radius: 18px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; padding: 18px 22px; transition: all 0.2s; text-align: left; ` +
+      (on ? 'border: 2px solid #ff3366; color: #D7E2EA; background: rgba(255,51,102,0.06)' : 'border: 2px solid #26262c; color: #D7E2EA; background: none');
+    const dot = on => `flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; transition: all 0.2s; ` +
+      (on ? 'border: 5px solid #ff3366' : 'border: 2px solid #3a3a42');
+    const needsSource = s.service !== 'master';
+    const missName = !s.name.trim();
+    const missEmail = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email.trim());
+    const field = ok => `background: none; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; grid-column: auto; border: 1px solid ${!ok && s.tried ? '#ff3366' : '#3a3a42'}`;
+    const mkSvc = (key, label, sub, price) => ({
+      label, sub, price,
+      style: card(s.service === key),
+      dotStyle: dot(s.service === key),
+      pick: () => this.setState({ service: key })
+    });
+    return {
+      serviceOpts: [
+        mkSvc('master', 'Mastering', 'the final polish on your finished mix', `$${r.master}/song`),
+        mkSvc('mix', 'Mixing', 'price depends on track count', `from $${r.mixTier1}/song`),
+        mkSvc('mixmaster', 'Mix & Master', 'mixing plus mastering, one package', `from $${r.mixTier1 + r.master}/song`)
+      ],
+      songs: s.songs,
+      songsDown: () => this.setState(st => ({ songs: Math.max(1, st.songs - 1) })),
+      songsUp: () => this.setState(st => ({ songs: Math.min(30, st.songs + 1) })),
+      needsSource,
+      isTracks: s.source === 'tracks',
+      sessionStyle: btn(s.source === 'session'),
+      tracksStyle: btn(s.source === 'tracks'),
+      pickSession: () => this.setState({ source: 'session' }),
+      pickTracks: () => this.setState({ source: 'tracks' }),
+      tracks: s.tracks,
+      setTracks: e => this.setState({ tracks: +e.target.value }),
+      trackNote: `Up to 20 tracks: $${r.mixTier1}/song · 21–49 tracks: $${r.mixTier2}/song · 50+ tracks: $${r.mixTier3}/song. 100 tracks is a different job than 15.`,
+      stepInfo: needsSource ? '04' : '03',
+      stepFiles: needsSource ? '05' : '04',
+      name: s.name, setName: e => this.setState({ name: e.target.value }),
+      artist: s.artist, setArtist: e => this.setState({ artist: e.target.value }),
+      email: s.email, setEmail: e => this.setState({ email: e.target.value }),
+      notes: s.notes, setNotes: e => this.setState({ notes: e.target.value }),
+      hasArtist: s.artist.trim().length > 0,
+      noArtist: s.artist.trim().length === 0,
+      lineItems: items,
+      total: `$${total}`,
+      nameStyle: field(!missName),
+      emailStyle: field(!missEmail).replace('grid-column: auto', 'grid-column: 1 / -1'),
+      showMissing: s.tried && (missName || missEmail),
+      missingMsg: `I need your ${missName && missEmail ? 'name and email' : missName ? 'name' : 'email'} so I know who this is from.`,
+      submit: () => {
+        if (missName || missEmail) { this.setState({ tried: true }); return; }
+        this.setState({ submitted: true, tried: false, sendStatus: 'idle' });
+      },
+      submitted: s.submitted,
+      recapRows: this.recap(items, total),
+      mailtoHref: this.mailto(items, total),
+      notSent: s.sendStatus === 'idle' || s.sendStatus === 'sending',
+      sentOk: s.sendStatus === 'sent',
+      sentFail: s.sendStatus === 'error',
+      previewBlocked: s.sendStatus === 'preview',
+      sendLabel: s.sendStatus === 'sending' ? 'sending…' : 'send it',
+      sendNow: () => this.sendForm(items, total),
+      closeConfirm: () => this.setState({ submitted: false }),
+      stopClick: e => e.stopPropagation()
+    };
+  }
+}
+</script>
+</body>
+</html>
