@@ -43,7 +43,7 @@ a:hover { color: #ff3366; }
   <h1 style="font-family: 'Bebas Neue', sans-serif; font-weight: 400; text-transform: uppercase; text-align: center; line-height: 0.9; margin: clamp(8px, 2vw, 24px) 0 clamp(12px, 2vw, 24px); font-size: clamp(3rem, 11vw, 9rem); background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent">Let's Work</h1>
   <p style="text-align: center; margin: 0 auto clamp(40px, 6vw, 72px); max-width: 520px; padding: 0 24px; font-weight: 300; font-size: clamp(0.8rem, 1.2vw, 1rem); line-height: 1.7; color: #888">Build your order below. The price updates as you go, so you know exactly what you're getting before you send anything.</p>
 
-  <div style="display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); gap: clamp(20px, 3vw, 40px); max-width: 1100px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px) clamp(60px, 8vw, 100px); align-items: start">
+  <div style="{{ layoutStyle }}">
 
     <div style="display: flex; flex-direction: column; gap: clamp(28px, 3.5vw, 44px)">
       <div style="display: flex; flex-direction: column; gap: 14px">
@@ -95,9 +95,9 @@ a:hover { color: #ff3366; }
 
       <div style="display: flex; flex-direction: column; gap: 14px">
         <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">{{ stepInfo }} · Your info</span>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px">
           <input placeholder="name *" value="{{ name }}" onChange="{{ setName }}" style="{{ nameStyle }}" />
-          <input placeholder="artist name" value="{{ artist }}" onChange="{{ setArtist }}" style="background: none; border: 1px solid #3a3a42; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem" />
+          <input placeholder="artist name" value="{{ artist }}" onChange="{{ setArtist }}" style="min-width: 0; width: 100%; background: none; border: 1px solid #3a3a42; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem" />
           <input placeholder="email *" type="email" value="{{ email }}" onChange="{{ setEmail }}" style="{{ emailStyle }}" />
           <textarea placeholder="anything I should know? references, deadlines, the vibe…" value="{{ notes }}" onChange="{{ setNotes }}" rows="4" style="grid-column: 1 / -1; background: none; border: 1px solid #3a3a42; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; resize: vertical"></textarea>
         </div>
@@ -124,7 +124,7 @@ a:hover { color: #ff3366; }
       </div>
     </div>
 
-    <div style="position: sticky; top: 24px; border: 2px solid #D7E2EA; border-radius: 28px; padding: clamp(20px, 2.5vw, 32px); display: flex; flex-direction: column; gap: 16px; background: linear-gradient(155deg, #191a1f 0%, #101014 55%, #1c1d23 100%)">
+    <div style="{{ summaryStickyStyle }} border: 2px solid #D7E2EA; border-radius: 28px; padding: clamp(20px, 2.5vw, 32px); display: flex; flex-direction: column; gap: 16px; background: linear-gradient(155deg, #191a1f 0%, #101014 55%, #1c1d23 100%)">
       <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">Your order</span>
       <sc-for list="{{ lineItems }}" as="li" hint-placeholder-count="2">
         <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 0.75rem; font-weight: 300; line-height: 1.5">
@@ -144,6 +144,15 @@ a:hover { color: #ff3366; }
     </div>
   </div>
 
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); background: rgba(10, 10, 12, 0.92); backdrop-filter: blur(12px); border-top: 1px solid #26262c">
+      <div style="display: flex; flex-direction: column">
+        <span style="font-size: 0.55rem; letter-spacing: 0.24em; text-transform: uppercase; color: #888">Total</span>
+        <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; line-height: 1; color: #ff3366">{{ total }}</span>
+      </div>
+      <button onClick="{{ submit }}" style="border: none; cursor: pointer; border-radius: 999px; background: linear-gradient(123deg, #1a0110 7%, #ff3366 37%, #b0216f 72%, #be4c00 100%); box-shadow: 0px 4px 4px rgba(255, 51, 102, 0.25), 4px 4px 12px rgba(176, 33, 111, 0.9) inset; outline: 2px solid #fafafa; outline-offset: -3px; color: #fff; font-family: 'IBM Plex Mono', monospace; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; padding: 14px 26px; font-size: 0.72rem" style-hover="filter: brightness(1.15)">Send Request</button>
+    </div>
+  </sc-if>
   <sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeConfirm }}" style="position: fixed; inset: 0; z-index: 100; background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px">
       <div onClick="{{ stopClick }}" style="width: min(92vw, 480px); background: linear-gradient(155deg, #191a1f 0%, #101014 55%, #1c1d23 100%); border: 1px solid #3a3a42; border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 20px">
@@ -189,7 +198,12 @@ a:hover { color: #ff3366; }
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;masterRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 75, &quot;min&quot;: 10, &quot;max&quot;: 500, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mixUpTo20Tracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 250, &quot;min&quot;: 50, &quot;max&quot;: 2000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mixAbove20Tracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 500, &quot;min&quot;: 50, &quot;max&quot;: 3000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mix50PlusTracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 1000, &quot;min&quot;: 50, &quot;max&quot;: 5000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}}">
 class Component extends DCLogic {
-  state = { service: 'master', songs: 1, source: 'tracks', tracks: 20, name: '', artist: '', email: '', notes: '', submitted: false, tried: false, sendStatus: 'idle' };
+  state = { service: 'master', songs: 1, source: 'tracks', tracks: 20, name: '', artist: '', email: '', notes: '', submitted: false, tried: false, sendStatus: 'idle', vw: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  componentDidMount() {
+    this._onResize = () => this.setState({ vw: window.innerWidth });
+    window.addEventListener('resize', this._onResize);
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._onResize); }
   rates() {
     return {
       master: this.props.masterRate ?? 75,
@@ -301,14 +315,20 @@ class Component extends DCLogic {
     const needsSource = s.service !== 'master';
     const missName = !s.name.trim();
     const missEmail = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email.trim());
-    const field = ok => `background: none; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; grid-column: auto; border: 1px solid ${!ok && s.tried ? '#ff3366' : '#3a3a42'}`;
+    const field = ok => `min-width: 0; width: 100%; background: none; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; grid-column: auto; border: 1px solid ${!ok && s.tried ? '#ff3366' : '#3a3a42'}`;
     const mkSvc = (key, label, sub, price) => ({
       label, sub, price,
       style: card(s.service === key),
       dotStyle: dot(s.service === key),
       pick: () => this.setState({ service: key })
     });
+    const isMobile = s.vw < 720;
     return {
+      isMobile,
+      layoutStyle: isMobile
+        ? `display: flex; flex-direction: column; gap: 28px; max-width: 1100px; margin: 0 auto; padding: 0 20px 130px`
+        : `display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); gap: clamp(20px, 3vw, 40px); max-width: 1100px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px) clamp(60px, 8vw, 100px); align-items: start`,
+      summaryStickyStyle: isMobile ? 'position: static;' : 'position: sticky; top: 24px;',
       serviceOpts: [
         mkSvc('master', 'Mastering', 'the final polish on your finished mix', `$${r.master}/song`),
         mkSvc('mix', 'Mixing', 'price depends on track count', `from $${r.mixTier1}/song`),
