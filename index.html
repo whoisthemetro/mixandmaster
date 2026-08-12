@@ -70,8 +70,9 @@ html, body { margin: 0; padding: 0; background: #0a0a0c; }
 a { color: #D7E2EA; text-decoration: none; }
 a:hover { color: #ff3366; }
 @keyframes spin { to { transform: rotate(360deg); } }
-/* nav links: colour eases in and a hairline sweeps out from the middle */
-nav a { position: relative; display: inline-block; transition: color 0.3s ease, transform 0.3s ease; }
+/* nav links: pink at rest, easing to silver under the cursor, with a hairline sweeping out from the middle */
+nav a { position: relative; display: inline-block; color: #ff3366; transition: color 0.3s ease, transform 0.3s ease; }
+nav a:hover { color: #D7E2EA; }
 nav a::after { content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: center; transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
 nav a:hover { transform: translateY(-1px); }
 nav a:hover::after { transform: scaleX(1); }
