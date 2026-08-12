@@ -69,6 +69,15 @@ html, body { margin: 0; padding: 0; background: #0a0a0c; }
 a { color: #D7E2EA; text-decoration: none; }
 a:hover { color: #ff3366; }
 @keyframes spin { to { transform: rotate(360deg); } }
+/* nav links: colour eases in and a hairline sweeps out from the middle */
+nav a { position: relative; display: inline-block; transition: color 0.3s ease, transform 0.3s ease; }
+nav a::after { content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: center; transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+nav a:hover { transform: translateY(-1px); }
+nav a:hover::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) {
+  nav a, nav a::after { transition: none; }
+  nav a:hover { transform: none; }
+}
 </style>
 </helmet>
 <div ref="{{ rootRef }}" style="background: #0a0a0c; font-family: 'IBM Plex Mono', monospace; color: #D7E2EA; overflow-x: clip; min-height: 100vh">
@@ -76,10 +85,10 @@ a:hover { color: #ff3366; }
   <!-- 1. HERO -->
   <section data-screen-label="Hero" style="height: 100vh; display: flex; flex-direction: column; position: relative; overflow: clip">
     <nav data-fade="0,0,-20" style="display: flex; justify-content: space-between; align-items: center; padding: clamp(24px, 3vw, 32px) clamp(24px, 4vw, 40px) 0; position: relative; z-index: 20">
-      <a href="#about" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">About</a>
-      <a href="#services" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">Services</a>
-      <a href="#projects" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">Projects</a>
-      <a href="contact.html" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600" style-hover="opacity: 0.7">Book</a>
+      <a href="#about" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600">About</a>
+      <a href="#services" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600">Services</a>
+      <a href="#projects" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600">Projects</a>
+      <a href="contact.html" style="font-size: clamp(0.8rem, 1.2vw, 1.15rem); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600">Book</a>
     </nav>
     <div data-fade="0.15,0,40" style="overflow: hidden; width: 100%; text-align: center; margin-top: clamp(8px, 2vh, 28px)">
       <h1 style="font-family: 'Nanum Pen Script', cursive; font-weight: 400; text-transform: uppercase; line-height: 0.78; margin: 0; white-space: nowrap">
@@ -89,7 +98,7 @@ a:hover { color: #ff3366; }
     </div>
     <div data-fade="0.6,0,30" ref="{{ magnetRef }}" style="position: absolute; left: 50%; bottom: 4vh; transform: translateX(-50%); z-index: 10; will-change: transform; transition: transform 0.6s ease-in-out">
       <div style="position: relative; width: clamp(240px, 34vw, 480px); aspect-ratio: 1; border-radius: 50%; box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.55); animation: spin 14s linear infinite; background: repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.16) 0 1px, transparent 1px 4px), conic-gradient(from 210deg, #e8ecf2 0%, #9aa2ae 12%, #e8ecf2 26%, #9aa2ae 40%, #fdfdfd 50%, #9aa2ae 62%, #e8ecf2 76%, #9aa2ae 90%, #e8ecf2 100%)" style-after="content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.35) 0%, transparent 45%); mix-blend-mode: soft-light">
-        <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 42%; aspect-ratio: 1; border-radius: 50%; background-image: url('art/1oUPauDyhV2zoX5DQ0AimS.jpg'); background-size: cover; background-position: center; box-shadow: 0 0 0 3px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5)" style-after="content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 7%; aspect-ratio: 1; border-radius: 50%; background: #0a0a0c; box-shadow: 0 0 0 2px rgba(255,255,255,0.25)"></div>
+        <div ref="{{ labelRef }}" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 42%; aspect-ratio: 1; border-radius: 50%; background-image: url('art/1oUPauDyhV2zoX5DQ0AimS.jpg'); background-size: cover; background-position: center; transition: opacity 0.55s ease; box-shadow: 0 0 0 3px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5)" style-after="content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 7%; aspect-ratio: 1; border-radius: 50%; background: #0a0a0c; box-shadow: 0 0 0 2px rgba(255,255,255,0.25)"></div>
       </div>
     </div>
     <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 clamp(24px, 4vw, 40px) clamp(28px, 4vh, 44px); position: relative; z-index: 15">
@@ -226,6 +235,17 @@ const WORKS = [
   {kind:"album",id:"31LfASzLxf7MaQBYEVoynx",title:"Lazy Dog",cat:"mm",art:"https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028e30754b8b4b93d17322d739"},
   {kind:"album",id:"6rUsvUuL7y1e38vt8ha8wX",title:"Home",cat:"mm",art:"https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02313730fbeaf9a6cf3db2bb1c"}
 ];
+// records that take a turn on the hero label, one per artist
+const HERO_LABEL_IDS = [
+  "1oUPauDyhV2zoX5DQ0AimS", // Born To Be
+  "50ZVsB1b6QeesAhyuc1QkM", // Lemuria
+  "33UKlSszMN2l6FTvsL5AWv", // Nothing Basic
+  "2KPkkPDpArz9G2i6102wjV", // Acid Incantation
+  "3mWvJ3SQFBo7FaLIPRDzzv", // Cloud Nine
+  "19k3Zv8uK4WvLEdUgBPCqg", // Signs
+  "7JyRapE8D0m1RqE2kc6948", // Horsetooth
+  "2bwq4RXItbm9SKAwCWMqj4"  // BLK.FERRYMEN
+];
 const CATS = [
   {idx:0,num:"01",cat:"m",name:"Mastered"},
   {idx:1,num:"02",cat:"mm",name:"Mixed & Mastered"},
@@ -306,12 +326,42 @@ class Component extends DCLogic {
       }
     };
     window.addEventListener('mousemove', this.onMouse, { passive: true });
+    // hero label: swap the record on the spindle every few seconds
+    const labelArt = HERO_LABEL_IDS
+      .map(id => WORKS.find(w => w.id === id))
+      .filter(Boolean)
+      .map(w => w.art || `art/${w.id}.jpg`);
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (this.labelEl && labelArt.length > 1 && !still) {
+      labelArt.forEach(src => { const im = new Image(); im.src = src; }); // preload so swaps never flash
+      // the next cover fades in on a twin layer, so the spindle is never left bare
+      const over = this.labelEl.cloneNode(false);
+      over.style.opacity = '0';
+      over.style.transition = 'opacity 0.7s ease';
+      this.labelEl.parentElement.appendChild(over);
+      let i = 0;
+      this.labelTimer = setInterval(() => {
+        if (!this.labelEl || document.hidden) return;
+        i = (i + 1) % labelArt.length;
+        over.style.backgroundImage = `url('${labelArt[i]}')`;
+        over.style.opacity = '1';
+        this.labelSwap = setTimeout(() => {
+          if (!this.labelEl) return;
+          this.labelEl.style.backgroundImage = `url('${labelArt[i]}')`;
+          over.style.transition = 'none';
+          over.style.opacity = '0';
+          requestAnimationFrame(() => { over.style.transition = 'opacity 0.7s ease'; });
+        }, 750);
+      }, 5200);
+    }
     this.update();
   }
   componentWillUnmount() {
     window.removeEventListener('scroll', this.onScroll);
     window.removeEventListener('mousemove', this.onMouse);
     if (this.io) this.io.disconnect();
+    if (this.labelTimer) clearInterval(this.labelTimer);
+    if (this.labelSwap) clearTimeout(this.labelSwap);
   }
   update() {
     const vh = window.innerHeight;
@@ -359,6 +409,7 @@ class Component extends DCLogic {
     return {
       rootRef: el => { this.root = el; },
       magnetRef: el => { this.magnetEl = el; },
+      labelRef: el => { this.labelEl = el; },
       marqRef: el => { this.marqEl = el; },
       row1Ref: el => { this.row1El = el; },
       row2Ref: el => { this.row2El = el; },
