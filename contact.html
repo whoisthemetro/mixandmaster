@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Book Mixing &amp; Mastering Online — METRO</title>
-<meta name="description" content="Book mixing and mastering online with METRO. Two prices, per song. Cheap: $100, one hour, a balance and a basic cleanup. Not so cheap: $500, the real job. Mix, master or both — same price either way.">
+<meta name="description" content="Book mixing and mastering online with METRO. Two prices, per song. Cheap: $100, one hour, a balance and a basic cleanup, back in 48 hours. Not so cheap: $500, the real job, back in a week. Mix, master or both — same price either way.">
 <link rel="canonical" href="https://whoisthemetro.com/mixandmaster/contact.html">
 <link rel="icon" type="image/png" href="art/favicon-m.png">
 <link rel="apple-touch-icon" href="art/apple-touch-m.png">
@@ -66,6 +66,7 @@ a:hover { color: #ff3366; }
                 <span style="{{ o.dotStyle }}"></span>
                 <span style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px">
                   <span style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.9rem">{{ o.label }}</span>
+                  <span style="font-weight: 600; font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase; color: #ff3366">{{ o.turn }}</span>
                   <span style="font-weight: 300; font-size: 0.62rem; line-height: 1.6; color: #888; text-align: left">{{ o.sub }}</span>
                 </span>
               </span>
@@ -241,7 +242,7 @@ class Component extends DCLogic {
     const s = this.state;
     const rows = [
       { k: 'Service', v: this.serviceName() },
-      { k: 'Tier', v: s.tier === 'cheap' ? 'Cheap (one hour)' : 'Not so cheap (the full job)' },
+      { k: 'Tier', v: s.tier === 'cheap' ? 'Cheap (one hour) · back in 48 hours' : 'Not so cheap (the full job) · back in a week' },
       { k: 'Songs', v: `${s.songs}` }
     ];
     if (s.service !== 'master') {
@@ -288,7 +289,7 @@ class Component extends DCLogic {
           email: s.email.trim(),
           service: this.serviceName(),
           songs: `${s.songs}`,
-          tier: s.tier === 'cheap' ? 'Cheap (one hour, basic balance + cleanup)' : 'Not so cheap (cleanup, tuning, alignment, automation)',
+          tier: s.tier === 'cheap' ? 'Cheap (one hour, basic balance + cleanup) — due back in 48 hours' : 'Not so cheap (cleanup, tuning, alignment, automation) — due back in a week',
           ...(s.service !== 'master' ? {
             sending: s.source === 'session' ? 'Full session file' : 'Individual tracks'
           } : {}),
@@ -319,8 +320,8 @@ class Component extends DCLogic {
     const missEmail = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email.trim());
     const field = ok => `min-width: 0; width: 100%; background: none; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; grid-column: auto; border: 1px solid ${!ok && s.tried ? '#ff3366' : '#3a3a42'}`;
     const cheap = s.tier === 'cheap';
-    const mkTier = (key, label, sub, price) => ({
-      label, sub, price,
+    const mkTier = (key, label, sub, price, turn) => ({
+      label, sub, price, turn,
       style: card(s.tier === key),
       dotStyle: dot(s.tier === key),
       pick: () => this.setState({ tier: key })
@@ -335,10 +336,10 @@ class Component extends DCLogic {
       priceOpts: [
         mkTier('cheap', 'Cheap',
           'one hour, max. a balance and a basic cleanup on stock plugins. no automation, no tuning, no deep surgery — and still better than what you sent me.',
-          `$${r.cheap}/song`),
+          `$${r.cheap}/song`, 'back in 48 hours'),
         mkTier('full', 'Not so cheap',
-          'the real job. cleanup, vocal tuning, alignment, automation, the whole chain. however long it takes.',
-          `$${r.full}/song`)
+          'the real job. cleanup, vocal tuning, alignment, automation, the whole chain.',
+          `$${r.full}/song`, 'back in a week')
       ],
       serviceOpts: [
         { label: 'Mix', style: btn(s.service === 'mix'), pick: () => this.setState({ service: 'mix' }) },
