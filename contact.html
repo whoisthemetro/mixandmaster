@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Book Mixing &amp; Mastering Online — METRO</title>
-<meta name="description" content="Book professional mixing and mastering online with METRO. Pick your service, get an instant quote by track count, and send your request. Mastering $75/song, mixing from $250/song.">
+<meta name="description" content="Book professional mixing and mastering online with METRO. Two tiers: a Quick Pass (one hour, basic balance and cleanup) from $25/song, or the Full job with cleanup, vocal tuning and automation from $50/song.">
 <link rel="canonical" href="https://whoisthemetro.com/mixandmaster/contact.html">
 <link rel="icon" type="image/png" href="art/favicon-m.png">
 <link rel="apple-touch-icon" href="art/apple-touch-m.png">
@@ -59,6 +59,12 @@ a:hover { color: #ff3366; }
     <div style="display: flex; flex-direction: column; gap: clamp(28px, 3.5vw, 44px)">
       <div style="display: flex; flex-direction: column; gap: 14px">
         <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">01 · What do you need?</span>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap">
+          <sc-for list="{{ tierOpts }}" as="t" hint-placeholder-count="2">
+            <button onClick="{{ t.pick }}" style="{{ t.style }}">{{ t.label }}</button>
+          </sc-for>
+        </div>
+        <span style="font-size: 0.62rem; font-weight: 300; line-height: 1.7; color: #888; max-width: 38rem">{{ tierNote }}</span>
         <div style="display: flex; flex-direction: column; gap: 10px">
           <sc-for list="{{ serviceOpts }}" as="o" hint-placeholder-count="3">
             <button onClick="{{ o.pick }}" style="{{ o.style }}">
@@ -207,20 +213,28 @@ a:hover { color: #ff3366; }
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;masterRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 75, &quot;min&quot;: 10, &quot;max&quot;: 500, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mixUpTo20Tracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 250, &quot;min&quot;: 50, &quot;max&quot;: 2000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mixAbove20Tracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 500, &quot;min&quot;: 50, &quot;max&quot;: 3000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}, &quot;mix50PlusTracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 1000, &quot;min&quot;: 50, &quot;max&quot;: 5000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;masterRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 50, &quot;min&quot;: 10, &quot;max&quot;: 500, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Full&quot;}, &quot;mixUpTo20Tracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 500, &quot;min&quot;: 50, &quot;max&quot;: 2000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Full&quot;}, &quot;mixAbove20Tracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 1000, &quot;min&quot;: 50, &quot;max&quot;: 3000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Full&quot;}, &quot;mix50PlusTracks&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 2000, &quot;min&quot;: 50, &quot;max&quot;: 5000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Full&quot;}, &quot;bundleRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 525, &quot;min&quot;: 50, &quot;max&quot;: 4000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Full&quot;}, &quot;quickMasterRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 25, &quot;min&quot;: 5, &quot;max&quot;: 500, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Quick Pass&quot;}, &quot;quickMixRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 100, &quot;min&quot;: 10, &quot;max&quot;: 1000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Quick Pass&quot;}, &quot;quickBundleRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 120, &quot;min&quot;: 10, &quot;max&quot;: 1000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Quick Pass&quot;}}">
 class Component extends DCLogic {
-  state = { service: 'master', songs: 1, source: 'tracks', tracks: 20, name: '', artist: '', email: '', notes: '', submitted: false, tried: false, sendStatus: 'idle', vw: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  state = { tier: 'full', service: 'master', songs: 1, source: 'tracks', tracks: 20, name: '', artist: '', email: '', notes: '', submitted: false, tried: false, sendStatus: 'idle', vw: typeof window !== 'undefined' ? window.innerWidth : 1200 };
   componentDidMount() {
     this._onResize = () => this.setState({ vw: window.innerWidth });
     window.addEventListener('resize', this._onResize);
   }
   componentWillUnmount() { window.removeEventListener('resize', this._onResize); }
+  // two tiers. QUICK PASS is one hour, flat — no track-count maths, because an
+  // hour is an hour whether the session has 8 tracks or 80. FULL is the real job
+  // and still prices off track count, because 100 tracks IS a different job than 15.
+  // the bundles are PRICES, not sums: 100 + 25 would be 125, the bundle is 120.
   rates() {
     return {
-      master: this.props.masterRate ?? 75,
-      mixTier1: this.props.mixUpTo20Tracks ?? 250,
-      mixTier2: this.props.mixAbove20Tracks ?? 500,
-      mixTier3: this.props.mix50PlusTracks ?? 1000
+      quickMaster: this.props.quickMasterRate ?? 25,
+      quickMix: this.props.quickMixRate ?? 100,
+      quickBundle: this.props.quickBundleRate ?? 120,
+      master: this.props.masterRate ?? 50,
+      mixTier1: this.props.mixUpTo20Tracks ?? 500,
+      mixTier2: this.props.mixAbove20Tracks ?? 1000,
+      mixTier3: this.props.mix50PlusTracks ?? 2000,
+      bundle: this.props.bundleRate ?? 525
     };
   }
   mixTier(tracks) {
@@ -231,28 +245,43 @@ class Component extends DCLogic {
   }
   calc() {
     const r = this.rates();
-    const { service, songs, tracks } = this.state;
+    const { tier, service, songs, tracks } = this.state;
     const ss = `${songs} song${songs > 1 ? 's' : ''}`;
     const items = [];
-    if (service === 'master') {
+    if (tier === 'quick') {
+      const name = { master: 'Mastering', mix: 'Mixing', mixmaster: 'Mix & Master' }[service];
+      const rate = { master: r.quickMaster, mix: r.quickMix, mixmaster: r.quickBundle }[service];
+      items.push({ label: `${name} · Quick Pass · ${ss} ($${rate}/song)`, amount: `$${rate * songs}` });
+    } else if (service === 'master') {
       items.push({ label: `Mastering · ${ss} ($${r.master}/song)`, amount: `$${r.master * songs}` });
+    } else if (service === 'mixmaster') {
+      // at the base tier the bundle has its own price; past 20 tracks there is no
+      // bundle number to quote, so it falls back to the tier plus a full master
+      const t = this.mixTier(tracks);
+      if (tracks <= 20) {
+        items.push({ label: `Mix & Master · ${ss} · ${t.label} ($${r.bundle}/song)`, amount: `$${r.bundle * songs}` });
+      } else {
+        items.push({ label: `Mixing · ${ss} · ${t.label} ($${t.rate}/song)`, amount: `$${t.rate * songs}` });
+        items.push({ label: `Mastering · ${ss} ($${r.master}/song)`, amount: `$${r.master * songs}` });
+      }
     } else {
       const t = this.mixTier(tracks);
       items.push({ label: `Mixing · ${ss} · ${t.label} ($${t.rate}/song)`, amount: `$${t.rate * songs}` });
-      if (service === 'mixmaster') items.push({ label: `Mastering · ${ss} ($${r.master}/song)`, amount: `$${r.master * songs}` });
     }
     return { items, total: items.reduce((sum, i) => sum + +i.amount.replace(/[$,]/g, ''), 0) };
   }
   serviceName() {
-    return { master: 'Mastering', mix: 'Mixing', mixmaster: 'Mix & Master' }[this.state.service];
+    const n = { master: 'Mastering', mix: 'Mixing', mixmaster: 'Mix & Master' }[this.state.service];
+    return this.state.tier === 'quick' ? `${n} · Quick Pass` : n;
   }
   recap(items, total) {
     const s = this.state;
     const rows = [
       { k: 'Service', v: this.serviceName() },
+      { k: 'Tier', v: s.tier === 'quick' ? 'Quick Pass (one hour)' : 'Full' },
       { k: 'Songs', v: `${s.songs}` }
     ];
-    if (s.service !== 'master') {
+    if (s.tier === 'full' && s.service !== 'master') {
       rows.push({ k: 'Sending', v: s.source === 'session' ? 'Full session file' : 'Individual tracks' });
       rows.push({ k: 'Tracks / song', v: `~${s.tracks} (${this.mixTier(s.tracks).label})` });
     }
@@ -266,8 +295,9 @@ class Component extends DCLogic {
     const subject = `Booking request: ${this.serviceName()} · ${s.artist.trim() || s.name.trim() || 'new client'}`;
     const lines = [
       `Service: ${this.serviceName()}`,
+      `Tier: ${s.tier === 'quick' ? 'Quick Pass (one hour, basic balance + cleanup)' : 'Full (cleanup, tuning, alignment, automation)'}`,
       `Songs: ${s.songs}`,
-      ...(s.service !== 'master' ? [
+      ...(s.tier === 'full' && s.service !== 'master' ? [
         `Sending: ${s.source === 'session' ? 'Full session file' : 'Individual tracks'}`,
         `Tracks per song: ~${s.tracks} (${this.mixTier(s.tracks).label})`
       ] : []),
@@ -323,10 +353,11 @@ class Component extends DCLogic {
       (on ? 'border: 2px solid #ff3366; color: #D7E2EA; background: rgba(255,51,102,0.06)' : 'border: 2px solid #26262c; color: #D7E2EA; background: none');
     const dot = on => `flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; transition: all 0.2s; ` +
       (on ? 'border: 5px solid #ff3366' : 'border: 2px solid #3a3a42');
-    const needsSource = s.service !== 'master';
+    const needsSource = s.tier === 'full' && s.service !== 'master';
     const missName = !s.name.trim();
     const missEmail = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email.trim());
     const field = ok => `min-width: 0; width: 100%; background: none; border-radius: 12px; padding: 14px 16px; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; grid-column: auto; border: 1px solid ${!ok && s.tried ? '#ff3366' : '#3a3a42'}`;
+    const quick = s.tier === 'quick';
     const mkSvc = (key, label, sub, price) => ({
       label, sub, price,
       style: card(s.service === key),
@@ -341,10 +372,23 @@ class Component extends DCLogic {
         : `display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); gap: clamp(20px, 3vw, 40px); max-width: 1100px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px) clamp(60px, 8vw, 100px); align-items: start`,
       summaryStickyStyle: isMobile ? 'position: static;' : 'position: sticky; top: 24px;',
       serviceOpts: [
-        mkSvc('master', 'Mastering', 'the final polish on your finished mix', `$${r.master}/song`),
-        mkSvc('mix', 'Mixing', 'price depends on track count', `from $${r.mixTier1}/song`),
-        mkSvc('mixmaster', 'Mix & Master', 'mixing plus mastering, one package', `from $${r.mixTier1 + r.master}/song`)
+        mkSvc('master', 'Mastering',
+          quick ? 'loud, clean, and done' : 'the final polish on your finished mix',
+          quick ? `$${r.quickMaster}/song` : `$${r.master}/song`),
+        mkSvc('mix', 'Mixing',
+          quick ? 'a balance and a basic cleanup' : 'price depends on track count',
+          quick ? `$${r.quickMix}/song` : `from $${r.mixTier1}/song`),
+        mkSvc('mixmaster', 'Mix & Master',
+          quick ? 'both, in the hour' : 'mixing plus mastering, one package',
+          quick ? `$${r.quickBundle}/song` : `from $${r.bundle}/song`)
       ],
+      tierOpts: [
+        { label: 'Quick Pass', style: btn(quick), pick: () => this.setState({ tier: 'quick' }) },
+        { label: 'Full', style: btn(!quick), pick: () => this.setState({ tier: 'full' }) }
+      ],
+      tierNote: quick
+        ? 'One hour, max. A balance and a basic cleanup on stock plugins — no automation, no vocal tuning, no deep surgery. It will still beat what you sent me.'
+        : 'The real job: cleanup, vocal tuning, alignment, automation, the whole chain. However long it takes.',
       songs: s.songs,
       songsDown: () => this.setState(st => ({ songs: Math.max(1, st.songs - 1) })),
       songsUp: () => this.setState(st => ({ songs: Math.min(30, st.songs + 1) })),
@@ -357,6 +401,7 @@ class Component extends DCLogic {
       tracks: s.tracks,
       setTracks: e => this.setState({ tracks: +e.target.value }),
       trackNote: `Up to 20 tracks: $${r.mixTier1}/song · 21–49 tracks: $${r.mixTier2}/song · 50+ tracks: $${r.mixTier3}/song. 100 tracks is a different job than 15.`,
+      quickTier: quick,
       stepInfo: needsSource ? '04' : '03',
       stepFiles: needsSource ? '05' : '04',
       name: s.name, setName: e => this.setState({ name: e.target.value }),
