@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Mixing &amp; Mastering Services — METRO</title>
-<meta name="description" content="Professional online mixing and mastering by METRO. Flat prices, per song, no track-count maths. Quick Pass: $25 master, $100 mix, $120 both. Full: $50 master, $500 mix, $525 both.">
+<meta name="description" content="Mixing and mastering by METRO. Two prices, per song. Cheap: $100, one hour, a balance and a basic cleanup. Not so cheap: $500, the real job — cleanup, vocal tuning, alignment, automation. Mix, master or both, same price either way.">
 <link rel="canonical" href="https://whoisthemetro.com/mixandmaster/">
 <link rel="icon" type="image/png" href="art/favicon-m.png">
 <link rel="apple-touch-icon" href="art/apple-touch-m.png">
@@ -31,15 +31,15 @@
   "image": "https://whoisthemetro.com/mixandmaster/art/og-card2.jpg",
   "description": "Professional online mixing and mastering for musicians and artists. Flat prices per song, instant quote, booking online.",
   "sameAs": ["https://www.instagram.com/whoisthemetro/"],
-  "priceRange": "$25-$525 per song",
+  "priceRange": "$100-$500 per song",
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
     "name": "Mixing & Mastering Services",
     "itemListElement": [
       {
         "@type": "Offer",
-        "itemOffered": {"@type": "Service", "name": "Mastering", "description": "The final polish on your finished mix. Quick Pass (one hour, loud and clean) or the full job."},
-        "priceSpecification": {"@type": "UnitPriceSpecification", "minPrice": 25, "maxPrice": 50, "priceCurrency": "USD", "unitText": "per song"}
+        "itemOffered": {"@type": "Service", "name": "Mastering", "description": "The final polish on your finished mix. Cheap (one hour, loud and clean) or the full job."},
+        "priceSpecification": {"@type": "UnitPriceSpecification", "minPrice": 100, "maxPrice": 500, "priceCurrency": "USD", "unitText": "per song"}
       },
       {
         "@type": "Offer",
@@ -49,7 +49,7 @@
       {
         "@type": "Offer",
         "itemOffered": {"@type": "Service", "name": "Mix & Master", "description": "Mixing plus mastering in one package."},
-        "priceSpecification": {"@type": "UnitPriceSpecification", "minPrice": 120, "maxPrice": 525, "priceCurrency": "USD", "unitText": "per song"}
+        "priceSpecification": {"@type": "UnitPriceSpecification", "minPrice": 100, "maxPrice": 500, "priceCurrency": "USD", "unitText": "per song"}
       }
     ]
   }
@@ -161,10 +161,19 @@ nav a:hover::after { transform: scaleX(1); }
   <!-- 4. SERVICES -->
   <section id="services" data-screen-label="Services" style="background: #fafafa; color: #0a0a0c; border-radius: clamp(40px, 5vw, 60px) clamp(40px, 5vw, 60px) 0 0; padding: clamp(80px, 10vw, 128px) clamp(20px, 4vw, 40px) clamp(120px, 14vw, 180px); position: relative">
     <h2 style="font-family: 'Bebas Neue', sans-serif; font-weight: 400; text-transform: uppercase; text-align: center; line-height: 0.9; margin: 0 0 clamp(64px, 8vw, 112px); font-size: clamp(3rem, 12vw, 10rem); color: #0a0a0c">Services</h2>
-    <div style="max-width: 1024px; margin: clamp(-52px, -6vw, -96px) auto clamp(56px, 7vw, 96px); padding: 0 4px; display: flex; flex-wrap: wrap; gap: clamp(16px, 3vw, 40px)">
-      <p style="flex: 1 1 280px; margin: 0; font-size: clamp(0.78rem, 1.3vw, 1rem); font-weight: 300; line-height: 1.7"><span style="display: block; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; font-size: clamp(0.62rem, 1vw, 0.78rem); color: #a8002f; margin-bottom: 6px">Quick Pass</span>One hour, max. A balance and a basic cleanup on stock plugins — no automation, no vocal tuning, no deep surgery. It will still beat what you sent me.</p>
-      <p style="flex: 1 1 280px; margin: 0; font-size: clamp(0.78rem, 1.3vw, 1rem); font-weight: 300; line-height: 1.7"><span style="display: block; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; font-size: clamp(0.62rem, 1vw, 0.78rem); color: #0a0a0c; margin-bottom: 6px">Full</span>The real job: cleanup, vocal tuning, alignment, automation, the whole chain. However long it takes. One price per song, however many tracks you send.</p>
+    <div style="max-width: 1024px; margin: clamp(-40px, -4.5vw, -72px) auto clamp(56px, 7vw, 96px); padding: 0 4px; display: flex; flex-wrap: wrap; gap: clamp(16px, 2.5vw, 28px)">
+      <div style="flex: 1 1 300px; border: 2px solid #0a0a0c; border-radius: 24px; padding: clamp(22px, 3vw, 34px)">
+        <span style="display: block; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; font-size: clamp(0.62rem, 1vw, 0.78rem); color: #a8002f">Cheap</span>
+        <span style="display: block; margin: 4px 0 12px; font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 7vw, 4.5rem); line-height: 1">$100<span style="font-family: 'IBM Plex Mono', monospace; font-size: clamp(0.7rem, 1.1vw, 0.9rem); font-weight: 300; opacity: 0.6">/song</span></span>
+        <span style="display: block; font-size: clamp(0.78rem, 1.3vw, 1rem); font-weight: 300; line-height: 1.7">One hour, max. A balance and a basic cleanup on stock plugins — no automation, no vocal tuning, no deep surgery. It will still beat what you sent me.</span>
+      </div>
+      <div style="flex: 1 1 300px; border: 2px solid rgba(12, 12, 12, 0.18); border-radius: 24px; padding: clamp(22px, 3vw, 34px)">
+        <span style="display: block; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; font-size: clamp(0.62rem, 1vw, 0.78rem); opacity: 0.65">Not so cheap</span>
+        <span style="display: block; margin: 4px 0 12px; font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 7vw, 4.5rem); line-height: 1">$500<span style="font-family: 'IBM Plex Mono', monospace; font-size: clamp(0.7rem, 1.1vw, 0.9rem); font-weight: 300; opacity: 0.6">/song</span></span>
+        <span style="display: block; font-size: clamp(0.78rem, 1.3vw, 1rem); font-weight: 300; line-height: 1.7">The real job: cleanup, vocal tuning, alignment, automation, the whole chain. However long it takes.</span>
+      </div>
     </div>
+    <p style="max-width: 1024px; margin: clamp(-36px, -4vw, -64px) auto clamp(56px, 7vw, 96px); padding: 0 4px; font-size: clamp(0.78rem, 1.3vw, 1rem); font-weight: 300; line-height: 1.7">Mixing, mastering, or both — same price either way, however many tracks you send. Production is quoted per project.</p>
     <div style="max-width: 1024px; margin: 0 auto; display: flex; flex-direction: column">
       <sc-for list="{{ services }}" as="s" hint-placeholder-count="3">
         <div data-fade="{{ s.fade }}" style="display: flex; flex-wrap: wrap; gap: clamp(20px, 4vw, 56px); align-items: flex-start; padding: clamp(32px, 4.5vw, 48px) 0; border-bottom: 1px solid rgba(12, 12, 12, 0.15)">
@@ -172,16 +181,6 @@ nav a:hover::after { transform: scaleX(1); }
           <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 10px; padding-top: clamp(2px, 1vw, 14px)">
             <span style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: clamp(1rem, 2.2vw, 2rem)">{{ s.name }}</span>
             <span style="font-weight: 300; line-height: 1.7; max-width: 42rem; font-size: clamp(0.85rem, 1.5vw, 1.2rem); opacity: 0.6">{{ s.desc }}</span>
-          </div>
-          <div style="margin-left: auto; padding-top: clamp(2px, 1vw, 14px); display: flex; align-items: flex-start; gap: clamp(18px, 3vw, 44px); white-space: nowrap">
-            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
-              <span style="font-size: clamp(0.58rem, 0.9vw, 0.7rem); font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #a8002f">Quick</span>
-              <span style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.5rem, 2.6vw, 2.2rem); line-height: 1">{{ s.quick }}</span>
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
-              <span style="font-size: clamp(0.58rem, 0.9vw, 0.7rem); font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.65">Full</span>
-              <span style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.8rem, 3.4vw, 3rem); line-height: 1">{{ s.full }}</span>
-            </div>
           </div>
         </div>
       </sc-for>
@@ -287,10 +286,10 @@ const CATS = [
   {idx:2,num:"03",cat:"pmm",name:"Produced, Mixed & Mastered"}
 ];
 const SERVICES = [
-  {num:"01",name:"Mixing",desc:"Balancing, shaping, and gluing your record until every element sits exactly where it should: punchy low end, clear vocals, and space for everything.",quick:"$100",full:"$500"},
-  {num:"02",name:"Mastering",desc:"The final polish: loudness, tone, and translation, so the record hits on club systems, car stereos, and earbuds alike.",quick:"$25",full:"$50"},
-  {num:"03",name:"Mix & Master",desc:"Both, as one job, at one price \u2014 raw tracks in, release-ready record out.",quick:"$120",full:"$525"},
-  {num:"04",name:"Production",desc:"Beats and full productions built from scratch or around your idea, from first sketch to release-ready.",quick:"\u2014",full:"by quote"}
+  {num:"01",name:"Mixing",desc:"Balancing, shaping, and gluing your record until every element sits exactly where it should: punchy low end, clear vocals, and space for everything."},
+  {num:"02",name:"Mastering",desc:"The final polish: loudness, tone, and translation, so the record hits on club systems, car stereos, and earbuds alike."},
+  {num:"03",name:"Mix & Master",desc:"Both, as one job, at one price \u2014 raw tracks in, release-ready record out."},
+  {num:"04",name:"Production",desc:"Beats and full productions built from scratch or around your idea, from first sketch to release-ready. Quoted per project."}
 ];
 
 class Component extends DCLogic {
