@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Mixing &amp; Mastering Services — METRO</title>
-<meta name="description" content="Professional online mixing and mastering by METRO. Hear released work and book online. Two tiers: a Quick Pass (one hour, basic balance and cleanup) from $25/song, or the Full job with cleanup, vocal tuning and automation from $50/song.">
+<meta name="description" content="Professional online mixing and mastering by METRO. Flat prices, per song, no track-count maths. Quick Pass: $25 master, $100 mix, $120 both. Full: $50 master, $500 mix, $525 both.">
 <link rel="canonical" href="https://whoisthemetro.com/mixandmaster/">
 <link rel="icon" type="image/png" href="art/favicon-m.png">
 <link rel="apple-touch-icon" href="art/apple-touch-m.png">
@@ -29,7 +29,7 @@
   "name": "METRO Mixing & Mastering",
   "url": "https://whoisthemetro.com/mixandmaster/",
   "image": "https://whoisthemetro.com/mixandmaster/art/og-card2.jpg",
-  "description": "Professional online mixing and mastering for musicians and artists. Instant quote by track count, booking online.",
+  "description": "Professional online mixing and mastering for musicians and artists. Flat prices per song, instant quote, booking online.",
   "sameAs": ["https://www.instagram.com/whoisthemetro/"],
   "priceRange": "$25-$525 per song",
   "hasOfferCatalog": {
@@ -43,13 +43,13 @@
       },
       {
         "@type": "Offer",
-        "itemOffered": {"@type": "Service", "name": "Mixing", "description": "Full mix from your session or individual tracks. Price depends on track count."},
-        "priceSpecification": {"@type": "UnitPriceSpecification", "minPrice": 100, "priceCurrency": "USD", "unitText": "per song"}
+        "itemOffered": {"@type": "Service", "name": "Mixing", "description": "Full mix from your session or individual tracks. One flat price per song."},
+        "priceSpecification": {"@type": "UnitPriceSpecification", "minPrice": 100, "maxPrice": 500, "priceCurrency": "USD", "unitText": "per song"}
       },
       {
         "@type": "Offer",
         "itemOffered": {"@type": "Service", "name": "Mix & Master", "description": "Mixing plus mastering in one package."},
-        "priceSpecification": {"@type": "UnitPriceSpecification", "minPrice": 120, "priceCurrency": "USD", "unitText": "per song"}
+        "priceSpecification": {"@type": "UnitPriceSpecification", "minPrice": 120, "maxPrice": 525, "priceCurrency": "USD", "unitText": "per song"}
       }
     ]
   }
@@ -163,7 +163,7 @@ nav a:hover::after { transform: scaleX(1); }
     <h2 style="font-family: 'Bebas Neue', sans-serif; font-weight: 400; text-transform: uppercase; text-align: center; line-height: 0.9; margin: 0 0 clamp(64px, 8vw, 112px); font-size: clamp(3rem, 12vw, 10rem); color: #0a0a0c">Services</h2>
     <div style="max-width: 1024px; margin: clamp(-52px, -6vw, -96px) auto clamp(56px, 7vw, 96px); padding: 0 4px; display: flex; flex-wrap: wrap; gap: clamp(16px, 3vw, 40px)">
       <p style="flex: 1 1 280px; margin: 0; font-size: clamp(0.78rem, 1.3vw, 1rem); font-weight: 300; line-height: 1.7"><span style="display: block; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; font-size: clamp(0.62rem, 1vw, 0.78rem); color: #a8002f; margin-bottom: 6px">Quick Pass</span>One hour, max. A balance and a basic cleanup on stock plugins — no automation, no vocal tuning, no deep surgery. It will still beat what you sent me.</p>
-      <p style="flex: 1 1 280px; margin: 0; font-size: clamp(0.78rem, 1.3vw, 1rem); font-weight: 300; line-height: 1.7"><span style="display: block; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; font-size: clamp(0.62rem, 1vw, 0.78rem); color: #0a0a0c; margin-bottom: 6px">Full</span>The real job: cleanup, vocal tuning, alignment, automation, the whole chain. However long it takes. Mixing prices step up with track count.</p>
+      <p style="flex: 1 1 280px; margin: 0; font-size: clamp(0.78rem, 1.3vw, 1rem); font-weight: 300; line-height: 1.7"><span style="display: block; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; font-size: clamp(0.62rem, 1vw, 0.78rem); color: #0a0a0c; margin-bottom: 6px">Full</span>The real job: cleanup, vocal tuning, alignment, automation, the whole chain. However long it takes. One price per song, however many tracks you send.</p>
     </div>
     <div style="max-width: 1024px; margin: 0 auto; display: flex; flex-direction: column">
       <sc-for list="{{ services }}" as="s" hint-placeholder-count="3">
@@ -287,9 +287,9 @@ const CATS = [
   {idx:2,num:"03",cat:"pmm",name:"Produced, Mixed & Mastered"}
 ];
 const SERVICES = [
-  {num:"01",name:"Mixing",desc:"Balancing, shaping, and gluing your record until every element sits exactly where it should: punchy low end, clear vocals, and space for everything.",quick:"$100",full:"from $500"},
+  {num:"01",name:"Mixing",desc:"Balancing, shaping, and gluing your record until every element sits exactly where it should: punchy low end, clear vocals, and space for everything.",quick:"$100",full:"$500"},
   {num:"02",name:"Mastering",desc:"The final polish: loudness, tone, and translation, so the record hits on club systems, car stereos, and earbuds alike.",quick:"$25",full:"$50"},
-  {num:"03",name:"Mix & Master",desc:"Both, as one job, at one price \u2014 raw tracks in, release-ready record out.",quick:"$120",full:"from $525"},
+  {num:"03",name:"Mix & Master",desc:"Both, as one job, at one price \u2014 raw tracks in, release-ready record out.",quick:"$120",full:"$525"},
   {num:"04",name:"Production",desc:"Beats and full productions built from scratch or around your idea, from first sketch to release-ready.",quick:"\u2014",full:"by quote"}
 ];
 
