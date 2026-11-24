@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Book Mixing &amp; Mastering Online — METRO</title>
-<meta name="description" content="Holiday special at METRO. Mastering $20 cheap or $50 for the real thing. Mixing $100 cheap or $500 for the real thing, mastering included. Per song. Back in 48 hours, or a week.">
+<meta name="description" content="Holiday special at METRO. Got a beat and your vocals? $20 a song, back in 48 hours. Mastering a finished mix is $20 too. A whole session is $100. The real job — tuning, alignment, automation — is $500 a mix, $50 a master.">
 <link rel="canonical" href="https://whoisthemetro.com/mixandmaster/contact.html">
 <link rel="icon" type="image/png" href="art/favicon-m.png">
 <link rel="apple-touch-icon" href="art/apple-touch-m.png">
@@ -66,7 +66,16 @@ a:hover { color: #ff3366; }
           </sc-for>
         </div>
         <span style="font-size: 0.62rem; font-weight: 300; line-height: 1.7; color: #888; max-width: 38rem">{{ serviceNote }}</span>
-        <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888; margin-top: 12px">02 · How much of me do you want?</span>
+        <sc-if value="{{ needsSource }}" hint-placeholder-val="{{ true }}">
+          <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888; margin-top: 12px">02 · What are you sending me?</span>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <button onClick="{{ pickSimple }}" style="{{ simpleStyle }}">A beat and my vocals</button>
+            <button onClick="{{ pickTracks }}" style="{{ tracksStyle }}">Individual tracks</button>
+            <button onClick="{{ pickSession }}" style="{{ sessionStyle }}">A full session</button>
+          </div>
+          <span style="font-size: 0.62rem; font-weight: 300; line-height: 1.7; color: #888; max-width: 38rem">{{ sourceNote }}</span>
+        </sc-if>
+        <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888; margin-top: 12px">{{ stepTier }} · How much of me do you want?</span>
         <div style="display: flex; flex-direction: column; gap: 10px">
           <sc-for list="{{ priceOpts }}" as="o" hint-placeholder-count="2">
             <button onClick="{{ o.pick }}" style="{{ o.style }}">
@@ -85,23 +94,13 @@ a:hover { color: #ff3366; }
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 14px">
-        <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">03 · How many songs?</span>
+        <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">{{ stepSongs }} · How many songs?</span>
         <div style="display: flex; align-items: center; gap: 18px">
           <button onClick="{{ songsDown }}" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a3a42; background: none; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; cursor: pointer" style-hover="border-color: #ff3366; color: #ff3366">−</button>
           <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; min-width: 64px; text-align: center">{{ songs }}</span>
           <button onClick="{{ songsUp }}" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a3a42; background: none; color: #D7E2EA; font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; cursor: pointer" style-hover="border-color: #ff3366; color: #ff3366">+</button>
         </div>
       </div>
-
-      <sc-if value="{{ needsSource }}" hint-placeholder-val="{{ true }}">
-        <div style="display: flex; flex-direction: column; gap: 14px">
-          <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">04 · Sending a session or individual tracks?</span>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap">
-            <button onClick="{{ pickSession }}" style="{{ sessionStyle }}">Full session file</button>
-            <button onClick="{{ pickTracks }}" style="{{ tracksStyle }}">Individual tracks</button>
-          </div>
-        </div>
-      </sc-if>
 
       <div style="display: flex; flex-direction: column; gap: 14px">
         <span style="font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: #888">{{ stepInfo }} · Your info</span>
@@ -208,7 +207,7 @@ a:hover { color: #ff3366; }
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;cheapRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 100, &quot;min&quot;: 10, &quot;max&quot;: 2000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Cheap&quot;}, &quot;fullRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 500, &quot;min&quot;: 50, &quot;max&quot;: 5000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Not so cheap&quot;}, &quot;cheapMasterRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 20, &quot;min&quot;: 5, &quot;max&quot;: 500, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Cheap&quot;}, &quot;fullMasterRate&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 50, &quot;min&quot;: 5, &quot;max&quot;: 1000, &quot;unit&quot;: &quot;$&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Pricing · Not so cheap&quot;}}">
 class Component extends DCLogic {
-  state = { tier: 'cheap', service: 'mixmaster', songs: 1, source: 'tracks', name: '', artist: '', email: '', notes: '', submitted: false, tried: false, sendStatus: 'idle', vw: typeof window !== 'undefined' ? window.innerWidth : 1200 };
+  state = { tier: 'cheap', service: 'mixmaster', songs: 1, source: 'simple', name: '', artist: '', email: '', notes: '', submitted: false, tried: false, sendStatus: 'idle', vw: typeof window !== 'undefined' ? window.innerWidth : 1200 };
   componentDidMount() {
     this._onResize = () => this.setState({ vw: window.innerWidth });
     window.addEventListener('resize', this._onResize);
@@ -231,20 +230,27 @@ class Component extends DCLogic {
       full: this.props.fullRate ?? 500
     };
   }
-  rateFor(tier, service) {
+  // $20 is an hour of my time, whatever shape it arrives in: mastering a
+  // finished mix, or balancing a beat against a vocal take. a whole session
+  // is more than an hour of listening before a fader moves, so that one is
+  // $100. the real job is priced on the work, not on the file count.
+  rateFor(tier, service, source) {
     const r = this.rates();
     const masterOnly = service === 'master';
-    if (tier === 'cheap') return masterOnly ? r.cheapMaster : r.cheap;
+    if (tier === 'cheap') return (masterOnly || source === 'simple') ? r.cheapMaster : r.cheap;
     return masterOnly ? r.fullMaster : r.full;
   }
   calc() {
     const r = this.rates();
-    const { tier, service, songs } = this.state;
-    const rate = this.rateFor(tier, service);
+    const { tier, service, songs, source } = this.state;
+    const rate = this.rateFor(tier, service, source);
     const ss = `${songs} song${songs > 1 ? 's' : ''}`;
     const name = { master: 'Mastering', mix: 'Mixing', mixmaster: 'Mix & Master' }[service];
     const label = `${name} · ${tier === 'cheap' ? 'Cheap' : 'Not so cheap'} · ${ss} ($${rate}/song)`;
     return { items: [{ label, amount: `$${rate * songs}` }], total: rate * songs };
+  }
+  sourceName() {
+    return { simple: 'A beat and their vocals', session: 'Full session file', tracks: 'Individual tracks' }[this.state.source] || 'Individual tracks';
   }
   serviceName() {
     const n = { master: 'Mastering', mix: 'Mixing', mixmaster: 'Mix & Master' }[this.state.service];
@@ -258,7 +264,7 @@ class Component extends DCLogic {
       { k: 'Songs', v: `${s.songs}` }
     ];
     if (s.service !== 'master') {
-      rows.push({ k: 'Sending', v: s.source === 'session' ? 'Full session file' : 'Individual tracks' });
+      rows.push({ k: 'Sending', v: this.sourceName() });
     }
     if (s.name.trim()) rows.push({ k: 'Name', v: s.name.trim() });
     if (s.artist.trim()) rows.push({ k: 'Artist', v: s.artist.trim() });
@@ -273,7 +279,7 @@ class Component extends DCLogic {
       `Tier: ${s.tier === 'cheap' ? 'Cheap (one hour, basic balance + cleanup)' : 'Not so cheap (cleanup, tuning, alignment, automation)'}`,
       `Songs: ${s.songs}`,
       ...(s.service !== 'master' ? [
-        `Sending: ${s.source === 'session' ? 'Full session file' : 'Individual tracks'}`
+        `Sending: ${this.sourceName()}`
       ] : []),
       '',
       ...items.map(i => `${i.label}: ${i.amount}`),
@@ -303,7 +309,7 @@ class Component extends DCLogic {
           songs: `${s.songs}`,
           tier: s.tier === 'cheap' ? 'Cheap (one hour, basic balance + cleanup) — due back in 48 hours' : 'Not so cheap (cleanup, tuning, alignment, automation) — due back in a week',
           ...(s.service !== 'master' ? {
-            sending: s.source === 'session' ? 'Full session file' : 'Individual tracks'
+            sending: this.sourceName()
           } : {}),
           order: items.map(i => `${i.label}: ${i.amount}`).join(' | '),
           total: `$${total}`,
@@ -347,11 +353,15 @@ class Component extends DCLogic {
       summaryStickyStyle: isMobile ? 'position: static;' : 'position: sticky; top: 24px;',
       priceOpts: [
         mkTier('cheap', 'Cheap',
-          'one hour, max. a balance and a basic cleanup on stock plugins. no automation, no tuning, no deep surgery — and still better than what you sent me.',
-          `$${this.rateFor('cheap', s.service)}/song`, 'back in 48 hours'),
+          s.service === 'master'
+            ? 'one hour, max. tone, loudness and a clean ceiling, so it holds up next to anything else in the playlist.'
+            : 'one hour, max. a balance and a basic cleanup on stock plugins. no automation, no tuning, no deep surgery — and still better than what you sent me.',
+          `$${this.rateFor('cheap', s.service, s.source)}/song`, 'back in 48 hours'),
         mkTier('full', 'Not so cheap',
-          'the real job. cleanup, vocal tuning, alignment, automation, the whole chain.',
-          `$${this.rateFor('full', s.service)}/song`, 'back in a week')
+          s.service === 'master'
+            ? 'the real job. tone, depth, dynamics and translation — checked on speakers, in a car and on earbuds before it goes back.'
+            : 'the real job. cleanup, vocal tuning, alignment, automation, the whole chain.',
+          `$${this.rateFor('full', s.service, s.source)}/song`, 'back in a week')
       ],
       serviceNote: s.service === 'master'
         ? 'Mastering on its own — you send me a finished mix and I make it loud, clean and ready.'
@@ -366,10 +376,17 @@ class Component extends DCLogic {
       songsUp: () => this.setState(st => ({ songs: Math.min(30, st.songs + 1) })),
       needsSource,
       isTracks: s.source === 'tracks',
+      simpleStyle: btn(s.source === 'simple'),
       sessionStyle: btn(s.source === 'session'),
       tracksStyle: btn(s.source === 'tracks'),
+      pickSimple: () => this.setState({ source: 'simple' }),
       pickSession: () => this.setState({ source: 'session' }),
       pickTracks: () => this.setState({ source: 'tracks' }),
+      sourceNote: s.source === 'simple'
+        ? `Two files \u2014 the instrumental and your vocal take. That is the $${r.cheapMaster} door.`
+        : 'More than a couple of files, so the quick pass costs a bit more.',
+      stepTier: needsSource ? '03' : '02',
+      stepSongs: needsSource ? '04' : '03',
       stepInfo: needsSource ? '05' : '04',
       stepFiles: needsSource ? '06' : '05',
       name: s.name, setName: e => this.setState({ name: e.target.value }),
